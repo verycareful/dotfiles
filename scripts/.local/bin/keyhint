@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# keyhint — searchable cheatsheet of the live Hyprland keybinds, via rofi.
+set -euo pipefail
+hyprctl binds -j | python3 -c '
+import json,sys
+mods={64:"SUPER",1:"SHIFT",4:"CTRL",8:"ALT"}
+rows=[]
+for b in json.load(sys.stdin):
+    m=b["modmask"]; names=[n for bit,n in mods.items() if m & bit]
+    key=b["key"] or f"code:{b["keycode"]}"
+    combo=" + ".join(names+[key])
+    act=f"{b["dispatcher"]} {b["arg"]}".strip()
+    rows.append(f"{combo:<26} {act}")
+print("\n".join(sorted(rows)))' | rofi -dmenu -i -p "keys" -theme-str 'window {width: 60%;}' >/dev/null || true

@@ -1,0 +1,120 @@
+/* Waybar — "Harbour" palette (see palette.md). Sharp corners, glass bar. */
+
+@define-color base     #0b0e17;
+@define-color mantle   #111624;
+@define-color surface  #182036;
+@define-color overlay  #243052;
+@define-color navy     #2f4fa0;
+@define-color navyBr   #4b6fd6;
+@define-color orange   #ff8c32;
+@define-color orangeDm #c86a1e;
+@define-color text     #e4e8f4;
+@define-color subtext  #9aa3bd;
+@define-color muted    #5d6784;
+@define-color red      #f0566a;
+@define-color green    #5fc98a;
+@define-color yellow   #f2c14e;
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Noto Sans", sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    min-height: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    text-shadow: none;
+}
+
+window#waybar {
+    background: alpha(@mantle, 0.78);     /* glass: Hyprland blurs behind this */
+    color: @text;
+    border-bottom: 1px solid alpha(@overlay, 0.9);
+}
+
+tooltip {
+    background: alpha(@mantle, 0.96);
+    border: 1px solid @overlay;
+    color: @text;
+}
+tooltip label { padding: 4px; }
+
+/* every module: even padding, thin separators via margin */
+.modules-left  > widget > *,
+.modules-right > widget > * {
+    padding: 0 11px;
+    margin: 5px 0;
+    color: @subtext;
+    background: transparent;
+}
+.modules-left  > widget:first-child > * { margin-left: 8px; }
+.modules-right > widget:last-child  > * { margin-right: 8px; }
+
+/* hairline dividers between right-side modules */
+.modules-right > widget > * { border-left: 1px solid alpha(@overlay, 0.6); }
+.modules-right > widget:first-child > * { border-left: none; }
+
+/* ── left ─────────────────────────────────────────────────── */
+#clock.time {
+    color: @text;
+    font-weight: 700;
+    font-size: 14px;
+    padding-right: 4px;
+}
+#clock.date { color: @subtext; padding-left: 4px; }
+
+#idle-inhibitor { font-size: 15px; }
+#idle-inhibitor.activated { color: @orange; }
+
+#custom-weather { color: @subtext; }
+
+/* ── centre: workspaces ───────────────────────────────────── */
+#workspaces {
+    margin: 5px 0;
+    padding: 0 4px;
+    background: alpha(@base, 0.55);
+    border: 1px solid alpha(@overlay, 0.6);
+}
+#workspaces button {
+    padding: 0 9px;
+    margin: 3px 2px;
+    color: @muted;
+    background: transparent;
+    font-size: 9px;
+    transition: all 150ms ease;
+}
+#workspaces button:hover { color: @navyBr; background: alpha(@surface, 0.7); }
+#workspaces button.active {
+    color: @orange;
+    background: alpha(@navy, 0.55);
+    padding: 0 14px;
+}
+#workspaces button.urgent { color: @base; background: @orange; }
+#workspaces button.empty  { color: alpha(@muted, 0.45); }
+
+/* ── right ────────────────────────────────────────────────── */
+#mpris { color: @text; font-style: normal; }
+#mpris.paused { color: @muted; }
+
+#cpu, #memory, #custom-gpu { color: @subtext; }
+#cpu.warning,  #memory.warning,  #custom-gpu.warning  { color: @yellow; }
+#cpu.critical, #memory.critical, #custom-gpu.critical { color: @red; }
+
+#network { font-size: 15px; }
+#network.disconnected { color: @red; }
+
+#wireplumber.muted { color: @muted; }
+
+#tray { padding: 0 8px; }
+#tray > .passive { -gtk-icon-effect: dim; }
+#tray > .needs-attention { -gtk-icon-effect: highlight; }
+
+#custom-notifications { font-size: 15px; }
+#custom-keyhint { font-size: 15px; }
+
+#custom-power {
+    color: @orange;
+    font-size: 14px;
+    padding: 0 12px 0 12px;
+}
+#custom-power:hover { color: @base; background: @orange; }

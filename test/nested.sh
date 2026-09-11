@@ -28,8 +28,10 @@ export PATH="$REPO/scripts/.local/bin:$PATH"
 export XDG_CONFIG_HOME="$TMP/config"      # so waybar/rofi/etc pick up repo copies
 mkdir -p "$TMP/config"
 for pkg in waybar rofi kitty swaync; do
-    [[ -d "$REPO/$pkg/.config/$pkg" ]] && ln -s "$REPO/$pkg/.config/$pkg" "$TMP/config/$pkg"
+    [[ -d "$REPO/$pkg/.config/$pkg" ]] && cp -r "$REPO/$pkg/.config/$pkg" "$TMP/config/$pkg"
 done
+# configs reference ~/.local/bin/<script>; point them at the repo copies instead
+grep -rl '~/.local/bin/' "$TMP" | xargs -r sed -i "s#~/.local/bin/#$REPO/scripts/.local/bin/#g"
 
 echo "config: $TMP/hyprland.conf"
 echo "Focus the nested window and use ALT+... inside it (ALT+Enter, ALT+Q, ALT+1…). Close it to quit."

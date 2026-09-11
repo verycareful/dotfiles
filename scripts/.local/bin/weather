@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# weather — wttr.in for Waybar, cached 30 min so the bar never blocks on network.
+#   WEATHER_LOC="Chennai" to pin a city; empty = geolocate by IP.
+set -uo pipefail
+LOC="${WEATHER_LOC:-}"
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/weather.json"
+if [[ -s "$CACHE" && $(( $(date +%s) - $(stat -c %Y "$CACHE") )) -lt 1800 ]]; then cat "$CACHE"; exit 0; fi
+
+text=$(curl -sf -m 8 "wttr.in/${LOC}?format=%c+%t" | sed 's/+//; s/  */ /g') || text=""
+tip=$(curl -sf -m 8 "wttr.in/${LOC}?format=%l%0A%C+%t+(feels+%f)%0A%h+humidity+·+%w+wind%0A%p+rain+·+%P" | sed 's/+//g') || tip=""
+if [[ -z "$text" ]]; then
+    [[ -s "$CACHE" ]] && cat "$CACHE" || echo '{"text":"󰖐 --","tooltip":"weather unavailable","class":"disabled"}'
+    exit 0
+fi
+python3 -c 'import json,sys; print(json.dumps({"text":sys.argv[1],"tooltip":sys.argv[2],"class":"normal"}))' "$text" "$tip" | tee "$CACHE"
