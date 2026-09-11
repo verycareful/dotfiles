@@ -1,0 +1,85 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+# starship — two-line "Harbour" prompt
+#   line 1: path · git branch/status · language · duration · exit code
+#   line 2: ❯
+
+add_newline = true
+format = """
+$directory$git_branch$git_status$python$nodejs$rust$c$cmd_duration$status
+$character"""
+
+palette = "harbour"
+[palettes.harbour]
+navy    = "#4b6fd6"
+orange  = "#ff8c32"
+text    = "#e4e8f4"
+subtext = "#9aa3bd"
+muted   = "#5d6784"
+red     = "#f0566a"
+green   = "#5fc98a"
+yellow  = "#f2c14e"
+
+[directory]
+style = "bold text"
+format = " [$path]($style)[$read_only]($read_only_style) "
+truncation_length = 4
+truncate_to_repo = false
+truncation_symbol = "…/"
+read_only = " 󰌾"
+read_only_style = "muted"
+[directory.substitutions]
+"~/Sonnenplatz/Projects/Github" = "󰊤"
+"~/Sonnenplatz/Projects"        = "󰉋 Projects"
+"~/Sonnenplatz"                 = "󰋜"
+
+[git_branch]
+symbol = " "
+style = "navy"
+format = "on [$symbol$branch]($style) "
+
+[git_status]
+style = "orange"
+format = "[$all_status$ahead_behind]($style) "
+conflicted = "= "
+ahead      = "⇡${count} "
+behind     = "⇣${count} "
+diverged   = "⇕⇡${ahead_count}⇣${behind_count} "
+untracked  = "?${count} "
+stashed    = "*${count} "
+modified   = "!${count} "
+staged     = "+${count} "
+renamed    = "»${count} "
+deleted    = "✘${count} "
+
+[python]
+symbol = " "
+style = "subtext"
+format = "[$symbol$version( $virtualenv)]($style) "
+[nodejs]
+symbol = " "
+style = "subtext"
+format = "[$symbol$version]($style) "
+[rust]
+symbol = " "
+style = "subtext"
+format = "[$symbol$version]($style) "
+[c]
+symbol = " "
+style = "subtext"
+format = "[$symbol$version]($style) "
+
+[cmd_duration]
+min_time = 2000
+style = "muted"
+format = "took [$duration]($style) "
+
+[status]
+disabled = false
+style = "red"
+symbol = "✘ "
+format = "[$symbol$status]($style) "
+
+[character]
+success_symbol = "[❯](bold orange)"
+error_symbol   = "[❯](bold red)"
+vimcmd_symbol  = "[❮](bold navy)"

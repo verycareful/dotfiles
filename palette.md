@@ -19,5 +19,7 @@ Every config references these names; change a value here and propagate.
 | red         | `#f0566a` | errors, critical battery                 |
 | green       | `#5fc98a` | ok states                                |
 | yellow      | `#f2c14e` | warnings                                 |
+| magenta     | `#b07cf0` | terminal ANSI 5 only                     |
+| cyan        | `#5ec4d6` | terminal ANSI 6 only                     |
 
 Glass: surfaces use the hex above at ~70–85% alpha with Hyprland blur behind.

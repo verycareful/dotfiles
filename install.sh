@@ -5,7 +5,7 @@
 #   ./install.sh -D hypr    unstow (remove symlinks)
 set -euo pipefail
 cd "$(dirname "$0")"
-ALL=(hypr waybar rofi kitty fish swaync wlogout scripts)
+ALL=(hypr waybar rofi kitty fish swaync wlogout gtk qt scripts)
 op=""
 [[ "${1:-}" == "-D" ]] && { op="-D"; shift; }
 pkgs=("${@:-${ALL[@]}}")
