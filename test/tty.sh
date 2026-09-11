@@ -23,6 +23,19 @@ cp -r "$REPO/hypr/.config/hypr/." "$TMP/"
 sed -i "s#~/.config/hypr/#$TMP/#g" "$TMP/hyprland.conf" "$TMP/hyprlock.conf"
 # always have a terminal on screen so the session is never "empty"
 echo 'exec-once = kitty' >> "$TMP/hyprland.conf"
+# user units would bind to the login session's Wayland display, so run those programs directly here
+python3 - "$TMP/conf.d/autostart.conf" <<'PY'
+import sys, re
+p = sys.argv[1]; out = []
+for line in open(p):
+    m = re.match(r'exec-once = systemctl --user start (.*)', line.strip())
+    if m:
+        for unit in m.group(1).split():
+            out.append('exec-once = ' + ('/usr/lib/hyprpolkitagent' if unit == 'hyprpolkitagent' else unit) + '\n')
+    else:
+        out.append(line)
+open(p, 'w').write(''.join(out))
+PY
 
 # every other tool reads its config from XDG_CONFIG_HOME → temp copies
 for pkg in waybar rofi kitty swaync wlogout; do

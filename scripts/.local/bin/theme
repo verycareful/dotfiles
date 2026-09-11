@@ -70,7 +70,8 @@ reload() {
     command -v hyprctl >/dev/null && hyprctl reload >/dev/null 2>&1 || true   # also re-runs the cursor exec
     local cur; cur=$(sed -n 's/^cursor=//p' "$REPO/themes/$(current).theme")
     [[ -n "$cur" ]] && command -v gsettings >/dev/null && gsettings set org.gnome.desktop.interface cursor-theme "$cur" 2>/dev/null || true
-    pkill -USR2 waybar 2>/dev/null || true                      # reload config + css
+    # waybar 0.15 crashes on SIGUSR2/hyprctl reload, so restart it instead of signalling
+    if systemctl --user is-active -q waybar; then systemctl --user restart waybar; else pkill -x waybar; (setsid waybar >/dev/null 2>&1 &); fi
     command -v swaync-client >/dev/null && { swaync-client -R >/dev/null 2>&1; swaync-client -rs >/dev/null 2>&1; } || true
     for s in /tmp/kitty-*; do                                   # recolour open terminals
         [[ -S "$s" ]] && kitty @ --to "unix:$s" set-colors --all --configured "$CFG/kitty/colors.conf" >/dev/null 2>&1 || true
