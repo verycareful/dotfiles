@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# untray — rofi picker over windows hidden with SUPER+M (special:tray); brings the chosen one to the current workspace.
+set -euo pipefail
+list=$(hyprctl clients -j | jq -r '.[] | select(.workspace.name == "special:tray") | "\(.class)  ·  \(.title)\t\(.address)"')
+[[ -n "$list" ]] || { notify-send -a untray "Tray" "no hidden windows" 2>/dev/null; exit 0; }
+choice=$(cut -f1 <<<"$list" | rofi -dmenu -i -p "hidden" -theme-str 'window {width: 50%;}') || exit 0
+addr=$(grep -F "$choice" <<<"$list" | head -1 | cut -f2)
+ws=$(hyprctl activeworkspace -j | jq -r '.id')
+hyprctl dispatch movetoworkspace "$ws,address:$addr" >/dev/null
+hyprctl dispatch focuswindow "address:$addr" >/dev/null
