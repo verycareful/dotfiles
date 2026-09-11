@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# session-start — launch the desktop services from Hyprland's exec-once.
+# Prefers the systemd user units (auto-restart on crash). With uwsm the
+# graphical-session.target is up before Hyprland runs exec-once; with a plain
+# Hyprland login it appears a moment later, so wait for it briefly and fall
+# back to running the programs directly if it never comes.
+set -uo pipefail
+units=(waybar swaync hypridle hyprsunset hyprpolkitagent)
+for _ in $(seq 1 40); do systemctl --user is-active -q graphical-session.target && break; sleep 0.25; done
+if systemctl --user is-active -q graphical-session.target; then
+    systemctl --user import-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP 2>/dev/null || true
+    systemctl --user start "${units[@]}"
+else
+    for u in "${units[@]}"; do
+        pgrep -x "$u" >/dev/null && continue
+        case "$u" in hyprpolkitagent) cmd=/usr/lib/hyprpolkitagent ;; *) cmd="$u" ;; esac
+        setsid "$cmd" >/dev/null 2>&1 &
+    done
+fi

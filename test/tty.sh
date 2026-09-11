@@ -28,9 +28,9 @@ python3 - "$TMP/conf.d/autostart.conf" <<'PY'
 import sys, re
 p = sys.argv[1]; out = []
 for line in open(p):
-    m = re.match(r'exec-once = systemctl --user start (.*)', line.strip())
+    m = re.match(r'exec-once = (?:systemctl --user start (.*)|~/.local/bin/session-start)', line.strip())
     if m:
-        for unit in m.group(1).split():
+        for unit in (m.group(1) or 'waybar swaync hypridle hyprsunset hyprpolkitagent').split():
             out.append('exec-once = ' + ('/usr/lib/hyprpolkitagent' if unit == 'hyprpolkitagent' else unit) + '\n')
     else:
         out.append(line)
