@@ -28,9 +28,10 @@ for line in open(theme_file):
     line = line.split('#', 1)[0].strip()
     if '=' in line:
         k, val = line.split('=', 1); v[k.strip()] = val.strip()
-for k, val in list(v.items()):                    # {{x_rgb}} → "r, g, b" for rgba()
+for k, val in list(v.items()):                    # {{x_rgb}} → "r, g, b" for rgba(); {{x_ansi}} → "38;2;r;g;b"
     if re.fullmatch(r'[0-9a-fA-F]{6}', val):
-        v[k + '_rgb'] = ', '.join(str(int(val[i:i+2], 16)) for i in (0, 2, 4))
+        rgb = [str(int(val[i:i+2], 16)) for i in (0, 2, 4)]
+        v[k + '_rgb'] = ', '.join(rgb); v[k + '_ansi'] = '38;2;' + ';'.join(rgb)
 targets = {                                      # template → destination(s) under $XDG_CONFIG_HOME
     'hypr/colors.conf':   ['hypr/conf.d/colors.conf'],
     'hypr/hyprlock.conf': ['hypr/hyprlock.conf'],
@@ -45,6 +46,7 @@ targets = {                                      # template → destination(s) u
     'qt/colors.conf':     ['qt6ct/colors/current.conf', 'qt5ct/colors/current.conf'],
     'fish/colors.fish':   ['fish/conf.d/colors.fish'],
     'starship.toml':      ['starship.toml'],
+    'fastfetch/config.jsonc': ['fastfetch/config.jsonc'],
 }
 missing = set()
 def sub(m):
@@ -94,7 +96,8 @@ for line in open(sys.argv[1]):
     line = line.split('#', 1)[0].strip()
     if '=' in line: k, val = line.split('=', 1); v[k.strip()] = val.strip()
 for k, val in list(v.items()):
-    if re.fullmatch(r'[0-9a-fA-F]{6}', val): v[k + '_rgb'] = ', '.join(str(int(val[i:i+2], 16)) for i in (0, 2, 4))
+    if re.fullmatch(r'[0-9a-fA-F]{6}', val):
+        rgb = [str(int(val[i:i+2], 16)) for i in (0, 2, 4)]; v[k + '_rgb'] = ', '.join(rgb); v[k + '_ansi'] = '38;2;' + ';'.join(rgb)
 print(re.sub(r'\{\{(\w+)\}\}', lambda m: v.get(m.group(1), m.group(0)), open(sys.argv[2]).read()), end='')
 PY
              ;;

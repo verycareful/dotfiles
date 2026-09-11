@@ -9,7 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 REPO="$PWD"
-ALL=(hypr waybar rofi kitty fish swaync wlogout gtk qt scripts)
+ALL=(hypr waybar rofi kitty fish swaync wlogout gtk qt fastfetch scripts)
 op=""
 [[ "${1:-}" == "-D" ]] && { op="-D"; shift; }
 pkgs=("${@:-${ALL[@]}}")

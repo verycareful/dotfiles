@@ -1,5 +1,8 @@
 # fish — "Harbour" shell config. Aliases/abbrs live in conf.d/.
-set -g fish_greeting                       # no greeting
+# greeting: fastfetch (logo + system info), only for interactive shells
+function fish_greeting
+    command -q fastfetch; and fastfetch
+end
 
 # ── paths ────────────────────────────────────────────────────
 fish_add_path -g ~/.local/bin

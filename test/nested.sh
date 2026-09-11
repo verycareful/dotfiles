@@ -28,7 +28,7 @@ export PATH="$REPO/scripts/.local/bin:$PATH"
 export WALL_DIR="$REPO/wallpapers"
 export XDG_CONFIG_HOME="$TMP/config"      # so waybar/rofi/etc pick up repo copies
 mkdir -p "$TMP/config"
-for pkg in waybar rofi kitty swaync wlogout; do
+for pkg in waybar rofi kitty swaync wlogout fastfetch; do
     [[ -d "$REPO/$pkg/.config/$pkg" ]] && cp -r "$REPO/$pkg/.config/$pkg" "$TMP/config/$pkg"
 done
 # configs reference ~/.local/bin/<script>; point them at the repo copies instead

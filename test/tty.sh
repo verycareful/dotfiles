@@ -38,7 +38,7 @@ open(p, 'w').write(''.join(out))
 PY
 
 # every other tool reads its config from XDG_CONFIG_HOME → temp copies
-for pkg in waybar rofi kitty swaync wlogout; do
+for pkg in waybar rofi kitty swaync wlogout fastfetch; do
     cp -r "$REPO/$pkg/.config/$pkg" "$TMP/config/$pkg"
 done
 cp -r "$REPO/gtk/.config/." "$TMP/config/"
