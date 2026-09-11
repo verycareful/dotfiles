@@ -36,7 +36,7 @@ targets = {                                      # template → destination(s) u
     'waybar/colors.css':  ['waybar/colors.css'],
     'swaync/colors.css':  ['swaync/colors.css'],
     'wlogout/colors.css': ['wlogout/colors.css'],
-    'rofi/colors.rasi':   ['rofi/colors.rasi'],
+    'rofi/colors.rasi':   ['rofi/themes/colors.rasi'],
     'kitty/colors.conf':  ['kitty/colors.conf'],
     'gtk/gtk.css':        ['gtk-3.0/gtk.css', 'gtk-4.0/gtk.css'],
     'qt/colors.conf':     ['qt6ct/colors/current.conf', 'qt5ct/colors/current.conf'],

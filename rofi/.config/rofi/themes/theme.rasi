@@ -76,5 +76,4 @@ element-icon {
 }
 element-text {
     vertical-align:   0.5;
-    highlight:        bold @accent;
 }

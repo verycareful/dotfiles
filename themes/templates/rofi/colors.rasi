@@ -14,3 +14,5 @@
     baseGlass:    rgba({{base_rgb}}, 0.6);
     primaryGlass: rgba({{primary_rgb}}, 0.45);
 }
+/* `highlight` only takes a literal colour, so it lives here */
+element-text { highlight: bold #{{accent}}; }

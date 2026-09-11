@@ -14,3 +14,5 @@
     baseGlass:    rgba(6, 8, 14, 0.6);
     primaryGlass: rgba(31, 55, 153, 0.45);
 }
+/* `highlight` only takes a literal colour, so it lives here */
+element-text { highlight: bold #ff8c32; }
