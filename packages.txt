@@ -1,6 +1,6 @@
 # pacman -S --needed - < packages.txt
 hyprland hypridle hyprlock hyprsunset hyprpolkitagent xdg-desktop-portal-hyprland
-waybar rofi swaync awww wlogout
+waybar rofi swaync awww wlogout gvfs
 kitty fish starship
 grim slurp satty wl-clipboard cliphist
 brightnessctl playerctl pamixer
