@@ -7,6 +7,12 @@
 #   2. ~/Sonnenplatz/Projects/Github/dotfiles/test/tty.sh
 #   3. SUPER+Shift+Q exits; the log path is printed afterwards.
 set -euo pipefail
+if [[ -n "${WAYLAND_DISPLAY:-}" || -n "${DISPLAY:-}" ]]; then
+    echo "This is running inside a graphical session, so Hyprland would start as a nested" >&2
+    echo "window and your current desktop would keep every SUPER keybind." >&2
+    echo "Press Ctrl+Alt+F3, log in at the text prompt, and run it there." >&2
+    exit 1
+fi
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="${XDG_RUNTIME_DIR:-/tmp}/hypr-tty"
 rm -rf "$TMP"; mkdir -p "$TMP/config"
