@@ -17,3 +17,7 @@ done
 # wallpapers: link the repo's into ~/Pictures/Wallpapers (add your own there too)
 mkdir -p "$HOME/Pictures/Wallpapers"
 for w in wallpapers/*; do ln -sfn "$PWD/$w" "$HOME/Pictures/Wallpapers/$(basename "$w")"; done
+
+# fonts: Oxanium + Quantico (OFL) from fonts/ into the user font dir
+mkdir -p "$HOME/.local/share/fonts/dotfiles"
+cp fonts/*/*.ttf "$HOME/.local/share/fonts/dotfiles/" && fc-cache -f

@@ -16,9 +16,9 @@
 @define-color yellow   #f2c14e;
 
 * {
-    font-family: "JetBrainsMono Nerd Font", "Noto Sans", sans-serif;
+    font-family: "Oxanium", "JetBrainsMono Nerd Font", sans-serif;   /* Nerd Font = icon fallback */
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     min-height: 0;
     border: none;
     border-radius: 0;
@@ -56,12 +56,13 @@ tooltip label { padding: 4px; }
 
 /* ── left ─────────────────────────────────────────────────── */
 #clock.time {
+    font-family: "Quantico", "JetBrainsMono Nerd Font";
     color: @text;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 15px;
     padding-right: 4px;
 }
-#clock.date { color: @subtext; padding-left: 4px; }
+#clock.date { font-family: "Quantico", "JetBrainsMono Nerd Font"; color: @subtext; padding-left: 4px; }
 
 #idle-inhibitor { font-size: 15px; }
 #idle-inhibitor.activated { color: @orange; }

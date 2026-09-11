@@ -12,6 +12,7 @@ Hyprland rice — dark navy, sharp corners, glass, orange accent. See `palette.m
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |
 | `scripts/` | helpers in `~/.local/bin` (`wall`, `shot`, `gpu-status`, `weather`, `keyhint`) |
+| `fonts/`   | Oxanium + Quantico (OFL) — UI/display fonts; terminal uses JetBrainsMono Nerd Font |
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
 | `test/`    | `nested.sh` — try the config in a window         |
 
