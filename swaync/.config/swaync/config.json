@@ -54,13 +54,12 @@
   "control-center-positionY": "top",
   "control-center-margin-bottom": 0,
   "notification-visibility": {
-    "spotify-now-playing": {
-      "app-name": "Spotify",
-      "state": "ignored",
-      "urgency": "Low"
+    "spotify-by-name": {
+      "app-name": "(?i)spotify",
+      "state": "ignored"
     },
-    "spotify-any": {
-      "app-name": "Spotify",
+    "spotify-by-desktop": {
+      "desktop-entry": "(?i)spotify",
       "state": "ignored"
     }
   }
