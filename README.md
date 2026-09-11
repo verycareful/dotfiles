@@ -4,14 +4,15 @@ Hyprland rice — dark navy, sharp corners, glass, orange accent. See `palette.m
 
 | dir        | what                                             |
 |------------|--------------------------------------------------|
-| `hypr/`    | Hyprland: `hyprland.conf` sources `conf.d/*.conf` |
+| `hypr/`    | Hyprland (`hyprland.conf` → `conf.d/*.conf`), hyprlock, hypridle |
 | `waybar/`  | status bar                                       |
 | `rofi/`    | launcher / menus                                 |
 | `swaync/`  | notifications                                    |
-| `hyprlock/`| lock screen (`hyprlock.conf`, `hypridle.conf`)   |
+| `wlogout/` | power menu                                       |
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |
-| `scripts/` | helpers in `~/.local/bin` (`wall`, `shot`, …)    |
+| `scripts/` | helpers in `~/.local/bin` (`wall`, `shot`, `gpu-status`, `weather`, `keyhint`) |
+| `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
 | `test/`    | `nested.sh` — try the config in a window         |
 
 ## Workflow

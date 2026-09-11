@@ -1,0 +1,20 @@
+/* rofi — behaviour. Theme in harbour.rasi */
+configuration {
+    modi:                "drun,run,window";
+    show-icons:          true;
+    icon-theme:          "Papirus-Dark";
+    drun-display-format: "{name}";
+    display-drun:        "";
+    display-run:         "";
+    display-window:      "";
+    window-format:       "{w} · {c}   {t}";
+    matching:            "fuzzy";
+    sort:                true;
+    sorting-method:      "fzf";
+    terminal:            "kitty";
+    kb-remove-to-eol:    "";
+    kb-accept-entry:     "Return,KP_Enter";
+    kb-row-up:           "Up,Control+k,Control+p";
+    kb-row-down:         "Down,Control+j,Control+n";
+}
+@theme "harbour"

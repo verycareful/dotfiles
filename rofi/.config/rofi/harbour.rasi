@@ -1,0 +1,90 @@
+/* rofi theme — "Harbour": sharp, glass, orange caret. See palette.md */
+* {
+    base:     #0b0e17;
+    mantle:   #111624;
+    surface:  #182036;
+    overlay:  #243052;
+    navy:     #2f4fa0;
+    navyBr:   #4b6fd6;
+    orange:   #ff8c32;
+    text:     #e4e8f4;
+    subtext:  #9aa3bd;
+    muted:    #5d6784;
+
+    background-color: transparent;
+    text-color:       @text;
+    font:             "JetBrainsMono Nerd Font 12";
+}
+
+window {
+    location:         center;
+    width:            640px;
+    background-color: rgba(17, 22, 36, 0.86);   /* @mantle at 86% — blurred by Hyprland */
+    border:           1px;
+    border-color:     @overlay;
+    border-radius:    0;
+    padding:          0;
+}
+
+mainbox {
+    children: [ inputbar, message, listview ];
+    spacing:  0;
+}
+
+inputbar {
+    children:         [ prompt, entry ];
+    background-color: rgba(11, 14, 23, 0.6);
+    border:           0 0 1px 0;
+    border-color:     @overlay;
+    padding:          14px 18px;
+    spacing:          12px;
+}
+prompt {
+    text-color: @orange;
+    font:       "JetBrainsMono Nerd Font 14";
+}
+entry {
+    placeholder:       "search…";
+    placeholder-color: @muted;
+    cursor:            text;
+}
+
+message { padding: 8px 18px; }
+textbox { text-color: @subtext; }
+
+listview {
+    lines:        8;
+    columns:      1;
+    cycle:        true;
+    dynamic:      true;
+    scrollbar:    false;
+    spacing:      0;
+    padding:      6px 0;
+}
+
+element {
+    padding: 8px 18px;
+    spacing: 12px;
+    cursor:  pointer;
+}
+element normal.normal  { text-color: @text; }
+element normal.urgent  { text-color: @orange; }
+element normal.active  { text-color: @navyBr; }
+element alternate.normal { text-color: @text; }
+element selected.normal {
+    background-color: rgba(47, 79, 160, 0.45);   /* @navy glass */
+    text-color:       @text;
+    border:           0 0 0 2px;
+    border-color:     @orange;
+}
+element selected.urgent { background-color: @orange; text-color: @base; }
+element selected.active { background-color: rgba(47, 79, 160, 0.45); text-color: @navyBr; }
+
+element-icon {
+    size:             1.4em;
+    vertical-align:   0.5;
+}
+element-text {
+    vertical-align:   0.5;
+    highlight:        bold #ff8c32;
+}
