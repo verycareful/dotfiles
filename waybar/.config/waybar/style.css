@@ -43,7 +43,7 @@ tooltip label { padding: 4px; }
 
 /* Icon-only modules: Pango does not fall back to other fonts for Private Use
    Area glyphs, so anything that is purely a Nerd Font icon must name it. */
-#idle-inhibitor, #workspaces button, #network, #tray, #custom-notifications,
+#idle-inhibitor, #network, #tray, #custom-notifications,
 #custom-keyhint, #custom-power {
     font-family: "JetBrainsMono Nerd Font";
 }
@@ -71,11 +71,13 @@ tooltip label { padding: 4px; }
     border: 1px solid alpha(@overlay, 0.6);
 }
 #workspaces button {
+    font-family: "Quantico";
     padding: 0 9px;
     margin: 3px 2px;
-    color: @muted;
+    color: @subtext;
     background: transparent;
-    font-size: 11px;
+    font-size: 13px;
+    font-weight: 700;
     transition: all 150ms ease;
 }
 #workspaces button:hover { color: @primaryBr; background: alpha(@surface, 0.7); }
@@ -101,8 +103,12 @@ tooltip label { padding: 4px; }
 /* first media button keeps the group's divider */
 .modules-right > widget > box > widget:first-child > * { border-left: 1px solid alpha(@overlay, 0.6); }
 
-#custom-tray-toggle { font-family: "JetBrainsMono Nerd Font"; font-size: 15px; padding: 0 8px; }
-#custom-tray-toggle.open { color: @accent; }
+/* tray arrow: two labels, one collapsed to zero size. While the drawer is open Waybar
+   sets the :hover state on the group box (#traybox), which swaps them: down → left. */
+#custom-tray-down, #custom-tray-left { font-family: "JetBrainsMono Nerd Font"; font-size: 15px; padding: 0 8px; margin: 5px 0; }
+#custom-tray-left { font-size: 0px; padding: 0; margin: 0; min-width: 0; }
+#traybox:hover #custom-tray-left { font-size: 15px; padding: 0 8px; margin: 5px 0; color: @accent; }
+#traybox:hover #custom-tray-down { font-size: 0px; padding: 0; margin: 0; min-width: 0; }
 #tray.tray-drawer { border-left: none; padding: 0 6px; }
 
 #cpu, #memory, #custom-gpu { color: @subtext; }

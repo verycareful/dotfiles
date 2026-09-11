@@ -2,8 +2,8 @@
 
 Colours live in `themes/<name>.theme` (one `key=hex` per line) and are rendered
 into every app by `scripts/.local/bin/theme` from `themes/templates/`.
-Generated files carry a "GENERATED" header — edit the template or the theme,
-never the generated copy.
+Generated files are git-ignored (install.sh renders them) and carry a "GENERATED"
+header — edit the template or the theme, never the generated copy.
 
 ```sh
 theme list            # harbour, mono

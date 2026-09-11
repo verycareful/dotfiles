@@ -12,7 +12,7 @@
     "modules-left":   ["clock#time", "clock#date", "idle_inhibitor", "custom/weather"],
     "modules-center": ["hyprland/workspaces"],
     "modules-right":  ["group/media", "cpu", "memory", "custom/gpu", "network", "wireplumber",
-                       "group/tray", "custom/notifications", "custom/keyhint", "custom/power"],
+                       "group/traybox", "custom/notifications", "custom/keyhint", "custom/power"],
 
     // ── left ──────────────────────────────────────────────────
     "clock#time": {
@@ -53,9 +53,7 @@
 
     // ── centre ────────────────────────────────────────────────
     "hyprland/workspaces": {
-        "format": "{icon}",
-        "format-icons": { "default": "󰝥", "empty": "󰝦", "active": "󰝥", "urgent": "󰀨" },
-        "persistent-workspaces": { "*": 5 },   // always show 1‑5 on every monitor
+        "format": "{id}",                       // numbers; only workspaces that exist (active/occupied) are shown
         "on-click": "activate",
         "on-scroll-up":   "hyprctl dispatch workspace e-1",
         "on-scroll-down": "hyprctl dispatch workspace e+1",
@@ -119,18 +117,17 @@
         "on-click-right": "pavucontrol",
         "max-volume": 100
     },
-    "group/tray": {
+    // tray drawer: hover the arrow to slide the icons out. While open, Waybar flags the group as
+    // :hover, and CSS swaps which arrow label is visible (a module's own on-click would swallow
+    // the click before the group saw it, so there is deliberately no click handler here).
+    "group/traybox": {          // NB: a group named "tray" would get CSS id #tray, clashing with the tray module
         "orientation": "inherit",
-        "drawer": { "transition-duration": 250, "transition-left-to-right": false, "click-to-reveal": true, "children-class": "tray-drawer" },
-        "modules": ["custom/tray-toggle", "tray"]
+        "drawer": { "transition-duration": 250, "transition-left-to-right": false, "children-class": "tray-drawer" },
+        "modules": ["group/tray-arrow", "tray"]
     },
-    "custom/tray-toggle": {
-        "exec": "~/.local/bin/tray-toggle status",
-        "return-type": "json",
-        "on-click": "~/.local/bin/tray-toggle flip",
-        "exec-on-event": true,
-        "interval": "once"
-    },
+    "group/tray-arrow": { "orientation": "inherit", "modules": ["custom/tray-down", "custom/tray-left"] },
+    "custom/tray-down": { "format": "󰅀", "tooltip-format": "tray" },
+    "custom/tray-left": { "format": "󰅁", "tooltip-format": "tray" },
     "tray": {
         "icon-size": 16,
         "spacing": 8

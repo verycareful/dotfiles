@@ -39,6 +39,9 @@ done
 
 [[ -n "$op" ]] && exit 0
 
+# render the colour files for the active theme (harbour on a fresh machine)
+"$REPO/scripts/.local/bin/theme" set "$(cat "$HOME/.local/state/theme/current" 2>/dev/null || echo harbour)" --no-reload
+
 # wallpapers: link the repo's into ~/Pictures/Wallpapers (add your own there too)
 mkdir -p "$HOME/Pictures/Wallpapers"
 for w in wallpapers/*; do ln -sfn "$PWD/$w" "$HOME/Pictures/Wallpapers/$(basename "$w")"; done

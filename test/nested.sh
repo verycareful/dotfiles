@@ -27,6 +27,10 @@ CONF
 export PATH="$REPO/scripts/.local/bin:$PATH"
 export WALL_DIR="$REPO/wallpapers"
 export XDG_CONFIG_HOME="$TMP/config"      # so waybar/rofi/etc pick up repo copies
+# render the colour files for the current theme into the temp copies
+ln -sfn "$REPO/hypr/.config/hypr" "$TMP/config/hypr"
+XDG_CONFIG_HOME="$TMP/config" XDG_STATE_HOME="$TMP/state" "$REPO/scripts/.local/bin/theme" set "$(cat "$HOME/.local/state/theme/current" 2>/dev/null || echo harbour)" --no-reload >/dev/null
+
 mkdir -p "$TMP/config"
 for pkg in waybar rofi kitty swaync wlogout fastfetch; do
     [[ -d "$REPO/$pkg/.config/$pkg" ]] && cp -r "$REPO/$pkg/.config/$pkg" "$TMP/config/$pkg"
