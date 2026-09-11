@@ -25,3 +25,6 @@ Hyprland rice — dark navy, sharp corners, glass, orange accent. See `palette.m
 sudo pacman -S --needed - < packages.txt
 ./install.sh
 ```
+
+## License
+MIT — see [LICENSE](LICENSE).
