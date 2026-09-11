@@ -21,7 +21,7 @@ Hyprland rice — sharp corners, glass, switchable themes (Harbour: navy/orange 
 ## Workflow
 1. Edit files in the repo.
 2. `./test/nested.sh` to try them in a nested Hyprland window.
-3. `./install.sh` (stow) to deploy for real — existing configs are moved to `~/.local/state/dotfiles-backup/` first; `./restore.sh` reverses it. `hyprctl reload` applies Hyprland changes live.
+3. `./install.sh` (stow) to deploy for real — re-run `./install.sh scripts` after adding a new script, since `~/.local/bin` is linked per file — existing configs are moved to `~/.local/state/dotfiles-backup/` first; `./restore.sh` reverses it. `hyprctl reload` applies Hyprland changes live.
 4. Commit.
 
 ## Fresh machine
