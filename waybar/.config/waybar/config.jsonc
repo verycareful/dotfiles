@@ -64,6 +64,7 @@
 
     // ── right ─────────────────────────────────────────────────
     "mpris": {
+        "ignored-players": ["playerctld"],
         "format": "<span font_family='JetBrainsMono Nerd Font'>{player_icon}</span>  {dynamic}",
         "format-paused": "<span font_family='JetBrainsMono Nerd Font'>{status_icon}</span>  <i>{dynamic}</i>",
         "dynamic-order": ["title", "artist"],
