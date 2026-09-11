@@ -1,4 +1,4 @@
-/* rofi — behaviour. Theme in harbour.rasi */
+/* rofi — behaviour. Theme in themes/theme.rasi (colours generated into themes/colors.rasi) */
 configuration {
     modi:                "drun,run,window";
     show-icons:          true;
