@@ -27,4 +27,4 @@ Current=harbour
 CursorTheme=$cursor
 CursorSize=24
 CONF
-echo "installed: theme '$NAME' colours into $DST. Log out to see it; 'sddm-greeter-qt6 --test-mode --theme $DST' previews it."
+echo "installed: theme '$NAME' colours into $DST. Log out to see it; 'sddm-greeter --test-mode --theme $DST' previews it (Qt5 greeter)."

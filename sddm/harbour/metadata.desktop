@@ -11,4 +11,4 @@ MainScript=Main.qml
 ConfigFile=theme.conf
 Theme-Id=harbour
 Theme-API=2.0
-QtVersion=6
+QtVersion=5
