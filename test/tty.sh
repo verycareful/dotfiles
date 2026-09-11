@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Run the repo config as a REAL Hyprland session from a text console (TTY),
+# without installing anything. Your normal desktop keeps running on its own
+# TTY — Ctrl+Alt+F1 (or wherever it is) switches back to it at any time.
+#
+#   1. Ctrl+Alt+F3  → log in
+#   2. ~/Sonnenplatz/Projects/Github/dotfiles/test/tty.sh
+#   3. SUPER+Shift+Q exits; the log path is printed afterwards.
+set -euo pipefail
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
+TMP="${XDG_RUNTIME_DIR:-/tmp}/hypr-tty"
+rm -rf "$TMP"; mkdir -p "$TMP/config"
+LOG="$REPO/test/tty-last.log"
+
+# Hyprland config: repo copy with paths rewritten to the temp dir
+cp -r "$REPO/hypr/.config/hypr/." "$TMP/"
+sed -i "s#~/.config/hypr/#$TMP/#g" "$TMP/hyprland.conf" "$TMP/hyprlock.conf"
+# always have a terminal on screen so the session is never "empty"
+echo 'exec-once = kitty' >> "$TMP/hyprland.conf"
+
+# every other tool reads its config from XDG_CONFIG_HOME → temp copies
+for pkg in waybar rofi kitty swaync wlogout; do
+    cp -r "$REPO/$pkg/.config/$pkg" "$TMP/config/$pkg"
+done
+cp -r "$REPO/gtk/.config/." "$TMP/config/"
+cp -r "$REPO/qt/.config/."  "$TMP/config/"
+grep -rl '~/.local/bin/' "$TMP" | xargs -r sed -i "s#~/.local/bin/#$REPO/scripts/.local/bin/#g"
+
+export XDG_CONFIG_HOME="$TMP/config"
+export PATH="$REPO/scripts/.local/bin:$PATH"
+export WALL_DIR="$REPO/wallpapers"
+export XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=Hyprland
+
+echo "starting Hyprland with $TMP/hyprland.conf — log: $LOG"
+Hyprland -c "$TMP/hyprland.conf" >"$LOG" 2>&1 || true
+echo
+echo "session ended. errors/warnings from the log:"
+grep -iE 'err|warn|fail|crit|not found|no such' "$LOG" | grep -vE 'xkbcomp|Warning: +(Symbol|Multiple|Could not resolve|Virtual|Unsupported)|Using (last|F23|0)|X11 cannot' | head -30 || true
+echo "full log: $LOG"
