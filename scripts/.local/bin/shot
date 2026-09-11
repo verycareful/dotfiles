@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# shot — screenshot via grim/slurp, annotate with satty, copy to clipboard
+#   shot area | full | window
+set -euo pipefail
+OUT="${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
+mkdir -p "$OUT"
+FILE="$OUT/$(date +%Y-%m-%d_%H-%M-%S).png"
+
+case "${1:-area}" in
+    area)   geom=$(slurp -d) ;;
+    full)   geom="" ;;
+    window) geom=$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"') ;;
+    *) echo "usage: shot {area|full|window}" >&2; exit 1 ;;
+esac
+
+if [[ -n "$geom" ]]; then grim -g "$geom" - ; else grim - ; fi \
+  | satty --filename - --output-filename "$FILE" --copy-command wl-copy --early-exit

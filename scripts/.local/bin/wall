@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# wall — wallpaper helper (awww)
+#   wall set [FILE]   set FILE, or restore the last one / pick a random one
+#   wall pick         rofi picker over ~/Pictures/Wallpapers
+set -euo pipefail
+DIR="${WALL_DIR:-$HOME/Pictures/Wallpapers}"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/wall/current"
+mkdir -p "$(dirname "$STATE")"
+
+apply() {
+    awww img "$1" --transition-type grow --transition-pos center --transition-duration 1.2 --transition-fps 165
+    printf '%s' "$1" > "$STATE"
+}
+
+case "${1:-set}" in
+    set)
+        if [[ -n "${2:-}" ]]; then apply "$2"
+        elif [[ -s "$STATE" && -f "$(cat "$STATE")" ]]; then apply "$(cat "$STATE")"
+        else
+            f=$(find "$DIR" -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.webp' \) | shuf -n1 || true)
+            [[ -n "$f" ]] && apply "$f"
+        fi ;;
+    pick)
+        f=$(find "$DIR" -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.webp' \) -printf '%f\n' | sort | rofi -dmenu -p "wallpaper")
+        [[ -n "$f" ]] && apply "$DIR/$f" ;;
+    *) echo "usage: wall {set [FILE]|pick}" >&2; exit 1 ;;
+esac
