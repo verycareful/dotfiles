@@ -16,6 +16,8 @@ case "${1:-set}" in
     set)
         if [[ -n "${2:-}" ]]; then apply "$2"
         elif [[ -s "$STATE" && -f "$(cat "$STATE")" ]]; then apply "$(cat "$STATE")"
+        elif [[ -s "${STATE%/*}/../theme/wallpaper" && -f "$DIR/$(cat "${STATE%/*}/../theme/wallpaper")" ]]; then
+            apply "$DIR/$(cat "${STATE%/*}/../theme/wallpaper")"     # the active theme's wallpaper
         else
             f=$(find "$DIR" -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.webp' \) | shuf -n1 || true)
             [[ -n "$f" ]] && apply "$f"
