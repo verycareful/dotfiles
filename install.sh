@@ -47,4 +47,13 @@ for w in wallpapers/*; do ln -sfn "$PWD/$w" "$HOME/Pictures/Wallpapers/$(basenam
 mkdir -p "$HOME/.local/share/fonts/dotfiles"
 cp fonts/*/*.ttf "$HOME/.local/share/fonts/dotfiles/" && fc-cache -f
 
+# libadwaita/GTK4 apps read these from gsettings rather than settings.ini
+if command -v gsettings >/dev/null; then
+    gsettings set org.gnome.desktop.interface color-scheme prefer-dark
+    gsettings set org.gnome.desktop.interface gtk-theme adw-gtk3-dark
+    gsettings set org.gnome.desktop.interface icon-theme Papirus-Dark
+    gsettings set org.gnome.desktop.interface font-name 'Oxanium Medium 10'
+    gsettings set org.gnome.desktop.interface monospace-font-name 'Share Tech Mono 11'
+fi
+
 echo "done. Log out and back in for Hyprland to pick up the new config."
