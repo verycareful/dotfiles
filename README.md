@@ -19,7 +19,7 @@ Hyprland rice — dark navy, sharp corners, glass, orange accent. See `palette.m
 ## Workflow
 1. Edit files in the repo.
 2. `./test/nested.sh` to try them in a nested Hyprland window.
-3. `./install.sh` (stow) to deploy for real. `hyprctl reload` applies Hyprland changes live.
+3. `./install.sh` (stow) to deploy for real — existing configs are moved to `~/.local/state/dotfiles-backup/` first; `./restore.sh` reverses it. `hyprctl reload` applies Hyprland changes live.
 4. Commit.
 
 ## Fresh machine
