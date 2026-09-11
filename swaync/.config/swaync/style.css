@@ -12,7 +12,7 @@
 .notification-row:focus, .notification-row:hover { background: transparent; }
 
 .notification {
-    background: alpha(@mantle, 0.78);
+    background: alpha(@mantle, 0.78);       /* popups bottom-right */
     border: 1px solid @overlay;
     border-left: 3px solid @primary;
     box-shadow: 0 4px 18px rgba(0,0,0,0.45);
@@ -54,9 +54,9 @@
 /* ── control centre ──────────────────────────────────────── */
 .control-center {
     background: alpha(@mantle, 0.74);
-    border: 1px solid @overlay;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    padding: 8px;
+    border-left: 1px solid @overlay;      /* full-height panel: only the inner edge */
+    box-shadow: -8px 0 32px rgba(0,0,0,0.5);
+    padding: 12px 10px;
 }
 .control-center-list { background: transparent; }
 .control-center .notification { margin: 6px 0; box-shadow: none; }
