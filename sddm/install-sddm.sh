@@ -20,7 +20,7 @@ mkdir -p /usr/share/fonts/dotfiles && cp "$REPO"/fonts/*/*.ttf /usr/share/fonts/
 
 # sddm config: ours replaces HyDE's (kept in the backup dir)
 mkdir -p /etc/sddm.conf.d
-for f in /etc/sddm.conf.d/*hyde*; do [[ -e "$f" ]] && mv -v "$f" "$f.disabled"; done
+for f in /etc/sddm.conf.d/*hyde*.conf; do [[ -e "$f" ]] && mv -v "$f" "$f.disabled"; done
 cat > /etc/sddm.conf.d/10-dotfiles.conf <<CONF
 [Theme]
 Current=harbour

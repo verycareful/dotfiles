@@ -50,6 +50,10 @@ for w in wallpapers/*; do ln -sfn "$PWD/$w" "$HOME/Pictures/Wallpapers/$(basenam
 mkdir -p "$HOME/.local/share/fonts/dotfiles"
 cp fonts/*/*.ttf "$HOME/.local/share/fonts/dotfiles/" && fc-cache -f
 
+# uwsm-launched apps get ~/.local/bin on PATH (our scripts)
+mkdir -p "$HOME/.config/uwsm/env.d"
+[[ -f "$HOME/.config/uwsm/env.d/00-user-path.sh" ]] || printf '#!/usr/bin/env sh\nPATH="$HOME/.local/bin:$PATH"\nexport PATH\n' > "$HOME/.config/uwsm/env.d/00-user-path.sh"
+
 # libadwaita/GTK4 apps read these from gsettings rather than settings.ini
 if command -v gsettings >/dev/null; then
     gsettings set org.gnome.desktop.interface color-scheme prefer-dark
