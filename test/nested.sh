@@ -9,11 +9,14 @@ REPO="$(cd "$(dirname "$0")/.." && pwd)"
 W="${1:-1600}"; H="${2:-900}"
 TMP="$(mktemp -d /tmp/hypr-nested.XXXX)"
 
-# Build a throwaway config: the repo's, with the nested-only overrides appended.
-# (Nested Hyprland exposes one virtual monitor named WL-1; scripts in the repo
-#  are made visible via PATH so autostart finds them.)
-cat "$REPO/hypr/.config/hypr/hyprland.conf" > "$TMP/hyprland.conf"
-sed -i "s#~/.config/hypr/#$REPO/hypr/.config/hypr/#g" "$TMP/hyprland.conf"
+# Build a throwaway copy of the config with nested-only tweaks:
+#  - $mod becomes ALT, because the OUTER Hyprland grabs SUPER binds first and
+#    they never reach the nested window. Inside the test window use ALT+…
+#  - one virtual monitor (WL-1) at the requested size
+#  - scripts in the repo are made visible via PATH so autostart finds them
+cp -r "$REPO/hypr/.config/hypr/." "$TMP/"
+sed -i "s#~/.config/hypr/#$TMP/#g" "$TMP/hyprland.conf"
+sed -i 's/^\$mod *= *SUPER/$mod = ALT/' "$TMP/conf.d/binds.conf"
 cat >> "$TMP/hyprland.conf" <<CONF
 
 # ── nested-only overrides ──
@@ -29,6 +32,6 @@ for pkg in waybar rofi kitty swaync; do
 done
 
 echo "config: $TMP/hyprland.conf"
-echo "Focus the nested window, then use SUPER+... inside it. Close it to quit."
+echo "Focus the nested window and use ALT+... inside it (ALT+Enter, ALT+Q, ALT+1…). Close it to quit."
 Hyprland -c "$TMP/hyprland.conf"
 rm -rf "$TMP"
