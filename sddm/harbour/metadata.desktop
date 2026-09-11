@@ -1,0 +1,14 @@
+[SddmGreeterTheme]
+Name=harbour
+Description=dotfiles login theme (based on Corners by aczw)
+Author=verycareful
+License=MIT
+Type=sddm-theme
+Version=1
+Website=https://github.com/verycareful/dotfiles
+Screenshot=
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=harbour
+Theme-API=2.0
+QtVersion=6

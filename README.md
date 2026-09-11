@@ -15,6 +15,7 @@ Hyprland rice — sharp corners, glass, switchable themes (Harbour: navy/orange 
 | `themes/`  | `*.theme` colour files + `templates/` rendered by `theme` |
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal) — all OFL; JetBrainsMono Nerd Font supplies icons |
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
+| `sddm/`    | login screen (Corners-based); `sudo ./sddm/install-sddm.sh` |
 | `test/`    | `nested.sh` — try the config in a window         |
 
 ## Workflow

@@ -5,6 +5,7 @@
 #   theme set NAME        render colour files for NAME and reload running apps
 #   theme toggle          cycle to the next theme
 #   theme pick            choose with rofi
+#   theme render TPL [N]  print template file TPL rendered with theme N (default: current)
 # Rendering writes into $XDG_CONFIG_HOME (which is symlinked into the repo by
 # stow, so the generated files stay tracked). --no-reload skips the live reload.
 set -euo pipefail
@@ -85,5 +86,16 @@ case "${1:-}" in
              for i in "${!all[@]}"; do [[ "${all[$i]}" == "$cur" ]] && next="${all[$(( (i+1) % ${#all[@]} ))]}"; done
              render "$next"; reload ;;
     pick)    sel=$(themes | rofi -dmenu -p "theme") && [[ -n "$sel" ]] && { render "$sel"; reload; } ;;
+    render)  python3 - "$REPO/themes/${3:-$(current)}.theme" "${2:?template path}" <<'PY'
+import sys, re
+v = {}
+for line in open(sys.argv[1]):
+    line = line.split('#', 1)[0].strip()
+    if '=' in line: k, val = line.split('=', 1); v[k.strip()] = val.strip()
+for k, val in list(v.items()):
+    if re.fullmatch(r'[0-9a-fA-F]{6}', val): v[k + '_rgb'] = ', '.join(str(int(val[i:i+2], 16)) for i in (0, 2, 4))
+print(re.sub(r'\{\{(\w+)\}\}', lambda m: v.get(m.group(1), m.group(0)), open(sys.argv[2]).read()), end='')
+PY
+             ;;
     *)       sed -n '2,8p' "$0"; exit 1 ;;
 esac
