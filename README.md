@@ -26,7 +26,7 @@ Hyprland rice — sharp corners, glass, switchable themes (Harbour: navy/orange 
 
 ## Fresh machine
 ```sh
-sudo pacman -S --needed - < packages.txt
+sudo pacman -S --needed --asexplicit - < packages.txt
 ./install.sh
 ```
 

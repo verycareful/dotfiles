@@ -1,10 +1,12 @@
-# pacman -S --needed - < packages.txt
-hyprland hypridle hyprlock hyprsunset hyprpolkitagent xdg-desktop-portal-hyprland
-waybar rofi swaync awww wlogout gvfs
-kitty fish starship
+# sudo pacman -S --needed --asexplicit - < packages.txt
+# (--asexplicit: everything here is wanted on its own, so `pacman -Rns` of something else never removes it)
+hyprland uwsm hypridle hyprlock hyprsunset hyprpolkitagent hyprpicker xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
+waybar rofi swaync awww wlogout
+kitty fish starship fastfetch
 grim slurp satty wl-clipboard cliphist
 brightnessctl playerctl pamixer
-qt5-wayland qt6-wayland qt6ct kvantum nwg-look
+network-manager-applet blueman udiskie gvfs thunar
+qt5-wayland qt6-wayland qt5ct qt6ct kvantum nwg-look adw-gtk-theme
 ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji
 papirus-icon-theme bibata-cursor-theme
-stow jq
+stow jq imagemagick
