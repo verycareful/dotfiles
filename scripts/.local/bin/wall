@@ -8,6 +8,7 @@ STATE="${XDG_STATE_HOME:-$HOME/.local/state}/wall/current"
 mkdir -p "$(dirname "$STATE")"
 
 apply() {
+    for _ in $(seq 1 40); do awww query >/dev/null 2>&1 && break; sleep 0.25; done   # daemon may still be starting at login
     awww img "$1" --transition-type grow --transition-pos center --transition-duration 1.2 --transition-fps 165
     printf '%s' "$1" > "$STATE"
 }
@@ -16,6 +17,7 @@ case "${1:-set}" in
     set)
         if [[ -n "${2:-}" ]]; then apply "$2"
         elif [[ -s "$STATE" && -f "$(cat "$STATE")" ]]; then apply "$(cat "$STATE")"
+        # remembered file missing (moved/renamed) → fall through to the theme's wallpaper, then random
         elif [[ -s "${STATE%/*}/../theme/wallpaper" && -f "$DIR/$(cat "${STATE%/*}/../theme/wallpaper")" ]]; then
             apply "$DIR/$(cat "${STATE%/*}/../theme/wallpaper")"     # the active theme's wallpaper
         else
