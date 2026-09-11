@@ -1,12 +1,12 @@
 /* wlogout — "Harbour" */
 * { font-family: "Quantico", "JetBrainsMono Nerd Font"; font-size: 14px; border-radius: 0; }
 
-window { background-color: rgba(11, 14, 23, 0.72); }   /* blurred by Hyprland */
+window { background-color: rgba(6, 8, 14, 0.55); }   /* blurred by Hyprland */
 
 button {
     color: #9aa3bd;
-    background-color: rgba(17, 22, 36, 0.85);
-    border: 1px solid #243052;
+    background-color: rgba(11, 15, 28, 0.7);
+    border: 1px solid #1a2547;
     margin: 8px;
     background-repeat: no-repeat;
     background-position: center 38%;
@@ -15,7 +15,7 @@ button {
 }
 button:focus, button:active, button:hover {
     color: #e4e8f4;
-    background-color: rgba(47, 79, 160, 0.45);
+    background-color: rgba(31, 55, 153, 0.45);
     border-color: #ff8c32;
     background-size: 26%;
 }

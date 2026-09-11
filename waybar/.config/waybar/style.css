@@ -1,11 +1,11 @@
 /* Waybar — "Harbour" palette (see palette.md). Sharp corners, glass bar. */
 
-@define-color base     #0b0e17;
-@define-color mantle   #111624;
-@define-color surface  #182036;
-@define-color overlay  #243052;
-@define-color navy     #2f4fa0;
-@define-color navyBr   #4b6fd6;
+@define-color base     #06080e;
+@define-color mantle   #0b0f1c;
+@define-color surface  #111a30;
+@define-color overlay  #1a2547;
+@define-color navy     #1f3799;
+@define-color navyBr   #3b5fe0;
 @define-color orange   #ff8c32;
 @define-color orangeDm #c86a1e;
 @define-color text     #e4e8f4;
@@ -27,7 +27,7 @@
 }
 
 window#waybar {
-    background: alpha(@mantle, 0.78);     /* glass: Hyprland blurs behind this */
+    background: alpha(@mantle, 0.60);     /* glass: Hyprland blurs behind this */
     color: @text;
     border-bottom: 1px solid alpha(@overlay, 0.9);
 }
@@ -53,6 +53,13 @@ tooltip label { padding: 4px; }
 /* hairline dividers between right-side modules */
 .modules-right > widget > * { border-left: 1px solid alpha(@overlay, 0.6); }
 .modules-right > widget:first-child > * { border-left: none; }
+
+/* Icon-only modules: Pango does not fall back to other fonts for Private Use
+   Area glyphs, so anything that is purely a Nerd Font icon must name it. */
+#idle-inhibitor, #workspaces button, #network, #tray, #custom-notifications,
+#custom-keyhint, #custom-power {
+    font-family: "JetBrainsMono Nerd Font";
+}
 
 /* ── left ─────────────────────────────────────────────────── */
 #clock.time {
@@ -81,7 +88,7 @@ tooltip label { padding: 4px; }
     margin: 3px 2px;
     color: @muted;
     background: transparent;
-    font-size: 9px;
+    font-size: 11px;
     transition: all 150ms ease;
 }
 #workspaces button:hover { color: @navyBr; background: alpha(@surface, 0.7); }

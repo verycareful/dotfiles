@@ -1,16 +1,16 @@
 # Palette — "Harbour"
 
-Dark navy base, sharp corners, glass surfaces, orange as the single warm accent.
+Near-black base with a royal-blue tint, sharp corners, glass surfaces, orange as the single warm accent.
 Every config references these names; change a value here and propagate.
 
 | Name        | Hex       | Use                                      |
 |-------------|-----------|------------------------------------------|
-| base        | `#0b0e17` | deepest background (terminal, bar tint)  |
-| mantle      | `#111624` | panels, popups                           |
-| surface     | `#182036` | cards, hovered items, inactive borders   |
-| overlay     | `#243052` | dividers, muted UI chrome                |
-| navy        | `#2f4fa0` | primary accent: focused workspace, links |
-| navy-bright | `#4b6fd6` | hover state of navy                      |
+| base        | `#06080e` | deepest background (terminal, bar tint)  |
+| mantle      | `#0b0f1c` | panels, popups                           |
+| surface     | `#111a30` | cards, hovered items, inactive borders   |
+| overlay     | `#1a2547` | dividers, muted UI chrome                |
+| navy        | `#1f3799` | royal blue (deep): focused workspace, links |
+| navy-bright | `#3b5fe0` | royal blue (bright): hover, links, ANSI blue |
 | orange      | `#ff8c32` | focus accent: active border, urgent, key |
 | orange-dim  | `#c86a1e` | pressed / secondary orange               |
 | text        | `#e4e8f4` | primary text                             |

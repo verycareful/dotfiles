@@ -10,7 +10,7 @@ $character"""
 
 palette = "harbour"
 [palettes.harbour]
-navy    = "#4b6fd6"
+navy    = "#3b5fe0"
 orange  = "#ff8c32"
 text    = "#e4e8f4"
 subtext = "#9aa3bd"
@@ -33,7 +33,7 @@ read_only_style = "muted"
 "~/Sonnenplatz"                 = "󰋜"
 
 [git_branch]
-symbol = " "
+symbol = "󰘬 "
 style = "navy"
 format = "on [$symbol$branch]($style) "
 
@@ -52,19 +52,19 @@ renamed    = "»${count} "
 deleted    = "✘${count} "
 
 [python]
-symbol = " "
+symbol = "󰌠 "
 style = "subtext"
 format = "[$symbol$version( $virtualenv)]($style) "
 [nodejs]
-symbol = " "
+symbol = "󰎙 "
 style = "subtext"
 format = "[$symbol$version]($style) "
 [rust]
-symbol = " "
+symbol = "󱘗 "
 style = "subtext"
 format = "[$symbol$version]($style) "
 [c]
-symbol = " "
+symbol = "󰙱 "
 style = "subtext"
 format = "[$symbol$version]($style) "
 

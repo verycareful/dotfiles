@@ -1,11 +1,11 @@
 /* rofi theme — "Harbour": sharp, glass, orange caret. See palette.md */
 * {
-    base:     #0b0e17;
-    mantle:   #111624;
-    surface:  #182036;
-    overlay:  #243052;
-    navy:     #2f4fa0;
-    navyBr:   #4b6fd6;
+    base:     #06080e;
+    mantle:   #0b0f1c;
+    surface:  #111a30;
+    overlay:  #1a2547;
+    navy:     #1f3799;
+    navyBr:   #3b5fe0;
     orange:   #ff8c32;
     text:     #e4e8f4;
     subtext:  #9aa3bd;
@@ -19,7 +19,7 @@
 window {
     location:         center;
     width:            640px;
-    background-color: rgba(17, 22, 36, 0.86);   /* @mantle at 86% — blurred by Hyprland */
+    background-color: rgba(11, 15, 28, 0.72);   /* @mantle at 72% — blurred by Hyprland */
     border:           1px;
     border-color:     @overlay;
     border-radius:    0;
@@ -33,7 +33,7 @@ mainbox {
 
 inputbar {
     children:         [ prompt, entry ];
-    background-color: rgba(11, 14, 23, 0.6);
+    background-color: rgba(6, 8, 14, 0.6);
     border:           0 0 1px 0;
     border-color:     @overlay;
     padding:          14px 18px;
@@ -41,7 +41,7 @@ inputbar {
 }
 prompt {
     text-color: @orange;
-    font:       "Quantico Bold 14";
+    font:       "JetBrainsMono Nerd Font 14";
 }
 entry {
     placeholder:       "search…";
@@ -72,13 +72,13 @@ element normal.urgent  { text-color: @orange; }
 element normal.active  { text-color: @navyBr; }
 element alternate.normal { text-color: @text; }
 element selected.normal {
-    background-color: rgba(47, 79, 160, 0.45);   /* @navy glass */
+    background-color: rgba(31, 55, 153, 0.45);   /* @navy glass */
     text-color:       @text;
     border:           0 0 0 2px;
     border-color:     @orange;
 }
 element selected.urgent { background-color: @orange; text-color: @base; }
-element selected.active { background-color: rgba(47, 79, 160, 0.45); text-color: @navyBr; }
+element selected.active { background-color: rgba(31, 55, 153, 0.45); text-color: @navyBr; }
 
 element-icon {
     size:             1.4em;

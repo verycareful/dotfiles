@@ -2,3 +2,4 @@
 *~
 .DS_Store
 test/tty-last.log
+fish/.config/fish/fish_variables

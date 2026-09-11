@@ -9,7 +9,7 @@ for c in /sys/class/drm/card?; do
     v=$(<"$c/device/mem_info_vram_total")
     (( v > bestvram )) && { bestvram=$v; best=$c; }
 done
-[[ -n "$best" ]] || { echo '{"text":"󰢮 n/a","class":"disabled"}'; exit 0; }
+[[ -n "$best" ]] || { echo '{"text":"<span font_family=\"JetBrainsMono Nerd Font\">󰢮</span> n/a","class":"disabled"}'; exit 0; }
 
 busy=$(<"$best/device/gpu_busy_percent")
 used=$(<"$best/device/mem_info_vram_used")
@@ -20,5 +20,5 @@ used_g=$(awk -v u="$used" 'BEGIN{printf "%.1f", u/1073741824}')
 tot_g=$(awk -v t="$bestvram" 'BEGIN{printf "%.0f", t/1073741824}')
 
 class="normal"; (( busy >= 90 )) && class="critical"; (( busy >= 60 && busy < 90 )) && class="warning"
-printf '{"text":"󰢮 %d%%","tooltip":"%s\\nusage %d%%   temp %d°C\\nvram %s / %s GiB","class":"%s","percentage":%d}\n' \
+printf '{"text":"<span font_family=\\"JetBrainsMono Nerd Font\\">󰢮</span> %d%%","tooltip":"%s\\nusage %d%%   temp %d°C\\nvram %s / %s GiB","class":"%s","percentage":%d}\n' \
     "$busy" "$name" "$busy" "$temp" "$used_g" "$tot_g" "$class" "$busy"

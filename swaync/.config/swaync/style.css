@@ -1,10 +1,10 @@
 /* swaync — "Harbour". Sharp corners, glass panels. */
-@define-color base     #0b0e17;
-@define-color mantle   #111624;
-@define-color surface  #182036;
-@define-color overlay  #243052;
-@define-color navy     #2f4fa0;
-@define-color navyBr   #4b6fd6;
+@define-color base     #06080e;
+@define-color mantle   #0b0f1c;
+@define-color surface  #111a30;
+@define-color overlay  #1a2547;
+@define-color navy     #1f3799;
+@define-color navyBr   #3b5fe0;
 @define-color orange   #ff8c32;
 @define-color text     #e4e8f4;
 @define-color subtext  #9aa3bd;
@@ -22,7 +22,7 @@
 .notification-row:focus, .notification-row:hover { background: transparent; }
 
 .notification {
-    background: alpha(@mantle, 0.9);
+    background: alpha(@mantle, 0.78);
     border: 1px solid @overlay;
     border-left: 3px solid @navy;
     box-shadow: 0 4px 18px rgba(0,0,0,0.45);
@@ -63,7 +63,7 @@
 
 /* ── control centre ──────────────────────────────────────── */
 .control-center {
-    background: alpha(@mantle, 0.86);
+    background: alpha(@mantle, 0.74);
     border: 1px solid @overlay;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5);
     padding: 8px;
