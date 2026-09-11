@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# altab — Alt-Tab across all windows in most-recently-used order.
+#   altab --next | --prev   step through the MRU list (snapshot taken on the first press)
+#   altab --apply           Alt released: forget the snapshot so the next Alt-Tab starts from the new focus
+# Windows on special workspaces (e.g. the SUPER+M "tray") are skipped.
+set -euo pipefail
+STATE="${XDG_RUNTIME_DIR:-/tmp}/altab"
+case "${1:-}" in
+    --apply) rm -f "$STATE"; exit 0 ;;
+    --next|--prev) ;;
+    *) echo "usage: altab --next|--prev|--apply" >&2; exit 1 ;;
+esac
+if [[ ! -s "$STATE" ]]; then
+    hyprctl clients -j | jq -r '[.[] | select(.mapped and .workspace.id > 0)] | sort_by(.focusHistoryID) | .[].address' > "$STATE.list"
+    echo 0 > "$STATE"
+fi
+mapfile -t wins < "$STATE.list"
+n=${#wins[@]}; (( n > 1 )) || exit 0
+i=$(<"$STATE")
+if [[ "$1" == "--next" ]]; then i=$(( (i + 1) % n )); else i=$(( (i - 1 + n) % n )); fi
+echo "$i" > "$STATE"
+hyprctl --batch "dispatch focuswindow address:${wins[$i]}; dispatch alterzorder top,address:${wins[$i]}" >/dev/null
