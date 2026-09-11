@@ -1,6 +1,6 @@
 # dotfiles
 
-Hyprland rice — dark navy, sharp corners, glass, orange accent. See `palette.md`.
+Hyprland rice — sharp corners, glass, switchable themes (Harbour: navy/orange · Mono: black/white). See `palette.md`.
 
 | dir        | what                                             |
 |------------|--------------------------------------------------|
@@ -11,7 +11,8 @@ Hyprland rice — dark navy, sharp corners, glass, orange accent. See `palette.m
 | `wlogout/` | power menu                                       |
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |
-| `scripts/` | helpers in `~/.local/bin` (`wall`, `shot`, `gpu-status`, `weather`, `keyhint`) |
+| `scripts/` | helpers in `~/.local/bin` (`theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`) |
+| `themes/`  | `*.theme` colour files + `templates/` rendered by `theme` |
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal) — all OFL; JetBrainsMono Nerd Font supplies icons |
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
 | `test/`    | `nested.sh` — try the config in a window         |

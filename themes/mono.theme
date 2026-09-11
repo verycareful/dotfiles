@@ -1,0 +1,25 @@
+# Mono — black and white. White is the accent; green/red stay for ok/error feedback.
+name=mono
+wallpaper=mono.jpg
+base=050505
+mantle=0d0d0d
+surface=181818
+overlay=262626
+primary=6e6e6e
+primary_bright=a3a3a3
+accent=ffffff
+accent_dim=bfbfbf
+text=f2f2f2
+subtext=a6a6a6
+muted=5a5a5a
+red=ff4d5e
+green=3ddc84
+yellow=f5c542
+magenta=cfcfcf
+cyan=e6e6e6
+red_bright=ff7a87
+green_bright=6ef0a6
+yellow_bright=ffd868
+blue_bright=c9c9c9
+magenta_bright=e3e3e3
+cyan_bright=f5f5f5

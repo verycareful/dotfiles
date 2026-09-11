@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# theme — switch the colour theme across every app.
+#   theme list            available themes (themes/*.theme in the dotfiles repo)
+#   theme current         name of the active theme
+#   theme set NAME        render colour files for NAME and reload running apps
+#   theme toggle          cycle to the next theme
+#   theme pick            choose with rofi
+# Rendering writes into $XDG_CONFIG_HOME (which is symlinked into the repo by
+# stow, so the generated files stay tracked). --no-reload skips the live reload.
+set -euo pipefail
+REPO="$(cd "$(dirname "$(readlink -f "$0")")/../../.." && pwd)"
+TPL="$REPO/themes/templates"
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/theme"; mkdir -p "$STATE"
+
+themes()  { ls "$REPO"/themes/*.theme | xargs -n1 basename | sed 's/\.theme$//'; }
+current() { cat "$STATE/current" 2>/dev/null || echo harbour; }
+
+render() {  # $1 theme name
+    local name="$1" file="$REPO/themes/$1.theme"
+    [[ -f "$file" ]] || { echo "no such theme: $name" >&2; exit 1; }
+    python3 - "$file" "$TPL" "$CFG" <<'PY'
+import sys, re, os, shutil
+theme_file, tpl, cfg = sys.argv[1:]
+v = {}
+for line in open(theme_file):
+    line = line.split('#', 1)[0].strip()
+    if '=' in line:
+        k, val = line.split('=', 1); v[k.strip()] = val.strip()
+for k, val in list(v.items()):                    # {{x_rgb}} → "r, g, b" for rgba()
+    if re.fullmatch(r'[0-9a-fA-F]{6}', val):
+        v[k + '_rgb'] = ', '.join(str(int(val[i:i+2], 16)) for i in (0, 2, 4))
+targets = {                                      # template → destination(s) under $XDG_CONFIG_HOME
+    'hypr/colors.conf':   ['hypr/conf.d/colors.conf'],
+    'hypr/hyprlock.conf': ['hypr/hyprlock.conf'],
+    'waybar/colors.css':  ['waybar/colors.css'],
+    'swaync/colors.css':  ['swaync/colors.css'],
+    'wlogout/colors.css': ['wlogout/colors.css'],
+    'rofi/colors.rasi':   ['rofi/colors.rasi'],
+    'kitty/colors.conf':  ['kitty/colors.conf'],
+    'gtk/gtk.css':        ['gtk-3.0/gtk.css', 'gtk-4.0/gtk.css'],
+    'qt/colors.conf':     ['qt6ct/colors/current.conf', 'qt5ct/colors/current.conf'],
+    'fish/colors.fish':   ['fish/conf.d/colors.fish'],
+    'starship.toml':      ['starship.toml'],
+}
+missing = set()
+def sub(m):
+    k = m.group(1)
+    if k in v: return v[k]
+    missing.add(k); return m.group(0)
+for src, dsts in targets.items():
+    text = re.sub(r'\{\{(\w+)\}\}', sub, open(os.path.join(tpl, src)).read())
+    for d in dsts:
+        p = os.path.join(cfg, d); os.makedirs(os.path.dirname(p), exist_ok=True)
+        open(p, 'w').write(text)
+if missing: sys.exit(f"theme file lacks keys: {sorted(missing)}")
+PY
+    echo "$name" > "$STATE/current"
+    # wallpaper for the theme
+    local wp; wp=$(sed -n 's/^wallpaper=//p' "$file")
+    [[ -n "$wp" ]] && echo "$wp" > "$STATE/wallpaper"
+}
+
+reload() {
+    local wp="${WALL_DIR:-$HOME/Pictures/Wallpapers}/$(cat "$STATE/wallpaper" 2>/dev/null)"
+    [[ -f "$wp" ]] && command -v wall >/dev/null && wall set "$wp" >/dev/null 2>&1 || true
+    command -v hyprctl >/dev/null && hyprctl reload >/dev/null 2>&1 || true
+    pkill -USR2 waybar 2>/dev/null || true                      # reload config + css
+    command -v swaync-client >/dev/null && { swaync-client -R >/dev/null 2>&1; swaync-client -rs >/dev/null 2>&1; } || true
+    for s in /tmp/kitty-*; do                                   # recolour open terminals
+        [[ -S "$s" ]] && kitty @ --to "unix:$s" set-colors --all --configured "$CFG/kitty/colors.conf" >/dev/null 2>&1 || true
+    done
+    command -v notify-send >/dev/null && notify-send -a theme "Theme: $(current)" "GTK/Qt apps pick it up on next launch" || true
+}
+
+case "${1:-}" in
+    list)    themes ;;
+    current) current ;;
+    set)     render "${2:?theme name}"; [[ "${3:-}" == "--no-reload" ]] || reload ;;
+    toggle)  mapfile -t all < <(themes); cur=$(current); next="${all[0]}"
+             for i in "${!all[@]}"; do [[ "${all[$i]}" == "$cur" ]] && next="${all[$(( (i+1) % ${#all[@]} ))]}"; done
+             render "$next"; reload ;;
+    pick)    sel=$(themes | rofi -dmenu -p "theme") && [[ -n "$sel" ]] && { render "$sel"; reload; } ;;
+    *)       sed -n '2,8p' "$0"; exit 1 ;;
+esac

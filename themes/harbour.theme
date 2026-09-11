@@ -1,0 +1,25 @@
+# Harbour — near-black royal-blue base, orange accent. Values are hex without '#'.
+name=harbour
+wallpaper=harbour.jpg
+base=06080e
+mantle=0b0f1c
+surface=111a30
+overlay=1a2547
+primary=1f3799
+primary_bright=3b5fe0
+accent=ff8c32
+accent_dim=c86a1e
+text=e4e8f4
+subtext=9aa3bd
+muted=5d6784
+red=f0566a
+green=5fc98a
+yellow=f2c14e
+magenta=b07cf0
+cyan=5ec4d6
+red_bright=ff6f80
+green_bright=7fe0a4
+yellow_bright=ffd36e
+blue_bright=6e8ff0
+magenta_bright=c99cff
+cyan_bright=7fdcec

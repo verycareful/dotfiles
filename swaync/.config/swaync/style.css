@@ -1,15 +1,5 @@
 /* swaync — "Harbour". Sharp corners, glass panels. */
-@define-color base     #06080e;
-@define-color mantle   #0b0f1c;
-@define-color surface  #111a30;
-@define-color overlay  #1a2547;
-@define-color navy     #1f3799;
-@define-color navyBr   #3b5fe0;
-@define-color orange   #ff8c32;
-@define-color text     #e4e8f4;
-@define-color subtext  #9aa3bd;
-@define-color muted    #5d6784;
-@define-color red      #f0566a;
+@import url("colors.css");
 
 * {
     font-family: "Oxanium", "JetBrainsMono Nerd Font", sans-serif;
@@ -24,12 +14,12 @@
 .notification {
     background: alpha(@mantle, 0.78);
     border: 1px solid @overlay;
-    border-left: 3px solid @navy;
+    border-left: 3px solid @primary;
     box-shadow: 0 4px 18px rgba(0,0,0,0.45);
     margin: 6px 8px;
     padding: 0;
 }
-.notification.critical { border-left-color: @orange; }
+.notification.critical { border-left-color: @accent; }
 .notification.low      { border-left-color: @muted; }
 
 .notification-content { padding: 10px 12px; }
@@ -49,7 +39,7 @@
     color: @subtext;
     margin: 0; padding: 6px;
 }
-.notification-action:hover { background: alpha(@navy, 0.4); color: @text; }
+.notification-action:hover { background: alpha(@primary, 0.4); color: @text; }
 
 .close-button {
     background: transparent;
@@ -59,7 +49,7 @@
     padding: 2px;
     min-width: 20px; min-height: 20px;
 }
-.close-button:hover { color: @orange; background: transparent; }
+.close-button:hover { color: @accent; background: transparent; }
 
 /* ── control centre ──────────────────────────────────────── */
 .control-center {
@@ -85,7 +75,7 @@
     color: @subtext;
     padding: 3px 12px;
 }
-.widget-title > button:hover, .widget-inhibitors > button:hover { color: @orange; border-color: @orange; }
+.widget-title > button:hover, .widget-inhibitors > button:hover { color: @accent; border-color: @accent; }
 
 .widget-dnd {
     color: @subtext;
@@ -96,13 +86,13 @@
     border: 1px solid @overlay;
     border-radius: 0;
 }
-.widget-dnd > switch:checked { background: @navy; }
+.widget-dnd > switch:checked { background: @primary; }
 .widget-dnd > switch slider {
     background: @subtext;
     border-radius: 0;
     margin: 2px;
 }
-.widget-dnd > switch:checked slider { background: @orange; }
+.widget-dnd > switch:checked slider { background: @accent; }
 
 .widget-mpris { margin: 4px; }
 .widget-mpris-player {
@@ -113,7 +103,7 @@
 .widget-mpris-title    { color: @text; font-weight: 700; }
 .widget-mpris-subtitle { color: @subtext; font-size: 12px; }
 .widget-mpris button   { background: transparent; border: none; color: @subtext; }
-.widget-mpris button:hover { color: @orange; }
+.widget-mpris button:hover { color: @accent; }
 
 .notification-group-headers { color: @subtext; }
 .notification-group-icon    { color: @subtext; }
