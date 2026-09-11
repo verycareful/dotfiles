@@ -18,7 +18,8 @@ command -v stow >/dev/null || { echo "stow is not installed: sudo pacman -S stow
 
 BK="$HOME/.local/state/dotfiles-backup/$(date +%Y%m%d-%H%M%S)"
 backup_conflicts() {                     # $1 = package dir
-    # every path the package would create directly under $HOME (e.g. .config/hypr)
+    # Conflict units: whole dirs under .config (e.g. .config/hypr), but single
+    # files elsewhere (.local/bin/wall) since those dirs are shared with other tools.
     while IFS= read -r rel; do
         target="$HOME/$rel"
         [[ -e "$target" || -L "$target" ]] || continue
@@ -26,7 +27,7 @@ backup_conflicts() {                     # $1 = package dir
         [[ -L "$target" && "$(readlink -f "$target")" == "$REPO"/* ]] && continue
         mkdir -p "$BK/$(dirname "$rel")"
         mv -v "$target" "$BK/$rel"
-    done < <(cd "$1" && find . -mindepth 2 -maxdepth 2 -not -path './.git*' | sed 's#^\./##')
+    done < <(cd "$1" && { find .config -mindepth 1 -maxdepth 1 2>/dev/null; find . -path ./.config -prune -o -type f -print; } | sed 's#^\./##')
 }
 
 for p in "${pkgs[@]}"; do
