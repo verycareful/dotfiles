@@ -159,6 +159,6 @@
     "custom/power": {
         "format": "⏻",
         "tooltip-format": "power menu",
-        "on-click": "wlogout -b 5 -T 320 -B 320 -L 420 -R 420"
+        "on-click": "wlogout -b 5 -T 520 -B 520 -L 440 -R 440"
     }
 }
