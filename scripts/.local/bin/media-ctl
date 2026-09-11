@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# media-ctl — playerctl wrapper for Waybar buttons.
+#   media-ctl icon prev|play|next   stream a JSON icon that follows player state (empty = no player → hidden)
+#   media-ctl prev|toggle|next      control the active player
+set -uo pipefail
+PC=(playerctl --ignore-player=playerctld)
+NF="<span font_family='JetBrainsMono Nerd Font'>%s</span>"
+case "${1:-}" in
+    icon)
+        which="$2"
+        emit() { # $1 = status
+            case "$1:$which" in
+                Playing:play) printf "{\"text\":\"$NF\",\"class\":\"playing\",\"tooltip\":\"pause\"}\n" $'\U000F03E4' ;;
+                Paused:play)  printf "{\"text\":\"$NF\",\"class\":\"paused\",\"tooltip\":\"play\"}\n"  $'\U000F040A' ;;
+                Playing:prev|Paused:prev) printf "{\"text\":\"$NF\",\"tooltip\":\"previous\"}\n" $'\U000F04AE' ;;
+                Playing:next|Paused:next) printf "{\"text\":\"$NF\",\"tooltip\":\"next\"}\n"     $'\U000F04AD' ;;
+                *) echo '{"text":""}' ;;
+            esac
+        }
+        emit "$("${PC[@]}" status 2>/dev/null || true)"
+        "${PC[@]}" -F status 2>/dev/null | while read -r s; do emit "$s"; done
+        echo '{"text":""}' ;;
+    prev)   "${PC[@]}" previous ;;
+    next)   "${PC[@]}" next ;;
+    toggle) "${PC[@]}" play-pause ;;
+    *) echo "usage: media-ctl {icon prev|play|next | prev|toggle|next}" >&2; exit 1 ;;
+esac

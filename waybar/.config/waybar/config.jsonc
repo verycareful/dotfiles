@@ -11,8 +11,8 @@
     // ── layout ────────────────────────────────────────────────
     "modules-left":   ["clock#time", "clock#date", "idle_inhibitor", "custom/weather"],
     "modules-center": ["hyprland/workspaces"],
-    "modules-right":  ["mpris", "cpu", "memory", "custom/gpu", "network", "wireplumber",
-                       "tray", "custom/notifications", "custom/keyhint", "custom/power"],
+    "modules-right":  ["group/media", "cpu", "memory", "custom/gpu", "network", "wireplumber",
+                       "group/tray", "custom/notifications", "custom/keyhint", "custom/power"],
 
     // ── left ──────────────────────────────────────────────────
     "clock#time": {
@@ -63,10 +63,17 @@
     },
 
     // ── right ─────────────────────────────────────────────────
+    "group/media": {
+        "orientation": "inherit",
+        "modules": ["custom/media-prev", "custom/media-play", "custom/media-next", "mpris"]
+    },
+    "custom/media-prev": { "exec": "~/.local/bin/media-ctl icon prev", "return-type": "json", "hide-empty-text": true, "on-click": "~/.local/bin/media-ctl prev" },
+    "custom/media-play": { "exec": "~/.local/bin/media-ctl icon play", "return-type": "json", "hide-empty-text": true, "on-click": "~/.local/bin/media-ctl toggle" },
+    "custom/media-next": { "exec": "~/.local/bin/media-ctl icon next", "return-type": "json", "hide-empty-text": true, "on-click": "~/.local/bin/media-ctl next" },
     "mpris": {
         "ignored-players": ["playerctld"],
-        "format": "<span font_family='JetBrainsMono Nerd Font'>{player_icon}</span>  {dynamic}",
-        "format-paused": "<span font_family='JetBrainsMono Nerd Font'>{status_icon}</span>  <i>{dynamic}</i>",
+        "format": "{dynamic}",
+        "format-paused": "<i>{dynamic}</i>",
         "dynamic-order": ["title", "artist"],
         "dynamic-len": 36,
         "player-icons": { "default": "󰝚", "spotify": "󰓇", "firefox": "󰈹" },
@@ -111,6 +118,18 @@
         "on-click": "pamixer -t",
         "on-click-right": "pavucontrol",
         "max-volume": 100
+    },
+    "group/tray": {
+        "orientation": "inherit",
+        "drawer": { "transition-duration": 250, "transition-left-to-right": false, "click-to-reveal": true, "children-class": "tray-drawer" },
+        "modules": ["custom/tray-toggle", "tray"]
+    },
+    "custom/tray-toggle": {
+        "exec": "~/.local/bin/tray-toggle status",
+        "return-type": "json",
+        "on-click": "~/.local/bin/tray-toggle flip",
+        "exec-on-event": true,
+        "interval": "once"
     },
     "tray": {
         "icon-size": 16,
