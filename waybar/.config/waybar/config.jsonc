@@ -12,7 +12,7 @@
     "modules-left":   ["clock#time", "clock#date", "idle_inhibitor", "custom/weather"],
     "modules-center": ["hyprland/workspaces"],
     "modules-right":  ["group/media", "cpu", "memory", "custom/gpu", "network", "wireplumber",
-                       "group/traybox", "custom/notifications", "custom/keyhint", "custom/power"],
+                       "group/traybox", "custom/updates", "custom/notifications", "custom/keyhint", "custom/power"],
 
     // ── left ──────────────────────────────────────────────────
     "clock#time": {
@@ -131,6 +131,14 @@
     "tray": {
         "icon-size": 16,
         "spacing": 8
+    },
+    "custom/updates": {
+        "exec": "~/.local/bin/updates",
+        "return-type": "json",
+        "interval": 1800,              // every 30 min, plus on signal 8 after an upgrade
+        "signal": 8,
+        "hide-empty-text": true,
+        "on-click": "~/.local/bin/updates run"
     },
     "custom/notifications": {
         "exec": "swaync-client -swb",

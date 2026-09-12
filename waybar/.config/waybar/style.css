@@ -124,6 +124,10 @@ tooltip label { padding: 4px; }
 #tray > .passive { -gtk-icon-effect: dim; }
 #tray > .needs-attention { -gtk-icon-effect: highlight; }
 
+#custom-updates { color: @subtext; }
+#custom-updates.many { color: @yellow; }
+#custom-updates:hover { color: @accent; }
+
 #custom-notifications { font-size: 15px; }
 #custom-notifications.notification,
 #custom-notifications.dnd-notification,

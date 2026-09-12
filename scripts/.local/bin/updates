@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# updates — pending package updates for Waybar (repo via checkupdates, AUR via yay).
+#   updates          JSON for the bar: count, tooltip with the package list
+#   updates run      open a terminal and upgrade everything, then refresh the bar
+set -uo pipefail
+NF="<span font_family='JetBrainsMono Nerd Font'>%s</span>"
+case "${1:-}" in
+    run)
+        kitty --title updates -e bash -c 'yay -Syu; echo; read -rp "done — press Enter to close"'
+        pkill -RTMIN+8 waybar
+        exit 0 ;;
+esac
+repo=$(checkupdates 2>/dev/null || true)
+aur=$(timeout 30 yay -Qua 2>/dev/null || true)
+n=$(( $(grep -c . <<<"$repo") + $(grep -c . <<<"$aur") ))
+if (( n == 0 )); then
+    printf '{"text":"","tooltip":"up to date","class":"none"}\n'; exit 0
+fi
+tip=$(printf '%s\n%s' "$repo" "$aur" | grep . | awk '{printf "%s → %s\\n", $1, $4}' | head -40)
+(( n > 40 )) && tip+="… and $((n-40)) more\\n"
+cls=normal; (( n >= 50 )) && cls=many
+printf '{"text":"'"$NF"' %d","tooltip":"%d updates\\n%s","class":"%s"}\n' $'\U000F0493' "$n" "$n" "$tip" "$cls"
