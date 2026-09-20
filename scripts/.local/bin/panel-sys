@@ -12,7 +12,8 @@ best=""; bv=0; for c in /sys/class/drm/card?; do [[ -r "$c/device/mem_info_vram_
 gpu=0; gtemp=0; vu=0; vt=0
 if [[ -n "$best" ]]; then gpu=$(<"$best/device/gpu_busy_percent"); hw=$(ls -d "$best"/device/hwmon/hwmon* | head -1); gtemp=$(( $(<"$hw/temp1_input")/1000 ))
     vu=$(awk -v u="$(<"$best/device/mem_info_vram_used")" 'BEGIN{printf "%.1f",u/1073741824}'); vt=$(awk -v t="$bv" 'BEGIN{printf "%.0f",t/1073741824}'); fi
+ghz=$(awk '/cpu MHz/{s+=$4;n++} END{printf "%.1f", s/n/1000}' /proc/cpuinfo)
 up=$(awk '{s=int($1); printf "%dd %dh %dm", s/86400, (s%86400)/3600, (s%3600)/60}' /proc/uptime)
 upd=$(cat "${XDG_CACHE_HOME:-$HOME/.cache}/updates-count" 2>/dev/null || echo "")
-printf '{"cpu":%d,"tctl":%s,"memUsed":%s,"memTotal":%s,"gpu":%d,"gpuTemp":%d,"vramUsed":%s,"vramTotal":%s,"uptime":"%s","updates":"%s"}\n' \
-    "$cpu" "${tctl:-0}" "$memu" "$memtg" "$gpu" "$gtemp" "$vu" "$vt" "$up" "$upd"
+printf '{"cpu":%d,"tctl":%s,"ghz":%s,"memUsed":%s,"memTotal":%s,"gpu":%d,"gpuTemp":%d,"vramUsed":%s,"vramTotal":%s,"uptime":"%s","updates":"%s"}\n' \
+    "$cpu" "${tctl:-0}" "$ghz" "$memu" "$memtg" "$gpu" "$gtemp" "$vu" "$vt" "$up" "$upd"

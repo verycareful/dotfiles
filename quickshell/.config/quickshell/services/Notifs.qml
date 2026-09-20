@@ -158,7 +158,7 @@ Singleton {
     // ── bar + persistence + clock ────────────────────────────
     // waybar's custom/notifications module re-runs `qs ipc call notifs status` on RTMIN+9
     Timer { id: barSignal; interval: 50; onTriggered: Quickshell.execDetached(["pkill", "-RTMIN+9", "waybar"]) }
-    Timer { interval: 30000; running: true; repeat: true; onTriggered: root.now = new Date() }
+    Timer { interval: 30000; running: root.centerOpen; repeat: true; triggeredOnStart: true; onTriggered: root.now = new Date() }
 
     FileView {
         id: dndFile

@@ -6,9 +6,9 @@ import Quickshell.Io
 import ".."
 import "../services"
 
-Widgets.Tile {
+Item {
     id: tile
-    implicitHeight: 64
+    implicitHeight: body.implicitHeight
     property int current: 85          // from /etc/ryzenadj.conf
     property int pending: current     // while dragging
     property bool busy: false
@@ -34,14 +34,14 @@ Widgets.Tile {
     }
 
     RowLayout {
-        anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
-        spacing: 12
-        Text { text: "\u{F0E01}"; color: tile.pending >= 95 ? Theme.red : Theme.accent; font { family: Theme.fontIcon; pixelSize: 20 } }   // thermometer
+        id: body
+        anchors { left: parent.left; right: parent.right; top: parent.top }
+        spacing: 0
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 4
             RowLayout {
-                Text { text: "CPU thermal limit"; color: Theme.text; Layout.fillWidth: true; font { family: Theme.fontUi; pixelSize: 12; weight: Font.Bold } }
+                Text { text: "Thermal limit"; color: Theme.muted; Layout.fillWidth: true; font { family: Theme.fontUi; pixelSize: 12; weight: Font.Bold } }
                 Text { text: tile.error; visible: tile.error !== ""; color: Theme.red; font { family: Theme.fontUi; pixelSize: 11 } }
                 Text { text: tile.busy ? "…" : tile.pending + " °C"; color: tile.pending !== tile.current ? Theme.accent : Theme.subtext; font { family: Theme.fontDisplay; pixelSize: 13; weight: Font.Bold } }
             }

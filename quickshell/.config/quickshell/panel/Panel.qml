@@ -46,7 +46,6 @@ Scope {
                 spacing: 12
                 Search { id: search; Layout.fillWidth: true }
                 Toggles { Layout.fillWidth: true }
-                Thermal  { Layout.fillWidth: true }
                 Media    { Layout.fillWidth: true }
                 System   { Layout.fillWidth: true }
                 ClamAV   { Layout.fillWidth: true }

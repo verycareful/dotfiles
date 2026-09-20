@@ -1,3 +1,4 @@
 singleton Notifs 1.0 Notifs.qml
 singleton Panel 1.0 Panel.qml
 singleton Sys 1.0 Sys.qml
+singleton Gpu 1.0 Gpu.qml
