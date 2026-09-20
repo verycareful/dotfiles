@@ -84,22 +84,25 @@ Scope {
                 }
 
                 // groups
-                Flickable {
+                Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    contentHeight: list.implicitHeight
-                    clip: true
-                    boundsBehavior: Flickable.StopAtBounds
-                    ColumnLayout {
-                        id: list
-                        width: parent.width
-                        spacing: 10
-                        Repeater {
-                            model: Notifs.groups
-                            Group { required property var modelData; g: modelData; Layout.fillWidth: true }
+                    Flickable {
+                        anchors.fill: parent
+                        contentHeight: list.implicitHeight
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        ColumnLayout {
+                            id: list
+                            width: parent.width
+                            spacing: 10
+                            Repeater {
+                                model: Notifs.groups
+                                Group { required property var modelData; g: modelData; Layout.fillWidth: true }
+                            }
                         }
                     }
-                    Text {
+                    Text {                        // outside the Flickable: its content item is 0 px tall when empty
                         anchors.centerIn: parent
                         visible: Notifs.groups.length === 0
                         text: "nothing here"
