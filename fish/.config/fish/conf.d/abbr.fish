@@ -22,6 +22,7 @@ abbr -a y    yay
 abbr -a yu   yay -Syu
 
 abbr -a hc   hyprctl
+abbr -a cw   "clip wipe"
 abbr -a hr   hyprctl reload
 abbr -a dot  cd ~/Sonnenplatz/Projects/Github/dotfiles
 abbr -a ..   cd ..

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# clip — clipboard history (cliphist) in rofi.
+#   Enter    copy the entry back to the clipboard
+#   Alt+D    delete the highlighted entry (picker reopens)
+#   Alt+X    clear the whole history and the current clipboard
+#   clip wipe   same as Alt+X, from the shell
+set -uo pipefail
+if [[ "${1:-}" == "wipe" ]]; then cliphist wipe; wl-copy --clear; notify-send -a clipboard "Clipboard" "History cleared"; exit 0; fi
+list=$(cliphist list) || exit 0
+[[ -n "$list" ]] || { notify-send -a clipboard "Clipboard" "History is empty"; exit 0; }
+sel=$(rofi -dmenu -i -p "clipboard" -mesg "Enter copy · Alt+D delete · Alt+X clear all" \
+      -kb-custom-1 "Alt+d" -kb-custom-2 "Alt+x" <<<"$list"); rc=$?
+case $rc in
+    0)  [[ -n "$sel" ]] && cliphist decode <<<"$sel" | wl-copy ;;
+    10) [[ -n "$sel" ]] && cliphist delete <<<"$sel"; exec "$0" ;;
+    11) exec "$0" wipe ;;
+esac
