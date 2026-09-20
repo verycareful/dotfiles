@@ -6,7 +6,7 @@ import "../services"
 
 GridLayout {
     columns: 4
-    columnSpacing: 8
+    columnSpacing: 10
     rowSpacing: 8
     readonly property var s: Sys.sys
 
@@ -24,10 +24,10 @@ GridLayout {
         property bool warn: false
         property bool accent: false
         Layout.fillWidth: true
-        implicitHeight: 72
+        implicitHeight: 84
         ColumnLayout {
-            anchors { fill: parent; margins: 10 }
-            spacing: 4
+            anchors { fill: parent; margins: 12 }
+            spacing: 7
             RowLayout {
                 spacing: 6
                 Text { text: parent.parent.parent.glyph; color: warn ? Theme.red : (accent ? Theme.accent : Theme.muted); font { family: Theme.fontIcon; pixelSize: 14 } }
@@ -35,8 +35,8 @@ GridLayout {
             }
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 6
-                Text { text: parent.parent.parent.value; color: warn ? Theme.red : Theme.text; font { family: Theme.fontDisplay; pixelSize: 15; weight: Font.Bold } }
+                spacing: 12
+                Text { text: parent.parent.parent.value; color: warn ? Theme.red : Theme.text; font { family: Theme.fontDisplay; pixelSize: 16; weight: Font.Bold } }
                 Text { text: parent.parent.parent.extra; visible: text !== ""; color: warn ? Theme.red : Theme.subtext; Layout.alignment: Qt.AlignBaseline; font { family: Theme.fontDisplay; pixelSize: 12; weight: Font.Bold } }
             }
             Text { text: parent.parent.sub; color: Theme.subtext; elide: Text.ElideRight; Layout.fillWidth: true; font { family: Theme.fontUi; pixelSize: 10 } }
