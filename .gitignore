@@ -27,3 +27,4 @@ fish/.config/starship.toml
 fastfetch/.config/fastfetch/config.jsonc
 sddm/harbour/theme.conf
 hypr/.config/hypr/hyprland.lua.disabled
+waybar/.config/waybar/state.css

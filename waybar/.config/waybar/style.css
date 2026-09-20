@@ -1,6 +1,7 @@
 /* Waybar — "Harbour" palette (see palette.md). Sharp corners, glass bar. */
 
 @import url("colors.css");
+@import url("state.css");      /* written by the Quickshell panel (media on/off), git-ignored */
 
 * {
     font-family: "Oxanium", "JetBrainsMono Nerd Font", sans-serif;   /* Nerd Font = icon fallback */
@@ -49,6 +50,9 @@ tooltip label { padding: 4px; }
 }
 
 /* ── left ─────────────────────────────────────────────────── */
+#custom-panel { font-family: "JetBrainsMono Nerd Font"; font-size: 17px; color: @subtext; padding: 0 12px 0 10px; }
+#custom-panel.open, #custom-panel:hover { color: @accent; }
+
 #clock.time {
     font-family: "Quantico", "JetBrainsMono Nerd Font";
     color: @text;

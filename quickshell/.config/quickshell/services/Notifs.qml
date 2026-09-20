@@ -136,6 +136,7 @@ Singleton {
 
     function toggleCenter() { setCenter(!centerOpen) }
     function setCenter(open) {
+        if (open) Panel.setOpen(false)
         centerOpen = open
         if (open) popups = []          // the centre shows everything; popups are redundant
     }

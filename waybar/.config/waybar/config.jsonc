@@ -9,12 +9,21 @@
     "reload_style_on_change": true,
 
     // ── layout ────────────────────────────────────────────────
-    "modules-left":   ["clock#time", "clock#date", "idle_inhibitor", "custom/weather"],
+    "modules-left":   ["custom/panel", "clock#time", "clock#date", "idle_inhibitor", "custom/weather"],
     "modules-center": ["hyprland/workspaces"],
-    "modules-right":  ["group/media", "cpu", "memory", "custom/gpu", "network", "wireplumber",
+    "modules-right":  ["group/media", "network", "wireplumber",
                        "group/traybox", "custom/updates", "custom/notifications", "custom/keyhint", "custom/power"],
 
     // ── left ──────────────────────────────────────────────────
+    "custom/panel": {                       // anchor: opens the Quickshell widget panel (also SUPER+A)
+        "exec": "qs ipc call panel status",
+        "return-type": "json",
+        "interval": "once",
+        "signal": 10,
+        "format": "󰀱",
+        "on-click": "qs ipc call panel toggle",
+        "escape": true
+    },
     "clock#time": {
         "format": "{:%H:%M}",
         "interval": 1,
