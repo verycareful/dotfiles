@@ -11,7 +11,7 @@ hypr/.config/hypr/lua/colors.lua
 hypr/.config/hypr/lua/cursor.lua
 hypr/.config/hypr/hyprlock.conf
 waybar/.config/waybar/colors.css
-swaync/.config/swaync/colors.css
+quickshell/.config/quickshell/Theme.qml
 wlogout/.config/wlogout/colors.css
 rofi/.config/rofi/themes/colors.rasi
 kitty/.config/kitty/colors.conf

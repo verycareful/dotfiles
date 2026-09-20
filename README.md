@@ -7,7 +7,7 @@ Hyprland rice — sharp corners, glass, switchable themes (Harbour: navy/orange 
 | `hypr/`    | Hyprland (`hyprland.lua` → `lua/*.lua`; the pre-0.55 `hyprland.conf` → `conf.d/*.conf` set is kept as a fallback, `./restore.sh hypr` swaps between them), hyprlock, hypridle |
 | `waybar/`  | status bar                                       |
 | `rofi/`    | launcher / menus                                 |
-| `swaync/`  | notifications                                    |
+| `quickshell/` | Quickshell: notification server, popups and the notification centre (`qs ipc call notifs toggle|dnd|clear|status`); the widget panel will live here too |
 | `wlogout/` | power menu                                       |
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |

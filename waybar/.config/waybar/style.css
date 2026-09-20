@@ -103,13 +103,15 @@ tooltip label { padding: 4px; }
 /* first media button keeps the group's divider */
 .modules-right > widget > box > widget:first-child > * { border-left: 1px solid alpha(@overlay, 0.6); }
 
-/* tray arrow: two labels, one collapsed to zero size. Waybar (git) puts the .expanded
-   class on the group box (#traybox) while the drawer is open, which swaps them: down → left.
-   The module id sits on a box around the label, so the label must be targeted too or the
-   global font-size wins. */
+/* tray arrow: two labels, one collapsed to zero size. Waybar (git) puts the .expanded class on
+   the group box (#traybox) while the drawer is open, which swaps them: down → left.
+   The module id is on both the box and the label inside it, so size rules go on the box and
+   the label is explicitly zeroed (otherwise margins apply twice and the bar grows). */
 #custom-tray-down, #custom-tray-left { font-family: "JetBrainsMono Nerd Font"; font-size: 15px; padding: 0 8px; margin: 5px 0; }
-#custom-tray-left,          #custom-tray-left label          { font-size: 0px; padding: 0; margin: 0; min-width: 0; }
-#traybox.expanded #custom-tray-left, #traybox.expanded #custom-tray-left label { font-size: 15px; padding: 0 8px; margin: 5px 0; color: @accent; }
+#custom-tray-down label, #custom-tray-left label { padding: 0; margin: 0; }
+#custom-tray-left, #custom-tray-left label                                   { font-size: 0px; padding: 0; margin: 0; min-width: 0; }
+#traybox.expanded #custom-tray-left                                          { font-size: 15px; padding: 0 8px; margin: 5px 0; color: @accent; }
+#traybox.expanded #custom-tray-left label                                    { font-size: 15px; }
 #traybox.expanded #custom-tray-down, #traybox.expanded #custom-tray-down label { font-size: 0px; padding: 0; margin: 0; min-width: 0; }
 #tray.tray-drawer { border-left: none; padding: 0 6px; }
 
@@ -131,10 +133,9 @@ tooltip label { padding: 4px; }
 #custom-updates:hover { color: @accent; }
 
 #custom-notifications { font-size: 15px; }
-#custom-notifications.notification,
-#custom-notifications.dnd-notification,
-#custom-notifications.inhibited-notification,
-#custom-notifications.dnd-inhibited-notification { color: @accent; }
+#custom-notifications label { font-family: "JetBrainsMono Nerd Font"; }   /* count digits in the icon font too */
+#custom-notifications.unread { color: @accent; }
+#custom-notifications.dnd, #custom-notifications.dnd-unread { color: @muted; }
 #custom-keyhint { font-size: 15px; }
 
 #custom-power {

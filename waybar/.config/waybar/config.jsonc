@@ -142,22 +142,20 @@
         "on-click": "~/.local/bin/updates run"
     },
     "custom/notifications": {
-        "exec": "swaync-client -swb",
+        // bell + unread count from the Quickshell notification centre; it signals RTMIN+9 on change
+        "exec": "qs ipc call notifs status",
         "return-type": "json",
-        "format": "{icon}",
+        "interval": "once",
+        "signal": 9,
+        "format": "{icon} {text}",
         "format-icons": {
-            "notification":          "󱅫",
-            "none":                  "󰂚",
-            "dnd-notification":      "󰂛",
-            "dnd-none":              "󰂛",
-            "inhibited-notification":"󱅫",
-            "inhibited-none":        "󰂚",
-            "dnd-inhibited-notification": "󰂛",
-            "dnd-inhibited-none":    "󰂛"
+            "none":       "󰂚",
+            "unread":     "󰂜",
+            "dnd":        "󰂛",
+            "dnd-unread": "󰂛"
         },
-        "tooltip": false,
-        "on-click": "swaync-client -t -sw",
-        "on-click-right": "swaync-client -d -sw",
+        "on-click": "qs ipc call notifs toggle",
+        "on-click-right": "qs ipc call notifs dnd",
         "escape": true
     },
     "custom/keyhint": {

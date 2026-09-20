@@ -23,10 +23,10 @@ cp -r "$REPO/hypr/.config/hypr/." "$TMP/"
 # always have a terminal on screen so the session is never "empty"
 echo 'hl.on("hyprland.start", function() hl.exec_cmd("kitty") end)' >> "$TMP/hyprland.lua"
 # user units would bind to the login session's Wayland display, so run those programs directly here
-sed -i 's#hl.exec_cmd("~/.local/bin/session-start")#for _, u in ipairs({ "waybar", "swaync", "hypridle", "hyprsunset", "/usr/lib/hyprpolkitagent" }) do hl.exec_cmd(u) end#' "$TMP/lua/autostart.lua"
+sed -i 's#hl.exec_cmd("~/.local/bin/session-start")#for _, u in ipairs({ "waybar", "qs", "hypridle", "hyprsunset", "/usr/lib/hyprpolkitagent" }) do hl.exec_cmd(u) end#' "$TMP/lua/autostart.lua"
 
 # every other tool reads its config from XDG_CONFIG_HOME → temp copies
-for pkg in waybar rofi kitty swaync wlogout fastfetch; do
+for pkg in waybar rofi kitty quickshell wlogout fastfetch; do
     cp -r "$REPO/$pkg/.config/$pkg" "$TMP/config/$pkg"
 done
 cp -r "$REPO/gtk/.config/." "$TMP/config/"

@@ -28,7 +28,7 @@ export PATH="$REPO/scripts/.local/bin:$PATH"
 export WALL_DIR="$REPO/wallpapers"
 mkdir -p "$TMP/config"
 export XDG_CONFIG_HOME="$TMP/config"      # so waybar/rofi/etc pick up repo copies
-for pkg in waybar rofi kitty swaync wlogout fastfetch; do
+for pkg in waybar rofi kitty quickshell wlogout fastfetch; do
     [[ -d "$REPO/$pkg/.config/$pkg" ]] && cp -r "$REPO/$pkg/.config/$pkg" "$TMP/config/$pkg"
 done
 # render the colour files for the current theme into the temp copies

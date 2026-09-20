@@ -1,7 +1,7 @@
 # sudo pacman -S --needed --asexplicit - < packages.txt
 # (--asexplicit: everything here is wanted on its own, so `pacman -Rns` of something else never removes it)
 hyprland uwsm hypridle hyprlock hyprsunset hyprpolkitagent hyprpicker xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
-waybar rofi swaync awww wlogout
+waybar rofi quickshell awww wlogout
 kitty fish starship fastfetch
 grim slurp satty wl-clipboard cliphist
 brightnessctl playerctl pamixer

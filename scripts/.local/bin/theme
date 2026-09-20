@@ -39,7 +39,7 @@ targets = {                                      # template → destination(s) u
     'hypr/cursor.conf':   ['hypr/conf.d/cursor.conf'],
     'hypr/hyprlock.conf': ['hypr/hyprlock.conf'],
     'waybar/colors.css':  ['waybar/colors.css'],
-    'swaync/colors.css':  ['swaync/colors.css'],
+    'quickshell/Theme.qml': ['quickshell/Theme.qml'],
     'wlogout/colors.css': ['wlogout/colors.css'],
     'rofi/colors.rasi':   ['rofi/themes/colors.rasi'],
     'kitty/colors.conf':  ['kitty/colors.conf'],
@@ -76,7 +76,6 @@ reload() {
     [[ -n "$cur" ]] && command -v gsettings >/dev/null && gsettings set org.gnome.desktop.interface cursor-theme "$cur" 2>/dev/null || true
     # waybar 0.15 crashes on SIGUSR2/hyprctl reload, so restart it instead of signalling
     if systemctl --user is-active -q waybar; then systemctl --user restart waybar; else pkill -x waybar; (setsid waybar >/dev/null 2>&1 &); fi
-    command -v swaync-client >/dev/null && { swaync-client -R >/dev/null 2>&1; swaync-client -rs >/dev/null 2>&1; } || true
     for s in /tmp/kitty-*; do                                   # recolour open terminals
         [[ -S "$s" ]] && kitty @ --to "unix:$s" set-colors --all --configured "$CFG/kitty/colors.conf" >/dev/null 2>&1 || true
     done

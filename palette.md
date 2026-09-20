@@ -7,7 +7,7 @@ header — edit the template or the theme, never the generated copy.
 
 ```sh
 theme list            # harbour, mono
-theme set mono        # render + live reload (wallpaper, Hyprland, Waybar, swaync, open kitty windows)
+theme set mono        # render + live reload (wallpaper, Hyprland, Waybar, Quickshell, open kitty windows)
 theme toggle          # next theme  (SUPER+Shift+T)
 theme pick            # rofi menu
 ```
