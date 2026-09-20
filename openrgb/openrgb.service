@@ -1,0 +1,15 @@
+[Unit]
+Description=OpenRGB server (lighting presets via the widget panel: rgb set NAME)
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+# --noautoconnect: this is the server, don't look for another one
+ExecStart=/usr/bin/openrgb --server --noautoconnect
+# re-apply the remembered preset once the server answers (rgb apply retries for 30 s)
+ExecStartPost=%h/.local/bin/rgb apply
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

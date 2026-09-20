@@ -10,5 +10,5 @@ qt5-wayland qt6-wayland qt5ct qt6ct kvantum nwg-look adw-gtk-theme
 ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji
 papirus-icon-theme bibata-cursor-theme
 stow jq imagemagick pacman-contrib
-lact
+lact openrgb
 # AUR (yay -S, not pacman): ryzenadj

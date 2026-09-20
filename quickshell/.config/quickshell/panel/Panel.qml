@@ -48,6 +48,7 @@ Scope {
                 Toggles { Layout.fillWidth: true }
                 Media    { Layout.fillWidth: true }
                 System   { Layout.fillWidth: true }
+                Lighting { Layout.fillWidth: true }
                 ClamAV   { Layout.fillWidth: true }
                 Calendar { Layout.fillWidth: true }
             }

@@ -38,9 +38,9 @@ for p in "${pkgs[@]}"; do
     [[ -z "$op" ]] && backup_conflicts "$p"
     stow -v $op -t "$HOME" "$p"
 done
-for unit in quickshell/quickshell.service; do        # user units shipped by packages
+for unit in quickshell/quickshell.service openrgb/openrgb.service; do   # user units shipped by packages
     [[ -n "$op" ]] && continue
-    [[ " ${pkgs[*]} " == *" ${unit%%/*} "* ]] || continue
+    [[ " ${pkgs[*]} " == *" ${unit%%/*} "* || " ${pkgs[*]} " == *" scripts "* ]] || continue
     [[ -e "$HOME/.config/systemd/user/$(basename "$unit")" ]] || { systemctl --user link "$REPO/$unit" >/dev/null && echo "LINK: unit $(basename "$unit")"; }
     systemctl --user enable "$(basename "$unit")" >/dev/null 2>&1 || true
 done

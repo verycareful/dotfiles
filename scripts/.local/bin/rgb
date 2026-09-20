@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# rgb — OpenRGB presets through the headless server (openrgb.service).
+#   rgb list          profile names (~/.config/OpenRGB/profiles/*.json)
+#   rgb current       the saved preset
+#   rgb set NAME      apply NAME now and remember it
+#   rgb apply         re-apply the saved preset (waits for the server; used by openrgb.service)
+#   rgb status        JSON for the panel: {"profiles":[…],"current":"…"}
+set -uo pipefail
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/rgb"; mkdir -p "$STATE"
+PROFILES="$HOME/.config/OpenRGB/profiles"
+list() { ls -1 "$PROFILES"/*.json 2>/dev/null | sed 's#.*/##; s/\.json$//'; }
+current() { cat "$STATE/current" 2>/dev/null || true; }
+load() { openrgb --client localhost:6742 -p "$1" >/dev/null 2>&1; }
+case "${1:-status}" in
+    list)    list ;;
+    current) current ;;
+    set)     [[ -f "$PROFILES/$2.json" ]] || { echo "no such profile: $2" >&2; exit 1; }
+             load "$2" && echo "$2" > "$STATE/current" && pkill -RTMIN+11 waybar 2>/dev/null; true ;;
+    apply)   p=$(current); [[ -n "$p" ]] || exit 0
+             for _ in $(seq 1 60); do load "$p" && exit 0; sleep 0.5; done; echo "openrgb server not reachable" >&2; exit 1 ;;
+    status)  printf '{"profiles":[%s],"current":"%s"}\n' "$(list | sed 's/.*/"&"/' | paste -sd,)" "$(current)" ;;
+    *)       echo "usage: rgb list|current|set NAME|apply|status" >&2; exit 2 ;;
+esac
