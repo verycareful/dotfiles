@@ -103,12 +103,14 @@ tooltip label { padding: 4px; }
 /* first media button keeps the group's divider */
 .modules-right > widget > box > widget:first-child > * { border-left: 1px solid alpha(@overlay, 0.6); }
 
-/* tray arrow: two labels, one collapsed to zero size. While the drawer is open Waybar
-   sets the :hover state on the group box (#traybox), which swaps them: down → left. */
+/* tray arrow: two labels, one collapsed to zero size. Waybar (git) puts the .expanded
+   class on the group box (#traybox) while the drawer is open, which swaps them: down → left.
+   The module id sits on a box around the label, so the label must be targeted too or the
+   global font-size wins. */
 #custom-tray-down, #custom-tray-left { font-family: "JetBrainsMono Nerd Font"; font-size: 15px; padding: 0 8px; margin: 5px 0; }
-#custom-tray-left { font-size: 0px; padding: 0; margin: 0; min-width: 0; }
-#traybox:hover #custom-tray-left { font-size: 15px; padding: 0 8px; margin: 5px 0; color: @accent; }
-#traybox:hover #custom-tray-down { font-size: 0px; padding: 0; margin: 0; min-width: 0; }
+#custom-tray-left,          #custom-tray-left label          { font-size: 0px; padding: 0; margin: 0; min-width: 0; }
+#traybox.expanded #custom-tray-left, #traybox.expanded #custom-tray-left label { font-size: 15px; padding: 0 8px; margin: 5px 0; color: @accent; }
+#traybox.expanded #custom-tray-down, #traybox.expanded #custom-tray-down label { font-size: 0px; padding: 0; margin: 0; min-width: 0; }
 #tray.tray-drawer { border-left: none; padding: 0 6px; }
 
 #cpu, #memory, #custom-gpu { color: @subtext; }
