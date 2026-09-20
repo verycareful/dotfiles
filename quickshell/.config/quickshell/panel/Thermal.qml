@@ -24,11 +24,11 @@ Widgets.Tile {
     Process {
         id: setter
         stdout: StdioCollector {}
-        onExited: (code) => { tile.busy = false; if (code === 0) { tile.current = tile.pending; tile.error = "" } else { tile.pending = tile.current; tile.error = code === 126 || code === 127 ? "cancelled" : "failed (re-run install-ryzenadj.sh?)" } }
+        onExited: (code) => { tile.busy = false; Panel.releaseKeyboard = false; if (code === 0) { tile.current = tile.pending; tile.error = "" } else { tile.pending = tile.current; tile.error = code === 126 || code === 127 ? "cancelled" : "failed (re-run install-ryzenadj.sh?)" } }
     }
     function apply(v) {
         if (v === current || busy) return
-        pending = v; busy = true
+        pending = v; busy = true; Panel.releaseKeyboard = true
         setter.command = ["pkexec", "/usr/local/bin/cpu-tctl", String(v)]
         setter.running = true
     }

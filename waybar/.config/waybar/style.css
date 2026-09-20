@@ -94,7 +94,7 @@ tooltip label { padding: 4px; }
 #workspaces button.empty  { color: alpha(@muted, 0.45); }
 
 /* ── right ────────────────────────────────────────────────── */
-#mpris { color: @text; font-style: normal; padding-left: 4px; }
+#mpris { color: @text; font-style: normal; padding-right: 4px; }
 #mpris.paused { color: @muted; }
 #custom-media-prev, #custom-media-play, #custom-media-next {
     font-family: "JetBrainsMono Nerd Font";
@@ -102,9 +102,10 @@ tooltip label { padding: 4px; }
     padding: 0 5px;
     border-left: none;
 }
+#custom-media-next { padding-right: 8px; }
 #custom-media-play { color: @accent; }
 #custom-media-prev:hover, #custom-media-next:hover, #custom-media-play:hover { color: @text; }
-/* first media button keeps the group's divider */
+/* first module in a group keeps the group's divider */
 .modules-right > widget > box > widget:first-child > * { border-left: 1px solid alpha(@overlay, 0.6); }
 
 /* tray arrow: two labels, one collapsed to zero size. Waybar (git) puts the .expanded class on

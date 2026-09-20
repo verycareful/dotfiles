@@ -20,13 +20,13 @@ QtObject {
         property string label
         property bool on: false
         signal clicked
-        implicitWidth: 78; implicitHeight: 58
+        implicitWidth: 70; implicitHeight: 58
         color: on ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.55) : Theme.glassCard
         border.width: 1; border.color: on ? Theme.primaryBright : (tm.containsMouse ? Theme.muted : Theme.overlay)
         Column {
             anchors.centerIn: parent; spacing: 4
             Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.parent.glyph; color: parent.parent.on ? Theme.accent : Theme.subtext; font { family: Theme.fontIcon; pixelSize: 20 } }
-            Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.parent.label; color: parent.parent.on ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
+            Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.parent.label; color: parent.parent.on ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
         }
         MouseArea { id: tm; anchors.fill: parent; hoverEnabled: true; onClicked: parent.clicked() }
     }

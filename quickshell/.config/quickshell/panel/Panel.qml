@@ -27,7 +27,7 @@ Scope {
         color: "transparent"
         WlrLayershell.layer: WlrLayer.Top
         WlrLayershell.namespace: "qs-panel"
-        WlrLayershell.keyboardFocus: Panel.open ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: Panel.open && !Panel.releaseKeyboard ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
         // the catcher covers below the panel too, so clicks under it close the panel
         mask: Region { item: panelBody }
 

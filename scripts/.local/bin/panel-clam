@@ -1,12 +1,22 @@
 #!/usr/bin/env bash
-# panel-clam — ClamAV status as one JSON line for the Quickshell panel.
+# panel-clam — ClamAV status as one JSON line for the Quickshell panel: every unit with its
+# state (system units are toggled through pkexec, user units directly), detections, last scan.
 set -uo pipefail
-block=$(systemctl is-active clamav-clamonacc@block 2>/dev/null); notify=$(systemctl is-active clamav-clamonacc@notify 2>/dev/null)
-daemon=$(systemctl is-active clamav-daemon 2>/dev/null)
+units=()
+add() { # scope unit label description
+    local st; if [[ $1 == user ]]; then st=$(systemctl --user is-active "$2" 2>/dev/null); else st=$(systemctl is-active "$2" 2>/dev/null); fi
+    units+=("{\"scope\":\"$1\",\"unit\":\"$2\",\"label\":\"$3\",\"desc\":\"$4\",\"active\":$([[ $st == active ]] && echo true || echo false)}")
+}
+add system clamav-daemon.service            "clamd"        "scanner daemon"
+add system clamav-freshclam.service         "freshclam"    "signature updates"
+add system clamav-clamonacc@block.service   "on-access block"  "blocks + quarantines on open"
+add system clamav-clamonacc@notify.service  "on-access notify" "scans + reports"
+add user   clamav-notify.service            "notifier"     "desktop notifications"
+add user   clamav-weekly-scan.timer         "weekly scan"  "Sunday 03:00"
 found=$(journalctl -u 'clamav-clamonacc@*' -b -o cat 2>/dev/null | grep -c 'moved to' || true)
 log=$(ls -1t "$HOME/.local/state/clamav"/weekly-*.log 2>/dev/null | head -1)
-last=""; infected=""; when=""
+when=""; infected=""
 if [[ -n "$log" ]]; then when=$(basename "$log" .log | sed 's/weekly-//'); infected=$(grep -oE 'Infected files: [0-9]+' "$log" | grep -oE '[0-9]+$'); fi
 sigs=$(sigtool --info /var/lib/clamav/daily.cld 2>/dev/null | grep -oE 'Build time: .*' | sed 's/Build time: //' | cut -d' ' -f1-3)
-printf '{"block":"%s","notify":"%s","daemon":"%s","found":%s,"lastScan":"%s","lastInfected":"%s","log":"%s","sigs":"%s"}\n' \
-    "$block" "$notify" "$daemon" "${found:-0}" "$when" "${infected:-}" "$log" "$sigs"
+printf '{"units":[%s],"found":%s,"lastScan":"%s","lastInfected":"%s","log":"%s","sigs":"%s"}\n' \
+    "$(IFS=,; echo "${units[*]}")" "${found:-0}" "$when" "${infected:-}" "$log" "$sigs"

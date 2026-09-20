@@ -7,7 +7,8 @@ import Quickshell.Io
 Singleton {
     id: root
     property var sys: ({ cpu: 0, tctl: 0, memUsed: 0, memTotal: 0, gpu: 0, gpuTemp: 0, vramUsed: 0, vramTotal: 0, uptime: "", updates: "" })
-    property var clam: ({ block: "", notify: "", daemon: "", found: 0, lastScan: "", lastInfected: "", log: "", sigs: "" })
+    property var clam: ({ units: [], found: 0, lastScan: "", lastInfected: "", log: "", sigs: "" })
+    function refreshClam() { clamP.running = true }
 
     Process { id: sysP;  command: ["panel-sys"];  stdout: StdioCollector { onStreamFinished: { try { root.sys  = JSON.parse(text) } catch (e) {} } } }
     Process { id: clamP; command: ["panel-clam"]; stdout: StdioCollector { onStreamFinished: { try { root.clam = JSON.parse(text) } catch (e) {} } } }

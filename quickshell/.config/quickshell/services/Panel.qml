@@ -7,6 +7,7 @@ import Quickshell.Io
 Singleton {
     id: root
     property bool open: false
+    property bool releaseKeyboard: false   // true while a polkit dialog is up, so it gets the keys
     property bool mediaOnBar: true          // "Media on bar" toggle → waybar state.css
     property int  nightTemp: 6000           // hyprsunset colour temperature, 6000 = off
     readonly property bool nightLight: nightTemp < 6000

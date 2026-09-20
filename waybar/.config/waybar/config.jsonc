@@ -72,7 +72,7 @@
     // ── right ─────────────────────────────────────────────────
     "group/media": {
         "orientation": "inherit",
-        "modules": ["custom/media-prev", "custom/media-play", "custom/media-next", "mpris"]
+        "modules": ["mpris", "custom/media-prev", "custom/media-play", "custom/media-next"]
     },
     "custom/media-prev": { "exec": "~/.local/bin/media-ctl icon prev", "return-type": "json", "hide-empty-text": true, "on-click": "~/.local/bin/media-ctl prev" },
     "custom/media-play": { "exec": "~/.local/bin/media-ctl icon play", "return-type": "json", "hide-empty-text": true, "on-click": "~/.local/bin/media-ctl toggle" },
