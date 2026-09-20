@@ -2,10 +2,11 @@
 -- Find a window's class/title with:  hyprctl clients
 
 -- Float small utility windows
-local utils = "^(pavucontrol|nwg-look|qt5ct|qt6ct|nm-connection-editor|blueman-manager)$"
+local utils = "^(pavucontrol|nwg-look|qt5ct|qt6ct|nm-connection-editor|blueman-manager|io.github.ilya_zlobintsev.LACT)$"
 hl.window_rule({ match = { class = utils },                         float  = true })
 hl.window_rule({ match = { class = "^(pavucontrol)$" },             size   = { 900, 600 } })
-hl.window_rule({ match = { class = "^(pavucontrol|nwg-look|qt5ct|qt6ct)$" }, center = true })
+hl.window_rule({ match = { class = "^(pavucontrol|nwg-look|qt5ct|qt6ct|io.github.ilya_zlobintsev.LACT)$" }, center = true })
+hl.window_rule({ match = { class = "^(io.github.ilya_zlobintsev.LACT)$" }, size = { 1100, 760 } })
 
 -- File pickers / dialogs
 local dialogs = "^(Open File|Save File|Open Folder|Select .*)$"

@@ -16,6 +16,7 @@ Hyprland rice — sharp corners, glass, switchable themes (Harbour: navy/orange 
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal) — all OFL; JetBrainsMono Nerd Font supplies icons |
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
 | `sddm/`    | login screen (Corners-based); `sudo ./sddm/install-sddm.sh` |
+| `amd/`     | `sudo ./amd/install-lact.sh` — LACT (GPU clocks/power/fans GUI + daemon) and the `amdgpu.ppfeaturemask` kernel parameter that unlocks overdrive; reboot after |
 | `test/`    | `nested.sh` — try the config in a window         |
 
 ## Workflow
