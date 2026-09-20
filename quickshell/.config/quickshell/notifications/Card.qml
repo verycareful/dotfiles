@@ -41,19 +41,19 @@ Rectangle {
         Item {
             Layout.alignment: Qt.AlignTop
             implicitWidth: 40; implicitHeight: 40
-            // Some apps attach image hints Qt can't decode (Satty): only show the image once it
-            // actually loaded, otherwise fall back to the app icon.
+            // entry.image is the notification's image only after Notifs verified it (file-path
+            // hints may point at temp files that are already gone — Satty); else the app icon.
             Image {
                 id: img
                 anchors.fill: parent
-                visible: status === Image.Ready
-                source: card.n.image
+                visible: card.entry.image !== "" && status === Image.Ready
+                source: card.entry.image
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
             }
             IconImage {
                 anchors.fill: parent
-                visible: img.status !== Image.Ready
+                visible: card.entry.image === "" || img.status !== Image.Ready
                 source: Notifs.iconFor(card.n)
             }
         }

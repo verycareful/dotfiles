@@ -29,6 +29,7 @@ Singleton {
         property date time: new Date()
         property bool popupShown: false
         property string replyText: ""
+        property string image: ""         // n.image once verified (file-path images may already be gone: Satty)
     }
     component Group: QtObject {
         required property string app
@@ -54,6 +55,7 @@ Singleton {
             if (root.ignoredApps.some(re => re.test(n.appName) || re.test(n.desktopEntry))) return
             n.tracked = true
             const item = itemComp.createObject(root, { n: n, read: n.lastGeneration })   // re-emitted after a reload: no popup, keep quiet
+            root.resolveImage(item)
             n.closed.connect(() => root.remove(item))
 
             let g = root.groups.find(g => g.app === root.appKey(n))
@@ -78,6 +80,17 @@ Singleton {
     Component { id: groupComp; Group {} }
 
     function appKey(n) { return n.appName || n.desktopEntry || "app" }
+    // "image://icon//path/to/file.png" = image-path hint → only use it if the file is readable
+    function resolveImage(item) {
+        const img = item.n.image
+        if (!img) return
+        const m = img.match(/^image:\/\/icon\/(\/.+)$/)
+        if (!m) { item.image = img; return }                       // pixel data from the app
+        const check = checkComp.createObject(root, { command: ["test", "-r", m[1]] })
+        check.exited.connect(code => { if (code === 0) item.image = img; check.destroy() })
+        check.running = true
+    }
+    Component { id: checkComp; Process {} }
     // icon name for a notification: what it sent, else its desktop entry, else its name (firefox, spotify…)
     function iconName(n) {
         for (const c of [n.appIcon, n.desktopEntry, (n.appName || "").toLowerCase()])

@@ -47,11 +47,12 @@ bind("T",         hl.dsp.layout("togglesplit"),                     "toggle spli
 bind("SHIFT + P", hl.dsp.window.pin(),                              "pin (show on all workspaces)")
 bind("SHIFT + Q", hl.dsp.exit(),                                    "exit Hyprland")
 
--- Alt-Tab: cycle ALL windows in most-recently-used order (script), applied when Alt is released
-gbind("ALT + Tab",         run("~/.local/bin/altab --next"),  "alt-tab: next window (MRU)")
-gbind("ALT + SHIFT + Tab", run("~/.local/bin/altab --prev"),  "alt-tab: previous window")
-gbind("ALT + Alt_L",       run("~/.local/bin/altab --apply"), "alt-tab: release", { release = true })
-gbind("ALT + Alt_R",       run("~/.local/bin/altab --apply"), "alt-tab: release", { release = true })
+-- Alt-Tab: Quickshell switcher (all windows, MRU, thumbnails); releasing Alt focuses the highlighted one
+gbind("ALT + Tab",         run("qs ipc call switcher next"),  "alt-tab: next window")
+gbind("ALT + SHIFT + Tab", run("qs ipc call switcher prev"),  "alt-tab: previous window")
+gbind("ALT + Alt_L",       run("qs ipc call switcher apply"), "alt-tab: go", { release = true })
+gbind("ALT + Alt_R",       run("qs ipc call switcher apply"), "alt-tab: go", { release = true })
+gbind("ALT + Escape",      run("qs ipc call switcher cancel"), "alt-tab: cancel")
 
 -- Focus / move (arrows + vim keys)
 local dirs = {
