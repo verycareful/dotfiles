@@ -1,0 +1,12 @@
+[Unit]
+Description=Apply Ryzen CPU limits with ryzenadj (thermal/PPT/CO from /etc/ryzenadj.conf)
+# runs at boot, and again after suspend/hibernate because the SMU loses the settings
+After=multi-user.target suspend.target hibernate.target hybrid-sleep.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/ryzenadj.conf
+ExecStart=/usr/bin/ryzenadj $RYZENADJ_ARGS
+
+[Install]
+WantedBy=multi-user.target suspend.target hibernate.target hybrid-sleep.target
