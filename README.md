@@ -7,7 +7,7 @@ Hyprland rice — sharp corners, glass, switchable themes (Harbour: navy/orange 
 | `hypr/`    | Hyprland (`hyprland.lua` → `lua/*.lua`; the pre-0.55 `hyprland.conf` → `conf.d/*.conf` set is kept as a fallback, `./restore.sh hypr` swaps between them), hyprlock, hypridle |
 | `waybar/`  | status bar                                       |
 | `rofi/`    | launcher / menus                                 |
-| `quickshell/` | Quickshell: notification server, popups and the notification centre (`qs ipc call notifs toggle|dnd|clear|status`); the widget panel will live here too |
+| `quickshell/` | Quickshell: notification server, popups + centre (`qs ipc call notifs toggle|dnd|clear|status`) and the widget panel — anchor button / SUPER+A (`qs ipc call panel toggle|mediabar|status`): app search, quick toggles, CPU thermal-limit slider (`pkexec cpu-tctl`), media, system tiles, ClamAV status, calendar. `Theme.qml` is rendered by `theme` and hot-reloads |
 | `wlogout/` | power menu                                       |
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |
@@ -16,7 +16,7 @@ Hyprland rice — sharp corners, glass, switchable themes (Harbour: navy/orange 
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal) — all OFL; JetBrainsMono Nerd Font supplies icons |
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
 | `sddm/`    | login screen (Corners-based); `sudo ./sddm/install-sddm.sh` |
-| `amd/`     | `sudo ./amd/install-lact.sh` — LACT (GPU clocks/power/fans GUI + daemon) and the `amdgpu.ppfeaturemask` kernel parameter that unlocks overdrive; reboot after. `amd/ryzen.conf` + `sudo ./amd/install-ryzenadj.sh` — CPU thermal/PPT/Curve-Optimizer limits via RyzenAdj (AUR), re-applied at boot and after resume |
+| `amd/`     | `sudo ./amd/install-lact.sh` — LACT (GPU clocks/power/fans GUI + daemon) and the `amdgpu.ppfeaturemask` kernel parameter that unlocks overdrive; reboot after. `amd/ryzen.conf` + `sudo ./amd/install-ryzenadj.sh` — CPU thermal/PPT/Curve-Optimizer limits via RyzenAdj (AUR), re-applied at boot and after resume; also installs `cpu-tctl`, which the panel's slider calls through polkit |
 | `test/`    | `nested.sh` — try the config in a window         |
 
 ## Workflow

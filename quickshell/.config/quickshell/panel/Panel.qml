@@ -46,8 +46,11 @@ Scope {
                 spacing: 12
                 Search { id: search; Layout.fillWidth: true }
                 Toggles { Layout.fillWidth: true }
-                Thermal { Layout.fillWidth: true }
-                Media   { Layout.fillWidth: true }
+                Thermal  { Layout.fillWidth: true }
+                Media    { Layout.fillWidth: true }
+                System   { Layout.fillWidth: true }
+                ClamAV   { Layout.fillWidth: true }
+                Calendar { Layout.fillWidth: true }
             }
             Connections { target: Panel; function onOpenChanged() { if (Panel.open) search.focusItem.forceActiveFocus() } }
         }

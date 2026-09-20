@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# panel-sys — one JSON line of system numbers for the Quickshell panel (sysfs/proc only).
+#   cpu %, tctl °C, mem used/total GiB, gpu % / temp / vram, uptime, pending updates
+set -uo pipefail
+read -r _ u1 n1 s1 i1 w1 q1 sq1 _ < /proc/stat; sleep 0.4; read -r _ u2 n2 s2 i2 w2 q2 sq2 _ < /proc/stat
+t1=$((u1+n1+s1+i1+w1+q1+sq1)); t2=$((u2+n2+s2+i2+w2+q2+sq2)); idle=$((i2-i1)); tot=$((t2-t1))
+cpu=$(( tot > 0 ? (100*(tot-idle))/tot : 0 ))
+tctl=""; for h in /sys/class/hwmon/hwmon*; do [[ $(<"$h/name") == k10temp ]] && tctl=$(( $(<"$h/temp1_input")/1000 )) && break; done
+memt=$(awk '/MemTotal/{print $2}' /proc/meminfo); mema=$(awk '/MemAvailable/{print $2}' /proc/meminfo)
+memu=$(awk -v t="$memt" -v a="$mema" 'BEGIN{printf "%.1f",(t-a)/1048576}'); memtg=$(awk -v t="$memt" 'BEGIN{printf "%.0f",t/1048576}')
+best=""; bv=0; for c in /sys/class/drm/card?; do [[ -r "$c/device/mem_info_vram_total" ]] || continue; v=$(<"$c/device/mem_info_vram_total"); (( v > bv )) && { bv=$v; best=$c; }; done
+gpu=0; gtemp=0; vu=0; vt=0
+if [[ -n "$best" ]]; then gpu=$(<"$best/device/gpu_busy_percent"); hw=$(ls -d "$best"/device/hwmon/hwmon* | head -1); gtemp=$(( $(<"$hw/temp1_input")/1000 ))
+    vu=$(awk -v u="$(<"$best/device/mem_info_vram_used")" 'BEGIN{printf "%.1f",u/1073741824}'); vt=$(awk -v t="$bv" 'BEGIN{printf "%.0f",t/1073741824}'); fi
+up=$(awk '{s=int($1); printf "%dd %dh %dm", s/86400, (s%86400)/3600, (s%3600)/60}' /proc/uptime)
+upd=$(cat "${XDG_CACHE_HOME:-$HOME/.cache}/updates-count" 2>/dev/null || echo "")
+printf '{"cpu":%d,"tctl":%s,"memUsed":%s,"memTotal":%s,"gpu":%d,"gpuTemp":%d,"vramUsed":%s,"vramTotal":%s,"uptime":"%s","updates":"%s"}\n' \
+    "$cpu" "${tctl:-0}" "$memu" "$memtg" "$gpu" "$gtemp" "$vu" "$vt" "$up" "$upd"
