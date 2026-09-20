@@ -105,14 +105,17 @@ tooltip label { padding: 4px; }
 
 /* tray arrow: two labels, one collapsed to zero size. Waybar (git) puts the .expanded class on
    the group box (#traybox) while the drawer is open, which swaps them: down → left.
-   The module id is on both the box and the label inside it, so size rules go on the box and
-   the label is explicitly zeroed (otherwise margins apply twice and the bar grows). */
-#custom-tray-down, #custom-tray-left { font-family: "JetBrainsMono Nerd Font"; font-size: 15px; padding: 0 8px; margin: 5px 0; }
-#custom-tray-down label, #custom-tray-left label { padding: 0; margin: 0; }
-#custom-tray-left, #custom-tray-left label                                   { font-size: 0px; padding: 0; margin: 0; min-width: 0; }
-#traybox.expanded #custom-tray-left                                          { font-size: 15px; padding: 0 8px; margin: 5px 0; color: @accent; }
-#traybox.expanded #custom-tray-left label                                    { font-size: 15px; }
-#traybox.expanded #custom-tray-down, #traybox.expanded #custom-tray-down label { font-size: 0px; padding: 0; margin: 0; min-width: 0; }
+   The id sits on a box around the label: font-size must be set on the label itself (the global
+   `*` rule would otherwise win), and the box gets NO vertical margin — #traybox already has it,
+   and stacked margins made the bar grow while the drawer was open. */
+#custom-tray-down, #custom-tray-left             { padding: 0 8px; margin: 0; }
+#custom-tray-down label, #custom-tray-left label { font-family: "JetBrainsMono Nerd Font"; font-size: 15px; }
+#custom-tray-left                                { padding: 0; min-width: 0; }
+#custom-tray-left label                          { font-size: 0px; }
+#traybox.expanded #custom-tray-left              { padding: 0 8px; }
+#traybox.expanded #custom-tray-left label        { font-size: 15px; color: @accent; }
+#traybox.expanded #custom-tray-down              { padding: 0; min-width: 0; }
+#traybox.expanded #custom-tray-down label        { font-size: 0px; }
 #tray.tray-drawer { border-left: none; padding: 0 6px; }
 
 #cpu, #memory, #custom-gpu { color: @subtext; }
