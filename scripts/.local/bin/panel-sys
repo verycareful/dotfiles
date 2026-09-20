@@ -2,10 +2,23 @@
 # panel-sys — one JSON line of system numbers for the Quickshell panel (sysfs/proc only).
 #   cpu %, tctl °C, mem used/total GiB, gpu % / temp / vram, uptime, pending updates
 set -uo pipefail
-read -r _ u1 n1 s1 i1 w1 q1 sq1 _ < /proc/stat; sleep 0.4; read -r _ u2 n2 s2 i2 w2 q2 sq2 _ < /proc/stat
-t1=$((u1+n1+s1+i1+w1+q1+sq1)); t2=$((u2+n2+s2+i2+w2+q2+sq2)); idle=$((i2-i1)); tot=$((t2-t1))
-cpu=$(( tot > 0 ? (100*(tot-idle))/tot : 0 ))
-tctl=""; for h in /sys/class/hwmon/hwmon*; do [[ $(<"$h/name") == k10temp ]] && tctl=$(( $(<"$h/temp1_input")/1000 )) && break; done
+# total + per-thread load from two /proc/stat samples 0.4 s apart
+mapfile -t A < <(grep -E '^cpu' /proc/stat); sleep 0.4; mapfile -t B < <(grep -E '^cpu' /proc/stat)
+cores=(); cpu=0
+for i in "${!A[@]}"; do
+    read -r _ u1 n1 s1 i1 w1 q1 sq1 _ <<<"${A[$i]}"; read -r _ u2 n2 s2 i2 w2 q2 sq2 _ <<<"${B[$i]}"
+    tot=$(( (u2+n2+s2+i2+w2+q2+sq2) - (u1+n1+s1+i1+w1+q1+sq1) )); idle=$((i2-i1)); pct=$(( tot > 0 ? (100*(tot-idle))/tot : 0 ))
+    if (( i == 0 )); then cpu=$pct; else cores+=("$pct"); fi
+done
+mapfile -t mhz < <(awk '/cpu MHz/{print int($4)}' /proc/cpuinfo)
+percore=""; for i in "${!cores[@]}"; do percore+="{\"load\":${cores[$i]},\"mhz\":${mhz[$i]:-0}},"; done; percore="[${percore%,}]"
+tctl=""; ccd1=0; ccd2=0
+for h in /sys/class/hwmon/hwmon*; do
+    [[ $(<"$h/name") == k10temp ]] || continue
+    tctl=$(( $(<"$h/temp1_input")/1000 ))
+    for t in "$h"/temp*_label; do case $(<"$t") in Tccd1) ccd1=$(( $(<"${t%_label}_input")/1000 ));; Tccd2) ccd2=$(( $(<"${t%_label}_input")/1000 ));; esac; done
+    break
+done
 memt=$(awk '/MemTotal/{print $2}' /proc/meminfo); mema=$(awk '/MemAvailable/{print $2}' /proc/meminfo)
 memu=$(awk -v t="$memt" -v a="$mema" 'BEGIN{printf "%.1f",(t-a)/1048576}'); memtg=$(awk -v t="$memt" 'BEGIN{printf "%.0f",t/1048576}')
 best=""; bv=0; for c in /sys/class/drm/card?; do [[ -r "$c/device/mem_info_vram_total" ]] || continue; v=$(<"$c/device/mem_info_vram_total"); (( v > bv )) && { bv=$v; best=$c; }; done
@@ -15,5 +28,5 @@ if [[ -n "$best" ]]; then gpu=$(<"$best/device/gpu_busy_percent"); hw=$(ls -d "$
 ghz=$(awk '/cpu MHz/{s+=$4;n++} END{printf "%.1f", s/n/1000}' /proc/cpuinfo)
 up=$(awk '{s=int($1); printf "%dd %dh %dm", s/86400, (s%86400)/3600, (s%3600)/60}' /proc/uptime)
 upd=$(cat "${XDG_CACHE_HOME:-$HOME/.cache}/updates-count" 2>/dev/null || echo "")
-printf '{"cpu":%d,"tctl":%s,"ghz":%s,"memUsed":%s,"memTotal":%s,"gpu":%d,"gpuTemp":%d,"vramUsed":%s,"vramTotal":%s,"uptime":"%s","updates":"%s"}\n' \
-    "$cpu" "${tctl:-0}" "$ghz" "$memu" "$memtg" "$gpu" "$gtemp" "$vu" "$vt" "$up" "$upd"
+printf '{"cpu":%d,"tctl":%s,"ccd1":%d,"ccd2":%d,"cores":%s,"ghz":%s,"memUsed":%s,"memTotal":%s,"gpu":%d,"gpuTemp":%d,"vramUsed":%s,"vramTotal":%s,"uptime":"%s","updates":"%s"}\n' \
+    "$cpu" "${tctl:-0}" "$ccd1" "$ccd2" "$percore" "$ghz" "$memu" "$memtg" "$gpu" "$gtemp" "$vu" "$vt" "$up" "$upd"

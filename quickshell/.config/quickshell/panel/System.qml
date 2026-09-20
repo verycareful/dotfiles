@@ -10,6 +10,7 @@ import "../services"
 ColumnLayout {
     spacing: 8
     readonly property var s: Sys.sys
+    property bool coresOpen: false            // CPU header click → per-thread view
 
     RowLayout {
         Layout.fillWidth: true
@@ -19,15 +20,18 @@ ColumnLayout {
         Widgets.Tile {
             Layout.fillWidth: true; Layout.fillHeight: true
             implicitHeight: cpuCol.implicitHeight + 24
+            MouseArea { height: 34; onClicked: coresOpen = !coresOpen; anchors { top: parent.top; left: parent.left; right: parent.right } }   // header click expands
             ColumnLayout {
                 id: cpuCol
                 anchors { left: parent.left; right: parent.right; top: parent.top; margins: 12 }
                 spacing: 8
-                Head { glyph: "\u{F0EE0}"; label: "CPU"; name: "Ryzen 9 7900X" }
+                Head { glyph: "\u{F0EE0}"; label: "CPU"; name: "Ryzen 9 7900X"
+                       action: Widgets.Button { label: coresOpen ? "\u{F0143}" : "\u{F0140}"; onClicked: coresOpen = !coresOpen } }
                 Meter { value: s.cpu; big: s.cpu + " %"; note: s.ghz + " GHz"; hot: s.cpu >= 90 }
                 Line  { items: [[s.tctl + " °C", "Tctl", s.tctl >= 85], [PowerProfiles.profile === PowerProfile.Performance ? "Performance" : (PowerProfiles.profile === PowerProfile.PowerSaver ? "Power saver" : "Balanced"), "profile"]] }
                 Thermal { Layout.fillWidth: true; Layout.topMargin: 2 }
-                Line  { items: [["12 c / 24 t", ""], ["Zen 4", ""]] }
+                Line  { items: [[s.ccd1 + " °C", "CCD1", s.ccd1 >= 85], [s.ccd2 + " °C", "CCD2", s.ccd2 >= 85], ["12 c / 24 t", ""]] }
+                Cores { Layout.fillWidth: true; visible: coresOpen; cores: s.cores || [] }
             }
         }
 
@@ -61,6 +65,30 @@ ColumnLayout {
             Meter { Layout.fillWidth: true; value: s.memTotal > 0 ? s.memUsed / s.memTotal * 100 : 0; big: s.memUsed + " GiB"; note: "of " + s.memTotal + " GiB RAM"; small: true; hot: s.memUsed / Math.max(1, s.memTotal) > 0.85 }
             Line  { items: [[s.uptime, "uptime"]] }
             Line  { items: [[s.updates === "" || s.updates === "0" ? "Up to date" : s.updates + " updates", ""]]; accent: s.updates !== "" && s.updates !== "0" }
+        }
+    }
+
+    // per-thread grid, one column per CCD. Linux numbering on this 7900X: CCD1 = cpu0–5 (+ SMT
+    // siblings 12–17), CCD2 = cpu6–11 (+ 18–23); rows pair each core with its sibling.
+    component Cores: GridLayout {
+        property var cores: []
+        columns: 2; columnSpacing: 10; rowSpacing: 2
+        Repeater {
+            model: cores.length
+            RowLayout {
+                required property int index
+                readonly property int tid: (index % 2) * 6 + Math.floor(index / 4) + 12 * (Math.floor(index / 2) % 2)
+                readonly property var c: cores[tid]
+                Layout.fillWidth: true
+                spacing: 6
+                Text { text: "t" + tid; color: Theme.muted; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 22; font { family: Theme.fontUi; pixelSize: 10 } }
+                Rectangle {
+                    Layout.fillWidth: true; implicitHeight: 6; color: Theme.overlay
+                    Rectangle { width: (c ? c.load : 0) / 100 * parent.width; height: parent.height; color: c && c.load >= 90 ? Theme.red : Theme.primaryBright; Behavior on width { NumberAnimation { duration: 250 } } }
+                }
+                Text { text: (c ? c.load : 0) + "%"; color: Theme.subtext; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 30; font { family: Theme.fontDisplay; pixelSize: 10; weight: Font.Bold } }
+                Text { text: c ? (c.mhz / 1000).toFixed(1) + " GHz" : ""; color: c && c.mhz >= 5000 ? Theme.accent : Theme.muted; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 46; font { family: Theme.fontUi; pixelSize: 10 } }
+            }
         }
     }
 
