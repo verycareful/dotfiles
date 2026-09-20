@@ -7,6 +7,8 @@ end
 # ── paths ────────────────────────────────────────────────────
 fish_add_path -g ~/.local/bin
 fish_add_path -g ~/.cargo/bin
+fish_add_path -g ~/.local/share/gradle-8.10.2/bin   # pinned: the version kern's CI uses
+fish_add_path -g ~/Android/Sdk/platform-tools        # adb
 
 # ── environment ──────────────────────────────────────────────
 set -gx EDITOR  micro
@@ -15,6 +17,10 @@ set -gx PAGER   less
 set -gx LESS    -R
 set -gx MANPAGER "sh -c 'col -bx | bat -l man -p'"
 set -gx BAT_THEME base16
+# Android: Gradle 8.10.2 runs on JDK 17..23, so not the system JDK 24 and not
+# Android Studio's bundled JBR (25). jdk21-openjdk from pacman.
+set -gx JAVA_HOME    /usr/lib/jvm/java-21-openjdk
+set -gx ANDROID_HOME ~/Android/Sdk
 # starship ignores XDG_CONFIG_HOME, so point it at the file explicitly
 set -q XDG_CONFIG_HOME; and set -gx STARSHIP_CONFIG $XDG_CONFIG_HOME/starship.toml; or set -gx STARSHIP_CONFIG ~/.config/starship.toml
 

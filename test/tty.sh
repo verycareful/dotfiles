@@ -18,24 +18,12 @@ TMP="${XDG_RUNTIME_DIR:-/tmp}/hypr-tty"
 rm -rf "$TMP"; mkdir -p "$TMP/config"
 LOG="$REPO/test/tty-last.log"
 
-# Hyprland config: repo copy with paths rewritten to the temp dir
+# Hyprland config: repo copy (require("lua.x") resolves relative to hyprland.lua, so no path edits)
 cp -r "$REPO/hypr/.config/hypr/." "$TMP/"
-sed -i "s#~/.config/hypr/#$TMP/#g" "$TMP/hyprland.conf" "$TMP/hyprlock.conf"
 # always have a terminal on screen so the session is never "empty"
-echo 'exec-once = kitty' >> "$TMP/hyprland.conf"
+echo 'hl.on("hyprland.start", function() hl.exec_cmd("kitty") end)' >> "$TMP/hyprland.lua"
 # user units would bind to the login session's Wayland display, so run those programs directly here
-python3 - "$TMP/conf.d/autostart.conf" <<'PY'
-import sys, re
-p = sys.argv[1]; out = []
-for line in open(p):
-    m = re.match(r'exec-once = (?:systemctl --user start (.*)|~/.local/bin/session-start)', line.strip())
-    if m:
-        for unit in (m.group(1) or 'waybar swaync hypridle hyprsunset hyprpolkitagent').split():
-            out.append('exec-once = ' + ('/usr/lib/hyprpolkitagent' if unit == 'hyprpolkitagent' else unit) + '\n')
-    else:
-        out.append(line)
-open(p, 'w').write(''.join(out))
-PY
+sed -i 's#hl.exec_cmd("~/.local/bin/session-start")#for _, u in ipairs({ "waybar", "swaync", "hypridle", "hyprsunset", "/usr/lib/hyprpolkitagent" }) do hl.exec_cmd(u) end#' "$TMP/lua/autostart.lua"
 
 # every other tool reads its config from XDG_CONFIG_HOME → temp copies
 for pkg in waybar rofi kitty swaync wlogout fastfetch; do
@@ -54,8 +42,8 @@ export PATH="$REPO/scripts/.local/bin:$PATH"
 export WALL_DIR="$REPO/wallpapers"
 export XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland XDG_SESSION_DESKTOP=Hyprland
 
-echo "starting Hyprland with $TMP/hyprland.conf — log: $LOG"
-Hyprland -c "$TMP/hyprland.conf" >"$LOG" 2>&1 || true
+echo "starting Hyprland with $TMP/hyprland.lua — log: $LOG"
+Hyprland -c "$TMP/hyprland.lua" >"$LOG" 2>&1 || true
 echo
 echo "session ended. errors/warnings from the log:"
 grep -iE 'err|warn|fail|crit|not found|no such' "$LOG" | grep -vE 'xkbcomp|Warning: +(Symbol|Multiple|Could not resolve|Virtual|Unsupported)|Using (last|F23|0)|X11 cannot' | head -30 || true

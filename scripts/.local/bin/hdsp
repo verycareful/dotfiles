@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# hdsp — run a Hyprland dispatcher in whichever config mode is running.
+#   hdsp 'LUA_DISPATCHER' LEGACY_NAME [LEGACY_ARGS]
+#   hdsp 'hl.dsp.exit()' exit
+#   hdsp 'hl.dsp.focus({ workspace = "e+1" })' workspace e+1
+# With hyprland.lua (Hyprland ≥ 0.55) `hyprctl dispatch` takes Lua; with the hyprlang
+# fallback (./restore.sh hypr) it takes the old NAME ARGS form. Scripts and configs go
+# through this so both modes keep working.
+set -euo pipefail
+lua="${1:?lua dispatcher}"; shift
+if [[ "$(hyprctl repl 'hl.version()' 2>/dev/null)" =~ ^[0-9] ]]; then
+    hyprctl dispatch "$lua"
+else
+    hyprctl dispatch "$@"
+fi

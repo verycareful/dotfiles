@@ -4,7 +4,7 @@ Hyprland rice — sharp corners, glass, switchable themes (Harbour: navy/orange 
 
 | dir        | what                                             |
 |------------|--------------------------------------------------|
-| `hypr/`    | Hyprland (`hyprland.conf` → `conf.d/*.conf`), hyprlock, hypridle |
+| `hypr/`    | Hyprland (`hyprland.lua` → `lua/*.lua`; the pre-0.55 `hyprland.conf` → `conf.d/*.conf` set is kept as a fallback, `./restore.sh hypr` swaps between them), hyprlock, hypridle |
 | `waybar/`  | status bar                                       |
 | `rofi/`    | launcher / menus                                 |
 | `swaync/`  | notifications                                    |
@@ -21,7 +21,7 @@ Hyprland rice — sharp corners, glass, switchable themes (Harbour: navy/orange 
 ## Workflow
 1. Edit files in the repo.
 2. `./test/nested.sh` to try them in a nested Hyprland window.
-3. `./install.sh` (stow) to deploy for real — re-run `./install.sh scripts` after adding a new script, since `~/.local/bin` is linked per file — existing configs are moved to `~/.local/state/dotfiles-backup/` first; `./restore.sh` reverses it (only useful right after a first install — once you live on these dotfiles, fix a broken login with `./install.sh`, not `restore.sh`). `hyprctl reload` applies Hyprland changes live.
+3. `./install.sh` (stow) to deploy for real — re-run `./install.sh scripts` after adding a new script, since `~/.local/bin` is linked per file — existing configs are moved to `~/.local/state/dotfiles-backup/` first; `./restore.sh` reverses it (only useful right after a first install — once you live on these dotfiles, fix a broken login with `./install.sh`, not `restore.sh`). Hyprland reloads its Lua config on save (`hyprctl reload` forces it). `hyprctl dispatch` takes Lua now (`hyprctl dispatch 'hl.dsp.exit()'`); scripts use `~/.local/bin/hdsp 'LUA' LEGACY…` so they also work on the fallback config. `hyprctl repl` is a live Lua prompt; SUPER+/ lists every bind with its description.
 4. Commit.
 
 ## Fresh machine

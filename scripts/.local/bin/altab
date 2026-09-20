@@ -19,4 +19,6 @@ n=${#wins[@]}; (( n > 1 )) || exit 0
 i=$(<"$STATE")
 if [[ "$1" == "--next" ]]; then i=$(( (i + 1) % n )); else i=$(( (i - 1 + n) % n )); fi
 echo "$i" > "$STATE"
-hyprctl --batch "dispatch focuswindow address:${wins[$i]}; dispatch alterzorder top,address:${wins[$i]}" >/dev/null
+H="$(dirname "$0")/hdsp"; a="address:${wins[$i]}"
+"$H" "hl.dsp.focus({ window = \"$a\" })"                        focuswindow "$a"     >/dev/null
+"$H" "hl.dsp.window.alter_zorder({ mode = \"top\", window = \"$a\" })" alterzorder "top,$a" >/dev/null

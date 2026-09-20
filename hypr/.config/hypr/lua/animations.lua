@@ -1,0 +1,16 @@
+-- hl.curve(NAME, { type = "bezier", points = { {x0, y0}, {x1, y1} } })
+-- hl.animation({ leaf, enabled, speed (1 = 100 ms), bezier, style? })
+hl.config({ animations = { enabled = true } })
+
+hl.curve("snap",   { type = "bezier", points = { {0.2,  0.9}, {0.1, 1.0} } })
+hl.curve("glide",  { type = "bezier", points = { {0.05, 0.9}, {0.1, 1.0} } })
+hl.curve("linear", { type = "bezier", points = { {0,    0  }, {1,   1  } } })
+
+hl.animation({ leaf = "windowsIn",   enabled = true, speed = 3, bezier = "snap",   style = "slide" })
+hl.animation({ leaf = "windowsOut",  enabled = true, speed = 3, bezier = "snap",   style = "slide" })
+hl.animation({ leaf = "windowsMove", enabled = true, speed = 3, bezier = "glide" })
+hl.animation({ leaf = "border",      enabled = true, speed = 6, bezier = "linear" })
+hl.animation({ leaf = "fade",        enabled = true, speed = 3, bezier = "snap" })
+hl.animation({ leaf = "layersIn",    enabled = true, speed = 3, bezier = "snap",   style = "fade" })
+hl.animation({ leaf = "layersOut",   enabled = true, speed = 3, bezier = "snap",   style = "fade" })
+hl.animation({ leaf = "workspaces",  enabled = true, speed = 3, bezier = "glide",  style = "slidefade 15%" })

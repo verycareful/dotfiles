@@ -33,9 +33,11 @@ for k, val in list(v.items()):                    # {{x_rgb}} → "r, g, b" for 
         rgb = [str(int(val[i:i+2], 16)) for i in (0, 2, 4)]
         v[k + '_rgb'] = ', '.join(rgb); v[k + '_ansi'] = '38;2;' + ';'.join(rgb)
 targets = {                                      # template → destination(s) under $XDG_CONFIG_HOME
-    'hypr/colors.conf':   ['hypr/conf.d/colors.conf'],
-    'hypr/hyprlock.conf': ['hypr/hyprlock.conf'],
+    'hypr/colors.lua':    ['hypr/lua/colors.lua'],
+    'hypr/cursor.lua':    ['hypr/lua/cursor.lua'],
+    'hypr/colors.conf':   ['hypr/conf.d/colors.conf'],   # legacy hyprlang set, kept for `restore.sh hypr`
     'hypr/cursor.conf':   ['hypr/conf.d/cursor.conf'],
+    'hypr/hyprlock.conf': ['hypr/hyprlock.conf'],
     'waybar/colors.css':  ['waybar/colors.css'],
     'swaync/colors.css':  ['swaync/colors.css'],
     'wlogout/colors.css': ['wlogout/colors.css'],

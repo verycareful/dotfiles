@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # keyhint — searchable cheatsheet of the live Hyprland keybinds, via rofi.
+# Shows each bind's description (set in lua/binds.lua); falls back to "dispatcher arg"
+# for binds without one (e.g. the hyprlang fallback config).
 set -euo pipefail
 hyprctl binds -j | python3 -c '
 import json,sys
@@ -9,6 +11,7 @@ for b in json.load(sys.stdin):
     m=b["modmask"]; names=[n for bit,n in mods.items() if m & bit]
     key=b["key"] or f"code:{b["keycode"]}"
     combo=" + ".join(names+[key])
-    act=f"{b["dispatcher"]} {b["arg"]}".strip()
+    act=b.get("description") or f"{b["dispatcher"]} {b["arg"]}".strip()
+    if act.startswith("__lua"): act=""
     rows.append(f"{combo:<26} {act}")
-print("\n".join(sorted(rows)))' | rofi -dmenu -i -p "keys" -theme-str 'window {width: 60%;}' >/dev/null || true
+print("\n".join(sorted(set(rows))))' | rofi -dmenu -i -p "keys" -theme-str 'window {width: 60%;}' >/dev/null || true
