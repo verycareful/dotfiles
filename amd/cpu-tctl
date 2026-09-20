@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# cpu-tctl N — set the Ryzen thermal limit (°C) now and persist it in /etc/ryzenadj.conf.
+# Installed to /usr/local/bin by amd/install-ryzenadj.sh; the widget panel runs it via pkexec.
+set -euo pipefail
+n="${1:-}"
+[[ "$n" =~ ^[0-9]+$ && "$n" -ge 60 && "$n" -le 95 ]] || { echo "usage: cpu-tctl 60..95" >&2; exit 2; }
+ryzenadj --tctl-temp="$n" >/dev/null
+sed -i -E "s/--tctl-temp=[0-9]+/--tctl-temp=$n/" /etc/ryzenadj.conf
+echo "$n"
