@@ -44,16 +44,16 @@ Widgets.Tile {
                     Layout.fillWidth: true
                     wrapMode: Text.Wrap
                     color: Theme.subtext
-                    text: (c.found > 0 ? c.found + " detection(s) since boot" : "no detections since boot")
-                        + "  ·  " + (c.lastScan !== "" ? "weekly scan " + c.lastScan + ": " + (c.lastInfected === "0" ? "clean" : c.lastInfected + " infected") : "no weekly scan yet")
-                        + (c.sigs !== "" ? "  ·  signatures " + c.sigs : "")
+                    text: (c.found > 0 ? c.found + " detection(s) since boot" : "No detections since boot")
+                        + "  ·  " + (c.lastScan !== "" ? "Weekly scan " + c.lastScan + ": " + (c.lastInfected === "0" ? "clean" : c.lastInfected + " infected") : "No weekly scan yet")
+                        + (c.sigs !== "" ? "  ·  Signatures " + c.sigs : "")
                     font { family: Theme.fontUi; pixelSize: 11 }
                 }
             }
             ColumnLayout {
                 spacing: 4
-                Widgets.Button { Layout.fillWidth: true; label: "scan now"; onClicked: Quickshell.execDetached(["kitty", "--title", "clamav weekly scan", "-e", "bash", "-c", "~/.local/bin/clamav-weekly-scan.sh; read -rp 'done — enter to close'"]) }
-                Widgets.Button { Layout.fillWidth: true; label: "open log"; enabled: c.log !== ""; onClicked: Quickshell.execDetached(["kitty", "--title", "clamav log", "-e", "less", "+G", c.log]) }
+                Widgets.Button { Layout.fillWidth: true; label: "Scan now"; onClicked: Quickshell.execDetached(["kitty", "--title", "clamav weekly scan", "-e", "bash", "-c", "~/.local/bin/clamav-weekly-scan.sh; read -rp 'done — enter to close'"]) }
+                Widgets.Button { Layout.fillWidth: true; label: "Open log"; enabled: c.log !== ""; onClicked: Quickshell.execDetached(["kitty", "--title", "clamav log", "-e", "less", "+G", c.log]) }
             }
         }
         // units, two columns

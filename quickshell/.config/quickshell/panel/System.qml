@@ -10,10 +10,10 @@ GridLayout {
     rowSpacing: 8
     readonly property var s: Sys.sys
 
-    Stat { glyph: "\u{F0EE0}"; label: "CPU";  value: s.cpu + " %";   extra: s.tctl + " °C";    sub: "load · temp";                                warn: s.tctl >= 85 }   // chip
-    Stat { glyph: "\u{F035B}"; label: "RAM";  value: s.memUsed;      extra: "/ " + s.memTotal + " GiB"; sub: "used · total";                    warn: s.memUsed / Math.max(1, s.memTotal) > 0.85 }
-    Stat { glyph: "\u{F08AE}"; label: "GPU";  value: s.gpu + " %";   extra: s.gpuTemp + " °C"; sub: "vram " + s.vramUsed + " / " + s.vramTotal + " GiB"; warn: s.gpuTemp >= 85 }
-    Stat { glyph: "\u{F0493}"; label: "up";   value: s.uptime;                          sub: s.updates === "" || s.updates === "0" ? "up to date" : s.updates + " updates"; warn: false; accent: s.updates !== "" && s.updates !== "0" }
+    Stat { glyph: "\u{F0EE0}"; label: "CPU";  value: s.cpu + " %";   extra: s.tctl + " °C";    sub: "Load · temperature";                                warn: s.tctl >= 85 }   // chip
+    Stat { glyph: "\u{F035B}"; label: "RAM";  value: s.memUsed;      extra: "/ " + s.memTotal + " GiB"; sub: "Used · total";                    warn: s.memUsed / Math.max(1, s.memTotal) > 0.85 }
+    Stat { glyph: "\u{F08AE}"; label: "GPU";  value: s.gpu + " %";   extra: s.gpuTemp + " °C"; sub: "VRAM " + s.vramUsed + " / " + s.vramTotal + " GiB"; warn: s.gpuTemp >= 85 }
+    Stat { glyph: "\u{F0493}"; label: "Uptime";   value: s.uptime;                          sub: s.updates === "" || s.updates === "0" ? "Up to date" : s.updates + " updates"; warn: false; accent: s.updates !== "" && s.updates !== "0" }
 
     component Stat: Widgets.Tile {
         property string glyph

@@ -173,7 +173,7 @@ Singleton {
         return JSON.stringify({
             text: unread > 0 ? String(unread) : "",
             alt: state, class: state,
-            tooltip: (dnd ? "do not disturb · " : "") + unread + " unread"
+            tooltip: (dnd ? "Do not disturb · " : "") + unread + " unread"
         })
     }
 
@@ -189,7 +189,7 @@ Singleton {
 
     function relTime(t) {
         const s = Math.max(0, Math.round((now - t) / 1000))
-        if (s < 60) return "now"
+        if (s < 60) return "Now"
         if (s < 3600) return Math.floor(s / 60) + " min"
         if (s < 86400) return Math.floor(s / 3600) + " h"
         return Qt.formatDate(t, "d MMM")

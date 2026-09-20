@@ -51,8 +51,8 @@ Scope {
                         font { family: Theme.fontDisplay; pixelSize: 16; weight: Font.Bold }
                         Layout.fillWidth: true
                     }
-                    TextButton { label: "read all"; visible: Notifs.unread > 0; onClicked: Notifs.markAllRead() }
-                    TextButton { label: "clear";    visible: Notifs.groups.length > 0; onClicked: Notifs.clearAll() }
+                    TextButton { label: "Read all"; visible: Notifs.unread > 0; onClicked: Notifs.markAllRead() }
+                    TextButton { label: "Clear";    visible: Notifs.groups.length > 0; onClicked: Notifs.clearAll() }
                 }
 
                 // do not disturb
@@ -105,7 +105,7 @@ Scope {
                     Text {                        // outside the Flickable: its content item is 0 px tall when empty
                         anchors.centerIn: parent
                         visible: Notifs.groups.length === 0
-                        text: "nothing here"
+                        text: "Nothing here"
                         color: Theme.muted
                         font { family: Theme.fontUi; pixelSize: Theme.fontSize }
                     }

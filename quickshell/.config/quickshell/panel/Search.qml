@@ -59,7 +59,7 @@ ColumnLayout {
                 Keys.onUpPressed: search.selected = Math.max(search.selected - 1, 0)
                 Keys.onReturnPressed: search.launch(search.results[search.selected])
                 Keys.onEscapePressed: { if (text !== "") text = ""; else Panel.setOpen(false) }
-                Text { anchors.fill: parent; verticalAlignment: Text.AlignVCenter; visible: input.text === ""; text: "search apps…"; color: Theme.muted; font: input.font }
+                Text { anchors.fill: parent; verticalAlignment: Text.AlignVCenter; visible: input.text === ""; text: "Search apps…"; color: Theme.muted; font: input.font }
             }
         }
     }

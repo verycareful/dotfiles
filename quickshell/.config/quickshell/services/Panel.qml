@@ -48,7 +48,7 @@ Singleton {
 
     // waybar's custom/panel module re-runs `qs ipc call panel status` on RTMIN+10
     Timer { id: barSignal; interval: 50; onTriggered: Quickshell.execDetached(["pkill", "-RTMIN+10", "waybar"]) }
-    function status() { return JSON.stringify({ text: "", alt: open ? "open" : "closed", class: open ? "open" : "closed", tooltip: "panel (SUPER+A)" }) }
+    function status() { return JSON.stringify({ text: "", alt: open ? "open" : "closed", class: open ? "open" : "closed", tooltip: "Widget panel (SUPER+A)" }) }
 
     IpcHandler {
         target: "panel"

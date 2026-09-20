@@ -7,12 +7,12 @@ add() { # scope unit label description
     local st; if [[ $1 == user ]]; then st=$(systemctl --user is-active "$2" 2>/dev/null); else st=$(systemctl is-active "$2" 2>/dev/null); fi
     units+=("{\"scope\":\"$1\",\"unit\":\"$2\",\"label\":\"$3\",\"desc\":\"$4\",\"active\":$([[ $st == active ]] && echo true || echo false)}")
 }
-add system clamav-daemon.service            "clamd"        "scanner daemon"
-add system clamav-freshclam.service         "freshclam"    "signature updates"
-add system clamav-clamonacc@block.service   "on-access block"  "blocks + quarantines on open"
-add system clamav-clamonacc@notify.service  "on-access notify" "scans + reports"
-add user   clamav-notify.service            "notifier"     "desktop notifications"
-add user   clamav-weekly-scan.timer         "weekly scan"  "Sunday 03:00"
+add system clamav-daemon.service            "clamd"        "Scanner daemon"
+add system clamav-freshclam.service         "freshclam"    "Signature updates"
+add system clamav-clamonacc@block.service   "On-access block"  "Blocks and quarantines on open"
+add system clamav-clamonacc@notify.service  "On-access notify" "Scans and reports"
+add user   clamav-notify.service            "Notifier"     "Desktop notifications"
+add user   clamav-weekly-scan.timer         "Weekly scan"  "Sunday 03:00"
 found=$(journalctl -u 'clamav-clamonacc@*' -b -o cat 2>/dev/null | grep -c 'moved to' || true)
 log=$(ls -1t "$HOME/.local/state/clamav"/weekly-*.log 2>/dev/null | head -1)
 when=""; infected=""

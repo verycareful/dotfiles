@@ -139,7 +139,7 @@ Rectangle {
                         Text {
                             anchors.fill: parent; verticalAlignment: Text.AlignVCenter
                             visible: reply.text === "" && !reply.activeFocus
-                            text: card.n.inlineReplyPlaceholder || "reply…"
+                            text: card.n.inlineReplyPlaceholder || "Reply…"
                             color: Theme.muted; font: reply.font
                         }
                     }
