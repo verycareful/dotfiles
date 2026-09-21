@@ -10,14 +10,26 @@ STATE="${XDG_STATE_HOME:-$HOME/.local/state}/rgb"; mkdir -p "$STATE"
 PROFILES="$HOME/.config/OpenRGB/profiles"
 list() { ls -1 "$PROFILES"/*.json 2>/dev/null | sed 's#.*/##; s/\.json$//'; }
 current() { cat "$STATE/current" 2>/dev/null || true; }
-load() { openrgb --client localhost:6742 -p "$1" >/dev/null 2>&1; }
+# Profiles are loaded by the server itself over its SDK socket (packet 152, "load profile"), so
+# the server is the only process that ever writes the hardware. `openrgb --client -p` is not
+# used for this on purpose: it also scans and writes the devices locally, in parallel with the
+# server, and the ENE DRAM controllers need two SMBus transactions per register, so two
+# writers interleaving leave garbage in the sticks' registers.
+# SDK framing: "ORGB", device u32, packet id u32, payload size u32, all little endian.
+hdr() { printf 'ORGB\0\0\0\0%b\0\0\0%b\0\0\0' "\\x$(printf %02x "$1")" "\\x$(printf %02x "$2")"; }
+load()  { exec 3<>/dev/tcp/localhost/6742 || return 1; { hdr 152 $(( ${#1} + 1 )); printf '%s\0' "$1"; } >&3; exec 3>&-; }
+count() { exec 3<>/dev/tcp/localhost/6742 || return 1; hdr 0 0 >&3; head -c 20 <&3 | tail -c 4 | od -An -tu4 | tr -d ' '; exec 3>&-; }
 case "${1:-status}" in
     list)    list ;;
     current) current ;;
     set)     [[ -f "$PROFILES/$2.json" ]] || { echo "no such profile: $2" >&2; exit 1; }
              load "$2" && echo "$2" > "$STATE/current" && pkill -RTMIN+11 waybar 2>/dev/null; true ;;
-    apply)   p=$(current); [[ -n "$p" ]] || exit 0
-             for _ in $(seq 1 60); do load "$p" && exit 0; sleep 0.5; done; echo "openrgb server not reachable" >&2; exit 1 ;;
+    apply)   p=$(current); [[ -n "$p" && -f "$PROFILES/$p.json" ]] || exit 0
+             # the server opens its port before detection finishes: wait until it holds as many
+             # controllers as the profile does, else the load applies to the ones found so far
+             want=$(grep -c '"location"' "$PROFILES/$p.json")
+             for _ in $(seq 1 60); do (( $(count 2>/dev/null || echo 0) >= want )) && { load "$p"; exit; }; sleep 0.5; done
+             echo "openrgb server not ready" >&2; exit 1 ;;
     status)  printf '{"profiles":[%s],"current":"%s"}\n' "$(list | sed 's/.*/"&"/' | paste -sd,)" "$(current)" ;;
     *)       echo "usage: rgb list|current|set NAME|apply|status" >&2; exit 2 ;;
 esac
