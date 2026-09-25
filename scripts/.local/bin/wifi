@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# wifi: Wi-Fi networks (NetworkManager) in rofi. DNS is global (AdGuard over TLS), so nothing
+# here is per-network; see network/.
+#   Enter    connect (asks for the password on a new secured network)
+#   Alt+D    forget the highlighted saved network (picker reopens)
+#   Alt+R    rescan
+#   Alt+X    turn Wi-Fi off
+# Enterprise (802.1X) networks: nm-connection-editor.
+set -uo pipefail
+note() { notify-send -a wifi "Wi-Fi" "$1"; }
+
+if [[ "$(nmcli radio wifi)" != enabled ]]; then
+    [[ "$(printf 'Turn Wi-Fi on\n' | rofi -dmenu -i -p "wifi" -mesg "Wi-Fi is off")" ]] || exit 0
+    rfkill unblock wlan; nmcli radio wifi on; sleep 2; exec "$0"
+fi
+
+# saved Wi-Fi profiles: ssid -> profile name
+declare -A saved
+while IFS=: read -r name type; do
+    [[ "$type" == 802-11-wireless ]] || continue
+    ssid=$(nmcli -g 802-11-wireless.ssid connection show "$name" 2>/dev/null)
+    [[ -n "$ssid" ]] && saved[$ssid]=$name
+done < <(nmcli -t -f NAME,TYPE connection show)
+
+# one row per SSID (strongest access point); nmcli -t escapes ':' in fields as '\:'
+ssids=(); secs=(); lines=""
+declare -A seen
+while IFS=$'\t' read -r use sig sec ssid; do
+    [[ -z "$ssid" || -n "${seen[$ssid]:-}" ]] && continue
+    seen[$ssid]=1
+    icons=(󰤯 󰤟 󰤢 󰤥 󰤨); icon=${icons[$(( sig > 99 ? 4 : sig / 20 ))]}
+    tags=""; [[ "$sec" != "" && "$sec" != "--" ]] && tags+=" 󰌾"
+    [[ -n "${saved[$ssid]:-}" ]] && tags+="  saved"
+    [[ "$use" == "*" ]] && tags+="  connected"
+    ssids+=("$ssid"); secs+=("$sec")
+    lines+="$icon  $ssid$tags  ($sig%)"$'\n'
+done < <(nmcli -t -f IN-USE,SIGNAL,SECURITY,SSID device wifi list --rescan "${RESCAN:-auto}" \
+         | sed -E 's/\\:/\x01/g; s/:/\t/g; s/\x01/:/g' | sort -t$'\t' -k2,2nr)
+
+[[ ${#ssids[@]} -gt 0 ]] || { note "No networks in range"; exit 0; }
+i=$(printf '%s' "$lines" | rofi -dmenu -i -format i -p "wifi" \
+    -mesg "Enter connect · Alt+D forget · Alt+R rescan · Alt+X Wi-Fi off" \
+    -kb-custom-1 "Alt+d" -kb-custom-2 "Alt+r" -kb-custom-3 "Alt+x"); rc=$?
+case $rc in
+    11) RESCAN=yes exec "$0" ;;
+    12) nmcli radio wifi off; note "Off"; exit 0 ;;
+esac
+[[ "$i" =~ ^[0-9]+$ ]] || exit 0
+ssid=${ssids[$i]}; sec=${secs[$i]}
+
+if [[ $rc -eq 10 ]]; then
+    [[ -n "${saved[$ssid]:-}" ]] && nmcli connection delete "${saved[$ssid]}" >/dev/null && note "Forgot $ssid"
+    exec "$0"
+fi
+[[ $rc -eq 0 ]] || exit 0
+
+if [[ -n "${saved[$ssid]:-}" ]]; then
+    out=$(nmcli connection up "${saved[$ssid]}" 2>&1); ok=$?
+elif [[ "$sec" == "" || "$sec" == "--" ]]; then
+    out=$(nmcli device wifi connect "$ssid" 2>&1); ok=$?
+else
+    [[ "$sec" == *802.1X* ]] && { note "$ssid is an enterprise network: use nm-connection-editor"; exit 0; }
+    pw=$(rofi -dmenu -password -p "password" -mesg "$ssid" </dev/null) || exit 0
+    [[ -n "$pw" ]] || exit 0
+    out=$(nmcli device wifi connect "$ssid" password "$pw" 2>&1); ok=$?
+    # a failed first attempt leaves a profile with the wrong password behind
+    [[ $ok -eq 0 ]] || nmcli connection delete id "$ssid" >/dev/null 2>&1
+fi
+[[ $ok -eq 0 ]] || { note "Could not join $ssid: ${out##*Error: }"; exit 1; }
+note "Connected to $ssid"

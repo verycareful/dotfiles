@@ -116,7 +116,8 @@
         "tooltip-format-ethernet": "{ifname}\n{ipaddr}   {bandwidthDownBytes} {bandwidthUpBytes}",
         "tooltip-format-disconnected": "disconnected",
         "interval": 5,
-        "on-click": "nm-connection-editor"
+        "on-click": "~/.local/bin/wifi",
+        "on-click-right": "nm-connection-editor"
     },
     "wireplumber": {
         "format": "<span font_family='JetBrainsMono Nerd Font'>{icon}</span> {volume}%",

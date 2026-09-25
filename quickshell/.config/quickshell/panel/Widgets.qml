@@ -20,6 +20,7 @@ QtObject {
         property string label
         property bool on: false
         signal clicked
+        signal secondary            // right click
         implicitWidth: 70; implicitHeight: 58
         color: on ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.55) : Theme.glassCard
         border.width: 1; border.color: on ? Theme.primaryBright : (tm.containsMouse ? Theme.muted : Theme.overlay)
@@ -28,7 +29,8 @@ QtObject {
             Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.parent.glyph; color: parent.parent.on ? Theme.accent : Theme.subtext; font { family: Theme.fontIcon; pixelSize: 20 } }
             Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.parent.label; color: parent.parent.on ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
         }
-        MouseArea { id: tm; anchors.fill: parent; hoverEnabled: true; onClicked: parent.clicked() }
+        MouseArea { id: tm; anchors.fill: parent; hoverEnabled: true; acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    onClicked: m => m.button === Qt.RightButton ? parent.secondary() : parent.clicked() }
     }
     // text button
     component Button: Rectangle {

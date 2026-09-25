@@ -1,4 +1,4 @@
-// Quick toggles: Wi-Fi · Bluetooth · DND · Night light · Power profile · Media on bar
+// Quick toggles (right-click Wi-Fi for the network picker): Wi-Fi · Bluetooth · DND · Night light · Power profile · Media on bar
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -16,7 +16,8 @@ RowLayout {
     readonly property var wired: Networking.devices.values.find(d => d.type === DeviceType.Wired) || null
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F0200}"; label: "Ethernet";   on: wired ? wired.connected : false
                      onClicked: if (wired) Quickshell.execDetached(["nmcli", "device", wired.connected ? "disconnect" : "connect", wired.name]) }
-    Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F05A9}"; label: "Wi-Fi";      on: Networking.wifiEnabled;        onClicked: Networking.wifiEnabled = !Networking.wifiEnabled }
+    Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F05A9}"; label: "Wi-Fi";      on: Networking.wifiEnabled;        onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
+                     onSecondary: { Quickshell.execDetached([Quickshell.env("HOME") + "/.local/bin/wifi"]); Panel.setOpen(false) } }
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F00AF}"; label: "Bluetooth";  on: bt ? bt.enabled : false;       onClicked: if (bt) bt.enabled = !bt.enabled }
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F009B}"; label: "Do not disturb"; on: Notifs.dnd;                onClicked: Notifs.setDnd(!Notifs.dnd) }
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F0594}"; label: "Night light"; on: Panel.nightLight;             onClicked: Panel.setNightLight(!Panel.nightLight) }
