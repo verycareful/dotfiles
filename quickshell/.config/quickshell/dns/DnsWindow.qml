@@ -13,18 +13,22 @@ import "../services"
 Scope {
     id: root
     property string tab: "ethernet"
-    Connections { target: Net; function onOpenDnsWindow() { win.visible = true } }
+    // Closing it from Hyprland (SUPER+Q) destroys the real window but leaves `visible` true, so a
+    // plain `visible = true` would do nothing: recreate it whenever nothing is on screen.
+    function show() { if (!win.backingWindowVisible) win.visible = false; win.visible = true }
+    Connections { target: Net; function onOpenDnsWindow() { root.show() } }
 
     IpcHandler {
         target: "dns"
-        function open(): void   { win.visible = true }
+        function open(): void   { root.show() }
         function close(): void  { win.visible = false }
-        function toggle(): void { win.visible = !win.visible }
+        function toggle(): void { if (win.backingWindowVisible) win.visible = false; else root.show() }
     }
 
     FloatingWindow {
         id: win
         visible: false          // set, not bound: the compositor can close it too
+        onClosed: visible = false
         title: "DNS settings"
         implicitWidth: 540
         implicitHeight: body.implicitHeight + 36

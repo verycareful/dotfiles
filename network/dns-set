@@ -37,11 +37,23 @@ status)
     printf '{'; sep=""
     for t in ethernet wifi; do
         dev=$(dev_of "$t"); live=""
-        [[ -n "$dev" ]] && live=$(resolvectl dns "$dev" 2>/dev/null | sed -E 's/^[^:]*: ?//' | tr -s ' \t\n' ' ' | sed 's/ $//')
-        v4=$(meta "$t" v4); v6=$(meta "$t" v6); ipv6=$(meta "$t" ipv6)
-        [[ -f "$(dropin "$t")" ]] || { v4=auto; v6=auto; }
+        # resolvectl wraps long lists; join first, then drop the "Link N (dev):" prefix once
+        [[ -n "$dev" ]] && live=$(resolvectl dns "$dev" 2>/dev/null | tr -s ' \t\n' ' ' | sed -E 's/^Link [0-9]+ \([^)]*\): ?//; s/ $//')
+        f=$(dropin "$t"); tls=$(meta "$t" tls); name=$(meta "$t" name); ipv6=$(meta "$t" ipv6)
+        if grep -q '^# dns-set v4=' "$f" 2>/dev/null; then v4=$(meta "$t" v4); v6=$(meta "$t" v6)
+        elif [[ -f "$f" ]]; then     # a file without the header (older dns-set): read what it sets
+            v4="" v6=""
+            for a in $(sed -n 's/^DNS=//p' "$f"); do
+                [[ -z "$name" && "$a" == *"#"* ]] && name="${a#*#}"
+                a="${a%%#*}"; if [[ "$a" == *:* ]]; then v6+="${v6:+ }$a"; else v4+="${v4:+ }$a"; fi
+            done
+            grep -q '^UseDNS=yes' <(sed -n '/^\[DHCPv4\]/,/^\[/p' "$f") && v4=auto
+            grep -q '^UseDNS=yes' <(sed -n '/^\[IPv6AcceptRA\]/,/^\[/p' "$f") && v6=auto
+            tls=$(sed -n 's/^DNSOverTLS=//p' "$f" | head -1)
+        else v4=auto; v6=auto
+        fi
         printf '%s%s:{"v4":%s,"v6":%s,"ipv6":%s,"tls":%s,"name":%s,"device":%s,"live":%s}' "$sep" "$(json_str "$t")" \
-            "$(json_str "$v4")" "$(json_str "$v6")" "$(json_str "${ipv6:-on}")" "$(json_str "$(meta "$t" tls)")" "$(json_str "$(meta "$t" name)")" \
+            "$(json_str "$v4")" "$(json_str "$v6")" "$(json_str "${ipv6:-on}")" "$(json_str "$tls")" "$(json_str "$name")" \
             "$(json_str "$dev")" "$(json_str "$live")"
         sep=","
     done
