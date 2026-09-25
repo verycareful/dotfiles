@@ -5,7 +5,7 @@ waybar rofi quickshell awww wlogout
 kitty fish starship fastfetch
 grim slurp satty wl-clipboard cliphist
 brightnessctl playerctl pamixer
-network-manager-applet blueman udiskie gvfs thunar
+iwd blueman udiskie gvfs thunar
 qt5-wayland qt6-wayland qt5ct qt6ct kvantum nwg-look adw-gtk-theme
 ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji
 papirus-icon-theme bibata-cursor-theme

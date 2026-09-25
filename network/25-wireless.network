@@ -1,0 +1,19 @@
+# Every Wi-Fi network (iwd joins it, networkd does the addressing). DNS comes from
+# 25-wireless.network.d/50-dns.conf, written by dns-set (the panel's DNS card).
+[Match]
+Type=wlan
+
+[Network]
+DHCP=yes
+IgnoreCarrierLoss=3s
+MulticastDNS=no
+LLMNR=no
+
+[DHCPv4]
+RouteMetric=600
+
+[IPv6AcceptRA]
+RouteMetric=600
+
+[Link]
+RequiredForOnline=no

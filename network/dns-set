@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# dns-set: DNS for Ethernet and for Wi-Fi, each its own setting, as a networkd drop-in
+# (/etc/systemd/network/<file>.network.d/50-dns.conf). Only this decides what resolved uses.
+#   dns-set status                        JSON for the DNS window (any user)
+#   dns-set set <ethernet|wifi> [--v4 auto|"ADDR ..."] [--v6 auto|"ADDR ..."] [--tls yes|opportunistic|no] [--name HOST]
+#               [--ipv6 on|off]
+#        --v4 / --v6   auto = the network's own DNS for that family (DHCP / router: the ISP's);
+#                      addresses = only these; "" = none for that family. Default auto.
+#        --tls         DNS-over-TLS for this link. Default no.
+#        --name        TLS server name, added to every address (39997d19.d.adguard-dns.com; tls:// is dropped)
+#        --ipv6 off    no IPv6 on this link at all (no link-local, no router adverts, no DHCPv6);
+#                      --v6 is then ignored. Default on.
+# Installed to /usr/local/bin by network/install-network.sh; the DNS window runs `set` via pkexec.
+set -euo pipefail
+NET=/etc/systemd/network
+declare -A FILE=([ethernet]=20-wired [wifi]=25-wireless)
+
+dropin() { echo "$NET/${FILE[$1]}.network.d/50-dns.conf"; }
+meta() {        # $1 type, $2 key: the "# dns-set key=value" header dns-set writes
+    { sed -n "s/^# dns-set $2=//p" "$(dropin "$1")" 2>/dev/null || true; } | head -1
+}
+is_v4() { [[ "$1" =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]] && (( BASH_REMATCH[1] < 256 && BASH_REMATCH[2] < 256 && BASH_REMATCH[3] < 256 && BASH_REMATCH[4] < 256 )); }
+is_v6() { [[ "$1" == *:* && "$1" =~ ^[0-9A-Fa-f:]+$ && ${#1} -le 39 ]]; }
+json_str() { local s="${1//\\/\\\\}"; printf '"%s"' "${s//\"/\\\"}"; }
+dev_of() {      # first physical interface of that kind, from sysfs
+    local d
+    for d in /sys/class/net/*; do
+        [[ -e "$d/device" ]] || continue
+        if [[ -d "$d/wireless" ]]; then [[ $1 == wifi ]] && { basename "$d"; return; }
+        else [[ $1 == ethernet && "$(cat "$d/type")" == 1 ]] && { basename "$d"; return; }
+        fi
+    done
+}
+
+case "${1:-}" in
+status)
+    printf '{'; sep=""
+    for t in ethernet wifi; do
+        dev=$(dev_of "$t"); live=""
+        [[ -n "$dev" ]] && live=$(resolvectl dns "$dev" 2>/dev/null | sed -E 's/^[^:]*: ?//' | tr -s ' \t\n' ' ' | sed 's/ $//')
+        v4=$(meta "$t" v4); v6=$(meta "$t" v6); ipv6=$(meta "$t" ipv6)
+        [[ -f "$(dropin "$t")" ]] || { v4=auto; v6=auto; }
+        printf '%s%s:{"v4":%s,"v6":%s,"ipv6":%s,"tls":%s,"name":%s,"device":%s,"live":%s}' "$sep" "$(json_str "$t")" \
+            "$(json_str "$v4")" "$(json_str "$v6")" "$(json_str "${ipv6:-on}")" "$(json_str "$(meta "$t" tls)")" "$(json_str "$(meta "$t" name)")" \
+            "$(json_str "$dev")" "$(json_str "$live")"
+        sep=","
+    done
+    printf '}\n' ;;
+set)
+    [[ $EUID -eq 0 ]] || { echo "dns-set set: needs root" >&2; exit 1; }
+    type="${2:-}"; [[ -n "${FILE[$type]:-}" ]] || { echo "type: ethernet | wifi" >&2; exit 2; }
+    shift 2
+    v4=auto v6=auto tls=no name="" ipv6=on
+    while [[ $# -gt 0 ]]; do
+        [[ $# -ge 2 ]] || { echo "$1 needs a value" >&2; exit 2; }
+        case "$1" in
+            --v4) v4="$2" ;; --v6) v6="$2" ;; --tls) tls="$2" ;; --name) name="$2" ;; --ipv6) ipv6="$2" ;;
+            *) echo "unknown option: $1" >&2; exit 2 ;;
+        esac
+        shift 2
+    done
+    [[ "$tls" =~ ^(yes|opportunistic|no)$ ]] || { echo "TLS: yes | opportunistic | no" >&2; exit 2; }
+    [[ "$ipv6" =~ ^(on|off)$ ]] || { echo "IPv6: on | off" >&2; exit 2; }
+    [[ "$ipv6" == on ]] || v6=""
+    name="${name#tls://}"; name="${name%%/*}"
+    [[ -z "$name" || "$name" =~ ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$ ]] \
+        || { echo "not a server name: $name" >&2; exit 2; }
+    servers=()
+    for a in ${v4//,/ }; do [[ "$v4" == auto ]] && break; is_v4 "$a" || { echo "not an IPv4 address: $a" >&2; exit 2; }; servers+=("$a${name:+#$name}"); done
+    for a in ${v6//,/ }; do [[ "$v6" == auto ]] && break; is_v6 "$a" || { echo "not an IPv6 address: $a" >&2; exit 2; }; servers+=("$a${name:+#$name}"); done
+    [[ "$v4" == auto ]] || v4=$(tr -s ', ' '  ' <<<"$v4" | sed 's/^ //; s/ $//')
+    [[ "$v6" == auto ]] || v6=$(tr -s ', ' '  ' <<<"$v6" | sed 's/^ //; s/ $//')
+    yn() { [[ "$1" == auto ]] && echo yes || echo no; }
+    {
+        echo "# written by dns-set; change it in the DNS settings window (panel, DNS card)"
+        echo "# dns-set v4=$v4"
+        echo "# dns-set v6=$v6"
+        echo "# dns-set tls=$tls"
+        echo "# dns-set name=$name"
+        echo "# dns-set ipv6=$ipv6"
+        echo "[Network]"
+        [[ "$ipv6" == off ]] && printf 'DHCP=ipv4\nLinkLocalAddressing=ipv4\nIPv6AcceptRA=no\n'
+        [[ ${#servers[@]} -gt 0 ]] && echo "DNS=${servers[*]}"
+        echo "DNSOverTLS=$tls"
+        printf '\n[DHCPv4]\nUseDNS=%s\n\n[DHCPv6]\nUseDNS=%s\n\n[IPv6AcceptRA]\nUseDNS=%s\n' "$(yn "$v4")" "$(yn "$v6")" "$(yn "$v6")"
+    } | install -Dm644 /dev/stdin "$(dropin "$type")"
+    # running networkd: re-read the files and reconfigure that link right away
+    if networkctl reload 2>/dev/null; then
+        dev=$(dev_of "$type"); [[ -n "$dev" ]] && { networkctl reconfigure "$dev" 2>/dev/null || true; }
+        resolvectl flush-caches 2>/dev/null || true
+    fi ;;
+*) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2 ;;
+esac

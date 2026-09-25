@@ -1,0 +1,19 @@
+# Every physical Ethernet port. DNS comes from 20-wired.network.d/50-dns.conf, written by dns-set
+# (the panel's DNS card): either the network's own (Automatic) or the servers you entered.
+[Match]
+Type=ether
+Kind=!*
+
+[Network]
+DHCP=yes
+MulticastDNS=no
+LLMNR=no
+
+[DHCPv4]
+RouteMetric=100
+
+[IPv6AcceptRA]
+RouteMetric=100
+
+[Link]
+RequiredForOnline=routable

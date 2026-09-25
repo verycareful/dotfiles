@@ -1,70 +1,77 @@
 #!/usr/bin/env bash
-# wifi: Wi-Fi networks (NetworkManager) in rofi. DNS is global (AdGuard over TLS), so nothing
-# here is per-network; see network/.
-#   Enter    connect (asks for the password on a new secured network)
+# wifi: Wi-Fi networks (iwd) in rofi. DNS is not per network: every Wi-Fi uses the Wi-Fi setting
+# in the panel's DNS card.
+#   Enter    connect (asks for the password on a new secured network); on the connected one, disconnect
 #   Alt+D    forget the highlighted saved network (picker reopens)
 #   Alt+R    rescan
 #   Alt+X    turn Wi-Fi off
-# Enterprise (802.1X) networks: nm-connection-editor.
+# Enterprise (802.1X) networks need a file in /var/lib/iwd (man iwd.network).
 set -uo pipefail
 note() { notify-send -a wifi "Wi-Fi" "$1"; }
+iwd() { busctl --system --json=short call net.connman.iwd "$@"; }
 
-if [[ "$(nmcli radio wifi)" != enabled ]]; then
+dev=$(basename "$(dirname "$(ls -d /sys/class/net/*/wireless 2>/dev/null | head -1)")")
+[[ -n "$dev" && "$dev" != . ]] || { note "No Wi-Fi adapter"; exit 1; }
+if rfkill list wlan | grep -q 'Soft blocked: yes'; then
     [[ "$(printf 'Turn Wi-Fi on\n' | rofi -dmenu -i -p "wifi" -mesg "Wi-Fi is off")" ]] || exit 0
-    rfkill unblock wlan; nmcli radio wifi on; sleep 2; exec "$0"
+    rfkill unblock wlan; sleep 3; RESCAN=yes exec "$0"
 fi
 
-# saved Wi-Fi profiles: ssid -> profile name
-declare -A saved
-while IFS=: read -r name type; do
-    [[ "$type" == 802-11-wireless ]] || continue
-    ssid=$(nmcli -g 802-11-wireless.ssid connection show "$name" 2>/dev/null)
-    [[ -n "$ssid" ]] && saved[$ssid]=$name
-done < <(nmcli -t -f NAME,TYPE connection show)
+objects=$(iwd / org.freedesktop.DBus.ObjectManager GetManagedObjects) || { note "iwd is not running"; exit 1; }
+station=$(jq -r --arg d "$dev" '.data[0] | to_entries[] | select(.value["net.connman.iwd.Device"].Name.data == $d
+          and .value["net.connman.iwd.Station"]) | .key' <<<"$objects")
+[[ -n "$station" ]] || { note "$dev is not in station mode"; exit 1; }
+if [[ -n "${RESCAN:-}" ]]; then
+    iwctl station "$dev" scan 2>/dev/null
+    for _ in 1 2 3 4 5 6 7 8; do     # Scanning goes true, then false when results are in
+        sleep 0.5
+        [[ "$(iwd "$station" org.freedesktop.DBus.Properties Get ss net.connman.iwd.Station Scanning | jq .data)" == false ]] && break
+    done
+    objects=$(iwd / org.freedesktop.DBus.ObjectManager GetManagedObjects)
+fi
 
-# one row per SSID (strongest access point); nmcli -t escapes ':' in fields as '\:'
-ssids=(); secs=(); lines=""
-declare -A seen
-while IFS=$'\t' read -r use sig sec ssid; do
-    [[ -z "$ssid" || -n "${seen[$ssid]:-}" ]] && continue
-    seen[$ssid]=1
-    icons=(󰤯 󰤟 󰤢 󰤥 󰤨); icon=${icons[$(( sig > 99 ? 4 : sig / 20 ))]}
-    tags=""; [[ "$sec" != "" && "$sec" != "--" ]] && tags+=" 󰌾"
-    [[ -n "${saved[$ssid]:-}" ]] && tags+="  saved"
-    [[ "$use" == "*" ]] && tags+="  connected"
-    ssids+=("$ssid"); secs+=("$sec")
-    lines+="$icon  $ssid$tags  ($sig%)"$'\n'
-done < <(nmcli -t -f IN-USE,SIGNAL,SECURITY,SSID device wifi list --rescan "${RESCAN:-auto}" \
-         | sed -E 's/\\:/\x01/g; s/:/\t/g; s/\x01/:/g' | sort -t$'\t' -k2,2nr)
+# one row per network, strongest first (iwd already merges access points of one SSID)
+# fields (0x1f-separated, so empty ones survive read): connected, signal %, type (open/psk/8021x/wep), saved, name
+rows=$(iwd "$station" net.connman.iwd.Station GetOrderedNetworks | jq -r --argjson o "$objects" '
+    .data[0][] | .[0] as $p | .[1] as $s | $o.data[0][$p]["net.connman.iwd.Network"] as $n | select($n)
+    | [ (if $n.Connected.data then "*" else "" end),
+        ([[($s / 100 + 100) * 2, 100] | min, 0] | max | floor),
+        $n.Type.data, (if $n.KnownNetwork then "saved" else "" end), $n.Name.data ] | map(tostring) | join("\u001f")')
+if [[ -z "$rows" ]]; then [[ -z "${RESCAN:-}" ]] && RESCAN=yes exec "$0"; note "No networks in range"; exit 0; fi
 
-[[ ${#ssids[@]} -gt 0 ]] || { note "No networks in range"; exit 0; }
+lines=""
+icons=(󰤯 󰤟 󰤢 󰤥 󰤨)
+while IFS=$'\x1f' read -r use sig type known name; do
+    tags=""; [[ "$type" != open ]] && tags+=" 󰌾"; [[ -n "$known" ]] && tags+="  saved"; [[ -n "$use" ]] && tags+="  connected"
+    lines+="${icons[$(( sig > 99 ? 4 : sig / 20 ))]}  $name$tags  ($sig%)"$'\n'
+done <<<"$rows"
+
 i=$(printf '%s' "$lines" | rofi -dmenu -i -format i -p "wifi" \
-    -mesg "Enter connect · Alt+D forget · Alt+R rescan · Alt+X Wi-Fi off" \
+    -mesg "Enter connect / disconnect · Alt+D forget · Alt+R rescan · Alt+X Wi-Fi off" \
     -kb-custom-1 "Alt+d" -kb-custom-2 "Alt+r" -kb-custom-3 "Alt+x"); rc=$?
 case $rc in
     11) RESCAN=yes exec "$0" ;;
-    12) nmcli radio wifi off; note "Off"; exit 0 ;;
+    12) rfkill block wlan; note "Off"; exit 0 ;;
 esac
 [[ "$i" =~ ^[0-9]+$ ]] || exit 0
-ssid=${ssids[$i]}; sec=${secs[$i]}
+IFS=$'\x1f' read -r use sig type known name < <(sed -n "$((i + 1))p" <<<"$rows")
 
 if [[ $rc -eq 10 ]]; then
-    [[ -n "${saved[$ssid]:-}" ]] && nmcli connection delete "${saved[$ssid]}" >/dev/null && note "Forgot $ssid"
+    [[ -n "$known" ]] && iwctl known-networks "$name" forget && note "Forgot $name"
     exec "$0"
 fi
 [[ $rc -eq 0 ]] || exit 0
 
-if [[ -n "${saved[$ssid]:-}" ]]; then
-    out=$(nmcli connection up "${saved[$ssid]}" 2>&1); ok=$?
-elif [[ "$sec" == "" || "$sec" == "--" ]]; then
-    out=$(nmcli device wifi connect "$ssid" 2>&1); ok=$?
-else
-    [[ "$sec" == *802.1X* ]] && { note "$ssid is an enterprise network: use nm-connection-editor"; exit 0; }
-    pw=$(rofi -dmenu -password -p "password" -mesg "$ssid" </dev/null) || exit 0
-    [[ -n "$pw" ]] || exit 0
-    out=$(nmcli device wifi connect "$ssid" password "$pw" 2>&1); ok=$?
-    # a failed first attempt leaves a profile with the wrong password behind
-    [[ $ok -eq 0 ]] || nmcli connection delete id "$ssid" >/dev/null 2>&1
-fi
-[[ $ok -eq 0 ]] || { note "Could not join $ssid: ${out##*Error: }"; exit 1; }
-note "Connected to $ssid"
+if [[ -n "$use" ]]; then iwctl station "$dev" disconnect && note "Disconnected from $name"; exit 0; fi
+case "$type" in
+    8021x) note "$name is an enterprise network: needs /var/lib/iwd/$name.8021x (man iwd.network)"; exit 0 ;;
+    open)  out=$(iwctl station "$dev" connect "$name" 2>&1); ok=$? ;;
+    *)  if [[ -n "$known" ]]; then out=$(iwctl station "$dev" connect "$name" 2>&1); ok=$?
+        else
+            pw=$(rofi -dmenu -password -p "password" -mesg "$name" </dev/null) || exit 0
+            [[ -n "$pw" ]] || exit 0
+            out=$(iwctl --passphrase "$pw" station "$dev" connect "$name" 2>&1); ok=$?
+        fi ;;
+esac
+[[ $ok -eq 0 ]] || { note "Could not join $name: $(sed 's/\x1b\[[0-9;]*m//g' <<<"$out" | tr -s '\n ' ' ')"; exit 1; }
+note "Connected to $name"

@@ -46,6 +46,7 @@ Scope {
                 spacing: 12
                 Search { id: search; Layout.fillWidth: true }
                 Toggles { Layout.fillWidth: true }
+                Dns      { Layout.fillWidth: true }
                 Media    { Layout.fillWidth: true }
                 System   { Layout.fillWidth: true }
                 Lighting { Layout.fillWidth: true }

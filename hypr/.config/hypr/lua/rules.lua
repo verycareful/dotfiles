@@ -8,6 +8,9 @@ hl.window_rule({ match = { class = "^(pavucontrol)$" },             size   = { 9
 hl.window_rule({ match = { class = "^(pavucontrol|nwg-look|qt5ct|qt6ct|io.github.ilya_zlobintsev.LACT)$" }, center = true })
 hl.window_rule({ match = { class = "^(io.github.ilya_zlobintsev.LACT)$" }, size = { 1100, 760 } })
 
+-- Quickshell's DNS settings window (panel, DNS card)
+hl.window_rule({ match = { title = "^(DNS settings)$" }, float = true, center = true })
+
 -- File pickers / dialogs
 local dialogs = "^(Open File|Save File|Open Folder|Select .*)$"
 hl.window_rule({ match = { title = dialogs }, float = true, center = true })

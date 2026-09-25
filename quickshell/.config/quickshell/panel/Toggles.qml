@@ -2,7 +2,6 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Networking
 import Quickshell.Bluetooth
 import Quickshell.Services.UPower
 import ".."
@@ -13,10 +12,8 @@ RowLayout {
     readonly property var bt: Bluetooth.defaultAdapter
     readonly property bool perf: PowerProfiles.profile === PowerProfile.Performance
 
-    readonly property var wired: Networking.devices.values.find(d => d.type === DeviceType.Wired) || null
-    Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F0200}"; label: "Ethernet";   on: wired ? wired.connected : false
-                     onClicked: if (wired) Quickshell.execDetached(["nmcli", "device", wired.connected ? "disconnect" : "connect", wired.name]) }
-    Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F05A9}"; label: "Wi-Fi";      on: Networking.wifiEnabled;        onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
+    Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F0200}"; label: "Ethernet";   on: Net.eth.up;                    onClicked: Net.setEthernet(!Net.eth.up) }
+    Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F05A9}"; label: "Wi-Fi";      on: Net.wifi.on;                   onClicked: Net.setWifi(!Net.wifi.on)
                      onSecondary: { Quickshell.execDetached([Quickshell.env("HOME") + "/.local/bin/wifi"]); Panel.setOpen(false) } }
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F00AF}"; label: "Bluetooth";  on: bt ? bt.enabled : false;       onClicked: if (bt) bt.enabled = !bt.enabled }
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F009B}"; label: "Do not disturb"; on: Notifs.dnd;                onClicked: Notifs.setDnd(!Notifs.dnd) }

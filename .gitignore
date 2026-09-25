@@ -32,5 +32,5 @@ waybar/.config/waybar/state.css
 # personal notes, not published
 local/
 
-# dev-workflow working notes, never committed
-changes_version.md
+# agent instructions, local only
+CLAUDE.MD

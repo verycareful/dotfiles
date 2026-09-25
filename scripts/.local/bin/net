@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# net: link state and switches for the panel's Ethernet and Wi-Fi toggles (networkd + iwd).
+#   net status                      JSON: ethernet {dev, up, carrier}, wifi {dev, on, ssid}
+#   net ethernet on|off|toggle      networkctl up/down (polkit rule: no password for wheel)
+#   net wifi on|off|toggle          rfkill (rfkill group)
+set -uo pipefail
+dev_of() {
+    local d
+    for d in /sys/class/net/*; do
+        [[ -e "$d/device" ]] || continue
+        if [[ -d "$d/wireless" ]]; then [[ $1 == wifi ]] && { basename "$d"; return; }
+        else [[ $1 == ethernet && "$(cat "$d/type")" == 1 ]] && { basename "$d"; return; }
+        fi
+    done
+}
+eth=$(dev_of ethernet); wl=$(dev_of wifi)
+eth_up()  { [[ -n "$eth" ]] && (( $(cat "/sys/class/net/$eth/flags") & 1 )); }
+wifi_on() { [[ -n "$wl" ]] && ! rfkill list wlan 2>/dev/null | grep -q 'Soft blocked: yes'; }
+ssid() {        # connected network, from iwd over D-Bus
+    busctl --system --json=short call net.connman.iwd / org.freedesktop.DBus.ObjectManager GetManagedObjects 2>/dev/null \
+    | jq -r '.data[0] | to_entries[] | .value["net.connman.iwd.Network"] | select(. and .Connected.data) | .Name.data' | head -1
+}
+
+case "${1:-} ${2:-}" in
+"status ")
+    carrier=false; [[ -n "$eth" && "$(cat "/sys/class/net/$eth/carrier" 2>/dev/null)" == 1 ]] && carrier=true
+    jq -cn --arg e "$eth" --argjson eu "$(eth_up && echo true || echo false)" --argjson c "$carrier" \
+           --arg w "$wl" --argjson wo "$(wifi_on && echo true || echo false)" --arg s "$(wifi_on && ssid)" \
+        '{ethernet: {dev: $e, up: $eu, carrier: $c}, wifi: {dev: $w, on: $wo, ssid: $s}}' ;;
+"ethernet on")     networkctl up "$eth" ;;
+"ethernet off")    networkctl down "$eth" ;;
+"ethernet toggle") if eth_up; then networkctl down "$eth"; else networkctl up "$eth"; fi ;;
+"wifi on")         rfkill unblock wlan ;;
+"wifi off")        rfkill block wlan ;;
+"wifi toggle")     if wifi_on; then rfkill block wlan; else rfkill unblock wlan; fi ;;
+*) sed -n '2,5p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2 ;;
+esac

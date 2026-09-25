@@ -11,12 +11,12 @@ Hyprland rice — sharp corners, glass, switchable themes (Harbour: navy/orange 
 | `wlogout/` | power menu                                       |
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |
-| `scripts/` | helpers in `~/.local/bin` (`theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`) |
+| `scripts/` | helpers in `~/.local/bin` (`theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`, `net`) |
 | `themes/`  | `*.theme` colour files + `templates/` rendered by `theme` |
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal) — all OFL; JetBrainsMono Nerd Font supplies icons |
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
 | `sddm/`    | login screen (own Qt6 QML: blurred wallpaper, centred card); `sudo ./sddm/install-sddm.sh` once, then it follows `theme set` via `/var/lib/dotfiles-sddm` |
-| `network/` | DNS: every lookup, on Ethernet and every Wi-Fi, goes to the AdGuard DNS profile over TLS (systemd-resolved; NetworkManager hands it no DHCP DNS). `sudo ./network/install-network.sh <profile-id>` once; the ID stays out of the repo. Wi-Fi picker: `wifi` (SUPER+SHIFT+W, the bar's network icon, or right-click the panel's Wi-Fi toggle) |
+| `network/` | systemd-networkd + iwd + systemd-resolved in place of NetworkManager: `sudo ./network/install-network.sh` (`--nm` switches back). DNS has one setting for Ethernet and one for Wi-Fi (every Wi-Fi network), edited in the DNS settings window (panel DNS card, or `qs ipc call dns open`): IPv4 and IPv6 each Automatic (the network's own, i.e. the ISP's) or your servers, IPv6 can be switched off per connection, plus the DNS-over-TLS server name. `dns-set` writes it as a networkd drop-in, so nothing else can override it; the profile ID never enters the repo. The Ethernet and Wi-Fi toggles use `net`. Wi-Fi picker: `wifi` (SUPER+SHIFT+W, the bar's network icon, or right-click the panel's Wi-Fi toggle) |
 | `openrgb/` | `openrgb.service` (headless server, re-applies the saved preset at login) + `rgb` script; the panel's Lighting row switches presets (`~/.config/OpenRGB/profiles/*.json`) |
 | `amd/`     | `sudo ./amd/install-lact.sh` — LACT (GPU clocks/power/fans GUI + daemon) and the `amdgpu.ppfeaturemask` kernel parameter that unlocks overdrive; reboot after. `amd/ryzen.conf` + `sudo ./amd/install-ryzenadj.sh` — CPU thermal/PPT/Curve-Optimizer limits via RyzenAdj (AUR), re-applied at boot and after resume; also installs `cpu-tctl`, which the panel's slider calls through polkit |
 | `test/`    | `nested.sh` — try the config in a window         |
