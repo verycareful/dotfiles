@@ -7,7 +7,7 @@
 #        --v4 / --v6   auto = the network's own DNS for that family (DHCP / router: the ISP's);
 #                      addresses = only these; "" = none for that family. Default auto.
 #        --tls         DNS-over-TLS for this link. Default no.
-#        --name        TLS server name, added to every address (39997d19.d.adguard-dns.com; tls:// is dropped)
+#        --name        TLS server name, added to every address (<profile-id>.d.adguard-dns.com; tls:// is dropped)
 #        --ipv6 off    no IPv6 on this link at all (no link-local, no router adverts, no DHCPv6);
 #                      --v6 is then ignored. Default on.
 # Installed to /usr/local/bin by network/install-network.sh; the DNS window runs `set` via pkexec.

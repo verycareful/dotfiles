@@ -108,7 +108,7 @@ Scope {
         Family { id: v6; title: "IPv6"; canDisable: true }
 
         Widgets.Heading { text: "ENCRYPTED DNS (DNS-OVER-TLS)"; Layout.topMargin: 4 }
-        Field { id: name; Layout.fillWidth: true; placeholder: "server name, e.g. tls://39997d19.d.adguard-dns.com (empty: none)" }
+        Field { id: name; Layout.fillWidth: true; placeholder: "server name, e.g. tls://your-id.d.adguard-dns.com (empty: none)" }
         RowLayout {
             spacing: 4
             Chip { label: "Strict";     active: form.tls === "yes";           onClicked: form.tls = "yes" }
