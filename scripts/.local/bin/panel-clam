@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# panel-clam — ClamAV status as one JSON line for the Quickshell panel: every unit with its
+# panel-clam: ClamAV status as one JSON line for the Quickshell panel: every unit with its
 # state (system units are toggled through pkexec, user units directly), detections, last scan.
 set -uo pipefail
 units=()
@@ -15,8 +15,15 @@ add user   clamav-notify.service            "Notifier"     "Desktop notification
 add user   clamav-weekly-scan.timer         "Weekly scan"  "Sunday 03:00"
 found=$(journalctl -u 'clamav-clamonacc@*' -b -o cat 2>/dev/null | grep -c 'moved to' || true)
 log=$(ls -1t "$HOME/.local/state/clamav"/weekly-*.log 2>/dev/null | head -1)
-when=""; infected=""
-if [[ -n "$log" ]]; then when=$(basename "$log" .log | sed 's/weekly-//'); infected=$(grep -oE 'Infected files: [0-9]+' "$log" | grep -oE '[0-9]+$'); fi
+when=""; infected=""; stopped=""
+if [[ -n "$log" ]]; then
+    when=$(basename "$log" .log | sed 's/weekly-//')
+    infected=$(grep -oE 'Infected files: [0-9]+' "$log" | tail -n1 | grep -oE '[0-9]+$')
+    # why clamdscan gave up, if it did: the same rule as clamav-weekly-scan.sh (any ERROR line except the
+    # per-file "Can't access file"); the summary after it counts only what was scanned before
+    stopped=$(grep '^ERROR: ' "$log" | grep -v "^ERROR: Can't access file " | head -1); stopped=${stopped#ERROR: }; stopped=${stopped%.}
+    stopped=${stopped//\\/\\\\}; stopped=${stopped//\"/\\\"}
+fi
 sigs=$(sigtool --info /var/lib/clamav/daily.cld 2>/dev/null | grep -oE 'Build time: .*' | sed 's/Build time: //' | cut -d' ' -f1-3)
-printf '{"units":[%s],"found":%s,"lastScan":"%s","lastInfected":"%s","log":"%s","sigs":"%s"}\n' \
-    "$(IFS=,; echo "${units[*]}")" "${found:-0}" "$when" "${infected:-}" "$log" "$sigs"
+printf '{"units":[%s],"found":%s,"lastScan":"%s","lastInfected":"%s","lastStopped":"%s","log":"%s","sigs":"%s"}\n' \
+    "$(IFS=,; echo "${units[*]}")" "${found:-0}" "$when" "${infected:-}" "$stopped" "$log" "$sigs"

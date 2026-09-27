@@ -13,6 +13,11 @@ Widgets.Tile {
     readonly property var c: Sys.clam
     readonly property bool allOn: c.units.length > 0 && c.units.every(u => u.active)
     property string busyUnit: ""
+    // an interrupted scan still prints "Infected files: 0", so "clean" needs a finished scan
+    readonly property bool scanStopped: (c.lastStopped || "") !== "" || c.lastInfected === ""
+    readonly property string scanResult: c.lastInfected !== "" && c.lastInfected !== "0"
+        ? c.lastInfected + " infected" + (scanStopped ? " (incomplete)" : "")
+        : (scanStopped ? "incomplete" : "clean")
 
     Process {
         id: ctl
@@ -45,14 +50,14 @@ Widgets.Tile {
                     wrapMode: Text.Wrap
                     color: Theme.subtext
                     text: (c.found > 0 ? c.found + " detection(s) since boot" : "No detections since boot")
-                        + "  ·  " + (c.lastScan !== "" ? "Weekly scan " + c.lastScan + ": " + (c.lastInfected === "0" ? "clean" : c.lastInfected + " infected") : "No weekly scan yet")
+                        + "  ·  " + (c.lastScan !== "" ? "Weekly scan " + c.lastScan + ": " + tile.scanResult : "No weekly scan yet")
                         + (c.sigs !== "" ? "  ·  Signatures " + c.sigs : "")
                     font { family: Theme.fontUi; pixelSize: 11 }
                 }
             }
             ColumnLayout {
                 spacing: 4
-                Widgets.Button { Layout.fillWidth: true; label: "Scan now"; onClicked: Quickshell.execDetached(["kitty", "--title", "clamav weekly scan", "-e", "bash", "-c", "~/.local/bin/clamav-weekly-scan.sh; read -rp 'done — enter to close'"]) }
+                Widgets.Button { Layout.fillWidth: true; label: "Scan now"; onClicked: Quickshell.execDetached(["kitty", "--title", "clamav weekly scan", "-e", "bash", "-c", "~/.local/bin/clamav-weekly-scan.sh; read -rp 'done, enter to close'"]) }
                 Widgets.Button { Layout.fillWidth: true; label: "Open log"; enabled: c.log !== ""; onClicked: Quickshell.execDetached(["kitty", "--title", "clamav log", "-e", "less", "+G", c.log]) }
             }
         }
