@@ -1,0 +1,10 @@
+[Unit]
+Description=ClamAV weekly full scan of home (Sunday 03:00, or next login if missed)
+
+[Timer]
+OnCalendar=Sun *-*-* 03:00:00
+Persistent=true
+RandomizedDelaySec=15min
+
+[Install]
+WantedBy=timers.target

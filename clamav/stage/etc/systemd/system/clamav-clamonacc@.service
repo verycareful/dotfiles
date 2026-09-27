@@ -1,0 +1,26 @@
+# ClamAV on-access scanner, instantiated per tier:
+#   clamav-clamonacc@block.service  -> /etc/clamav/clamonacc-block.conf
+#   clamav-clamonacc@notify.service -> /etc/clamav/clamonacc-notify.conf
+[Unit]
+Description=ClamAV On-Access Scanner (%i tier)
+Documentation=man:clamonacc(8) man:clamd.conf(5) https://docs.clamav.net/
+Requires=clamav-daemon.service
+After=clamav-daemon.service
+RequiresMountsFor=/home
+
+[Service]
+Type=simple
+User=root
+# glibc >= 2.44 (gnulib fts) breaks clamonacc's directory discovery: fts_children()
+# returns FTS_NSOK, so no subdirectory is watched and OnAccessExcludePath fails.
+# The shim passes a comparator to fts_open() which restores eager stat. See fts-shim/.
+Environment=LD_PRELOAD=/usr/local/lib/clamonacc-fts-shim.so
+# -w --ping 30:5 : wait for clamd to finish loading the signature DB (up to 150 s)
+ExecStart=/usr/sbin/clamonacc -F -w --ping 30:5 -c /etc/clamav/clamonacc-%i.conf --fdpass --log=/var/log/clamav/clamonacc-%i.log --move=/var/lib/clamav/quarantine
+# same as upstream unit: a hard kill releases pending fanotify permission events immediately
+ExecStop=/bin/kill -SIGKILL $MAINPID
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

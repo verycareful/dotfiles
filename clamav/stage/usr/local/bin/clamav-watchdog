@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# clamav-watchdog: restarts clamd if it burns CPU with no scan job to show for it (a thread spinning
+# at 100 % of a core keeps an idle desktop's CCD at 80+ °C). Runs from clamav-watchdog.timer every
+# 2 min. A strike is clamd above 90 % of one core over a 5 s sample while STATS lists no job besides
+# STATS/IDLE, or its only single-file jobs (FILDES/INSTREAM) have run past STUCK. Two strikes in a
+# row → restart clamd + both tiers. Each strike logs the jobs STATS showed.
+# STATS's QUEUE is no signal: it counts only jobs waiting for a free thread, so with MaxThreads 40 it
+# reads 0 under full load, and a busy clamd would look like a spinning one.
+set -uo pipefail
+STATE=/run/clamav-watchdog.strikes
+STUCK=300   # s. MaxScanTime (default 120 s) ends every real single-file scan well before this
+pid=$(pgrep -x clamd | head -1) || { rm -f "$STATE"; exit 0; }
+[[ -n "$pid" ]] || { rm -f "$STATE"; exit 0; }
+a=$(awk '{print $14+$15}' /proc/"$pid"/stat); sleep 5; b=$(awk '{print $14+$15}' /proc/"$pid"/stat 2>/dev/null) || exit 0
+pct=$(( (b - a) * 100 / (5 * $(getconf CLK_TCK)) ))
+# Jobs are the tab-indented lines, "CMD seconds [file]", running and queued alike. Directory commands
+# (CONTSCAN, MULTISCAN) run as long as their walk, so only FILDES/INSTREAM can be stuck.
+stats=$(printf 'zSTATS\0' | timeout 3 socat - UNIX-CONNECT:/run/clamav/clamd.ctl 2>/dev/null | tr -d '\0')
+live=$(awk -v stuck="$STUCK" '/^\t/ && $1 != "STATS" && $1 != "IDLE" && ($1 !~ /^(FILDES|INSTREAM)$/ || $2 < stuck) {n++} END {print n+0}' <<<"$stats")
+jobs=$(awk '/^\t/ && $1 != "STATS" && $1 != "IDLE" {printf "%s%s %.0fs", (n++ ? ", " : ""), $1, $2}' <<<"$stats")
+[[ -n "$stats" ]] || jobs="no STATS reply"
+if (( pct >= 90 && live == 0 )); then
+    n=$(( $(cat "$STATE" 2>/dev/null || echo 0) + 1 )); echo "$n" > "$STATE"
+    echo "clamd at ${pct}% with no live scan job (strike $n); jobs: ${jobs:-none}"
+    if (( n >= 2 )); then
+        echo "restarting clamd and the on-access tiers"
+        systemctl restart clamav-daemon.service clamav-clamonacc@block.service clamav-clamonacc@notify.service
+        rm -f "$STATE"
+    fi
+else
+    rm -f "$STATE"
+fi

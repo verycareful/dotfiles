@@ -32,15 +32,17 @@ backup_conflicts() {                     # $1 = package dir
 
 for p in "${pkgs[@]}"; do
     [[ -d "$p" ]] || { echo "skip $p (no such package dir)"; continue; }
-    # .config/systemd is shared with hand-written user units (clamav-*); stow would fold the whole
-    # dir into a symlink and hide them. Units go in <pkg>/<name>.service and are linked below instead.
+    # .config/systemd is shared with the links and wants/ symlinks systemctl writes there; stow would fold
+    # the whole dir into a symlink and hide them. Units go in <pkg>/<name>.service and are linked below instead.
     [[ -e "$p/.config/systemd" ]] && { echo "refusing to stow $p: it contains .config/systemd" >&2; exit 1; }
     [[ -z "$op" ]] && backup_conflicts "$p"
     stow -v $op -t "$HOME" "$p"
 done
-for unit in quickshell/quickshell.service openrgb/openrgb.service; do   # user units shipped by packages
+for unit in quickshell/quickshell.service openrgb/openrgb.service \
+            clamav/clamav-notify.service clamav/clamav-weekly-scan.service clamav/clamav-weekly-scan.timer; do   # user units shipped by packages
     [[ -n "$op" ]] && continue
     [[ " ${pkgs[*]} " == *" ${unit%%/*} "* || " ${pkgs[*]} " == *" scripts "* ]] || continue
+    [[ $unit == clamav/* ]] && ! command -v clamdscan >/dev/null && continue   # ClamAV itself: sudo ./clamav/install-clamav.sh
     [[ -e "$HOME/.config/systemd/user/$(basename "$unit")" ]] || { systemctl --user link "$REPO/$unit" >/dev/null && echo "LINK: unit $(basename "$unit")"; }
     systemctl --user enable "$(basename "$unit")" >/dev/null 2>&1 || true
 done

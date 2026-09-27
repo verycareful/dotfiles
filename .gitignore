@@ -29,8 +29,11 @@ sddm/harbour/theme.conf
 hypr/.config/hypr/hyprland.lua.disabled
 waybar/.config/waybar/state.css
 
-# personal notes, not published
-local/
+# built by clamav/install-clamav.sh and apply.sh from the .c next to it
+clamav/fts-shim/*.so
+
+# personal notes, scratch, changes_version, reference sources: not published
+/local/
 
 # agent instructions, local only
-CLAUDE.MD
+CLAUDE.md

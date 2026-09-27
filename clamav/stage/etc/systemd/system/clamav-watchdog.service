@@ -1,0 +1,7 @@
+[Unit]
+Description=Restart ClamAV if clamd burns CPU with no scan job (see /usr/local/bin/clamav-watchdog)
+After=clamav-daemon.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/clamav-watchdog

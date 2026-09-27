@@ -1,0 +1,8 @@
+[Unit]
+Description=ClamAV weekly full scan of home
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/clamav-weekly-scan.sh
+Nice=19
+IOSchedulingClass=idle

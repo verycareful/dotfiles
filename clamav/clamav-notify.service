@@ -1,0 +1,13 @@
+[Unit]
+Description=Desktop notifications for ClamAV on-access detections
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/clamav-notify.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target
