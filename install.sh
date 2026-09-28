@@ -9,7 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 REPO="$PWD"
-ALL=(hypr waybar rofi kitty fish quickshell wlogout gtk qt fastfetch scripts)
+ALL=(hypr waybar rofi kitty fish quickshell wlogout gtk qt fastfetch thunar scripts)
 op=""
 [[ "${1:-}" == "-D" ]] && { op="-D"; shift; }
 pkgs=("${@:-${ALL[@]}}")
@@ -72,6 +72,15 @@ if command -v gsettings >/dev/null; then
     gsettings set org.gnome.desktop.interface icon-theme Papirus-Dark
     gsettings set org.gnome.desktop.interface font-name 'Oxanium Medium 10'
     gsettings set org.gnome.desktop.interface monospace-font-name 'Share Tech Mono 11'
+fi
+
+# Thunar keeps its preferences in xfconf next to window state that changes on every use, so
+# the repo holds only the preferences (thunar/thunar.xfconf) and they are written here
+if [[ " ${pkgs[*]} " == *" thunar "* ]] && command -v xfconf-query >/dev/null; then
+    while read -r prop type value; do
+        [[ -z "$prop" || "$prop" == \#* ]] && continue
+        xfconf-query -c thunar -p "$prop" -n -t "$type" -s "$value"
+    done < thunar/thunar.xfconf
 fi
 
 echo "done. Log out and back in for Hyprland to pick up the new config."

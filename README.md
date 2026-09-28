@@ -12,6 +12,7 @@
 [![rofi](https://img.shields.io/badge/rofi-3B4252?style=flat-square)](https://github.com/davatorium/rofi)
 [![wlogout](https://img.shields.io/badge/wlogout-3B4252?style=flat-square)](https://github.com/ArtsyMacaw/wlogout)
 [![SDDM](https://img.shields.io/badge/SDDM-3B4252?style=flat-square)](https://github.com/sddm/sddm)
+[![Thunar](https://img.shields.io/badge/Thunar-2284F2?style=flat-square&logo=xfce&logoColor=white)](https://docs.xfce.org/xfce/thunar/start)
 <!-- Terminal and shell -->
 [![kitty](https://img.shields.io/badge/kitty-3B4252?style=flat-square)](https://sw.kovidgoyal.net/kitty/)
 [![fish](https://img.shields.io/badge/fish-34C534?style=flat-square&logo=fishshell&logoColor=white)](https://fishshell.com/)
@@ -46,6 +47,7 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 | `wlogout/` | power menu                                       |
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |
+| `thunar/`  | file manager: right-click actions (Open Terminal Here in kitty, Open in VS Code, Copy Path, Set as Wallpaper via `wall`) and the preferences in `thunar.xfconf`, which install.sh writes with `xfconf-query` (xfconf also stores window state, so the file itself is not linked). Thumbnails come from tumbler, Extract/Compress from thunar-archive-plugin with ark. Styling follows the GTK theme |
 | `scripts/` | helpers in `~/.local/bin` (`theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`, `net`) |
 | `themes/`  | `*.theme` colour files + `templates/` rendered by `theme` |
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal), all OFL; JetBrainsMono Nerd Font supplies icons |

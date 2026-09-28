@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+<action>
+	<icon>utilities-terminal</icon>
+	<name>Open Terminal Here</name>
+	<submenu></submenu>
+	<unique-id>1788984776967947-1</unique-id>
+	<command>kitty --directory %f</command>
+	<description>Open kitty in this folder</description>
+	<range></range>
+	<patterns>*</patterns>
+	<startup-notify/>
+	<directories/>
+</action>
+<action>
+	<icon>com.visualstudio.code</icon>
+	<name>Open in VS Code</name>
+	<submenu></submenu>
+	<unique-id>1788984776967947-2</unique-id>
+	<command>code %F</command>
+	<description>Open the selection in VS Code</description>
+	<range></range>
+	<patterns>*</patterns>
+	<directories/>
+	<audio-files/>
+	<image-files/>
+	<other-files/>
+	<text-files/>
+	<video-files/>
+</action>
+<action>
+	<icon>edit-copy</icon>
+	<name>Copy Path</name>
+	<submenu></submenu>
+	<unique-id>1788984776967947-3</unique-id>
+	<command>printf &quot;%%s\n&quot; %F | wl-copy -n</command>
+	<description>Copy the full path of each selected item, one per line</description>
+	<range></range>
+	<patterns>*</patterns>
+	<directories/>
+	<audio-files/>
+	<image-files/>
+	<other-files/>
+	<text-files/>
+	<video-files/>
+</action>
+<action>
+	<icon>preferences-desktop-wallpaper</icon>
+	<name>Set as Wallpaper</name>
+	<submenu></submenu>
+	<unique-id>1788984776967947-4</unique-id>
+	<command>&quot;$HOME/.local/bin/wall&quot; set %f</command>
+	<description>Set this image as the wallpaper</description>
+	<range></range>
+	<patterns>*.jpg;*.jpeg;*.png;*.webp;*.JPG;*.JPEG;*.PNG;*.WEBP</patterns>
+	<image-files/>
+</action>
+</actions>

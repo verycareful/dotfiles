@@ -1,0 +1,2 @@
+# thunar.xfconf is applied by install.sh through xfconf-query, not linked into ~
+^/thunar\.xfconf$

@@ -1,0 +1,15 @@
+# Thunar preferences, xfconf channel "thunar". install.sh writes each line with
+#   xfconf-query -c thunar -p PROPERTY -n -t TYPE -s VALUE
+# Format: PROPERTY TYPE VALUE, where VALUE runs to the end of the line.
+# xfconf also stores window size, column widths and sort order in this channel,
+# which change on every use, so those stay out of the repo.
+
+/default-view                   string  ThunarDetailsView
+# the Ctrl+H toggle; Thunar keeps its state here rather than in a separate preference
+/last-show-hidden               bool    true
+/misc-single-click              bool    false
+# CUSTOM uses /misc-date-custom-style, default "%Y-%m-%d %H:%M:%S"
+/misc-date-style                string  THUNAR_DATE_STYLE_CUSTOM
+# thumbnails need tumbler (packages.txt); remote locations are skipped, 0 = no file size limit
+/misc-thumbnail-mode            string  THUNAR_THUMBNAIL_MODE_ONLY_LOCAL
+/misc-thumbnail-max-file-size   uint64  0

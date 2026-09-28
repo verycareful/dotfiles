@@ -29,6 +29,11 @@ sddm/harbour/theme.conf
 hypr/.config/hypr/hyprland.lua.disabled
 waybar/.config/waybar/state.css
 
+# Thunar writes these into the linked ~/.config/Thunar: accels.scm in hash-table order
+# (so it reshuffles), renamerrc as bulk-rename state
+thunar/.config/Thunar/accels.scm
+thunar/.config/Thunar/renamerrc
+
 # built by clamav/install-clamav.sh and apply.sh from the .c next to it
 clamav/fts-shim/*.so
 
