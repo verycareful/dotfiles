@@ -80,6 +80,12 @@ restart clamd and both tiers. Each strike is logged with the jobs STATS showed (
 The queue length is not a signal: `QUEUE` counts only jobs waiting for a free thread, so with 40 threads it reads 0
 under full load, and a busy clamd (the weekly scan runs at 2000 % and more) would look like a stuck one.
 
+No reply is not always a stuck clamd either. `STATS` is itself a job that waits for a free thread, and the weekly
+scan's `--multiscan` keeps all 40 busy, so the 3 s query times out. While a `clamdscan` younger than 4 h is running,
+no reply is logged and does not count as a strike. A spinning clamd holds one or two threads and still answers, so a
+spin or a stuck file during a scan is still caught. The weekly scan stops itself at 4 h, so the exception can't last
+longer than that.
+
 ## The weekly scan
 
 `clamav-weekly-scan.sh` runs `clamdscan --fdpass --multiscan` over `~`, writes
@@ -89,7 +95,13 @@ It reports and never quarantines; the on-access tiers do that.
 clamdscan prints `Infected files: N` even when it gives up halfway, and its exit code is 2 both for that and for a
 finished scan that skipped a few sockets or pipes. The verdict comes from the log instead: any `ERROR:` line other than
 the per-file `Can't access file` means the scan did not finish, and the notification says so with the reason.
-`panel-clam` applies the same rule, so the card shows "incomplete" rather than "clean".
+`panel-clam` applies the same rule, so the card shows "incomplete" rather than "clean". A scan still running after
+4 h is stopped and logged as `ERROR: Timed out after 4 h`.
+
+clamdscan walks `~` itself (`--fdpass`) and stops `MaxDirectoryRecursion` levels down (default 15). The only trace is
+`LibClamAV Warning: cli_realpath: Invalid arguments.` on stderr, once per directory where it stopped. Nothing goes to the
+log and nothing is counted. `~/.gradle` caches reach 28 levels, so `clamd.conf` sets 2048: no path within `PATH_MAX`
+is deeper than that.
 
 ## Log noise that is normal
 

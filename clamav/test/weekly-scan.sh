@@ -37,6 +37,7 @@ rule='--------------------------------------'
   echo "ERROR: Communication error"; summary 1; }                                > "$T/fx/infected-aborted"
 { echo "$rule"; echo "ERROR: Clamd closed the connection before scanning all files."; summary 0; } > "$T/fx/closed"
 { echo "$rule"; echo "ERROR: Could not connect to clamd on LocalSocket /run/clamav/clamd.ctl: Connection refused"; } > "$T/fx/no-clamd"
+echo "$rule"                                                                     > "$T/fx/timed-out"
 
 cases=(   # fixture | exit | expected title | expected in body | log already there today
     "clean|0|Weekly scan finished|No threats found. 0 unscannable||"
@@ -47,6 +48,7 @@ cases=(   # fixture | exit | expected title | expected in body | log already the
     "infected-aborted|1|Weekly scan: 1 infected file(s)|Stopped early: Communication error. See ||"
     "closed|2|Weekly scan did not complete (exit 2)|before scanning all files. See ||"
     "no-clamd|2|Weekly scan did not complete (exit 2)|Connection refused. See ||"
+    "timed-out|124|Weekly scan did not complete (exit 124)|Timed out after 4 h. See ||"
     "clean|0|Weekly scan finished|No threats found.|aborted"
 )
 

@@ -3,13 +3,19 @@
 # so no root needed). Reports and notifies; does not quarantine: the on-access
 # tiers do that. Review hits in the log and decide.
 set -uo pipefail
+# clamav-watchdog does not count clamd's silence against it while a clamdscan younger than this runs
+# (the scan holds every clamd thread), so the scan must not outlive it. Keep the two in step.
+MAXSCAN=14400 # s
 LOG_DIR="$HOME/.local/state/clamav"; mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/weekly-$(date +%F).log"
 : > "$LOG"   # clamdscan --log appends; a second run on the same day would leave two summaries here
 
 notify-send -a ClamAV -i security-medium "Weekly scan" "Scanning $HOME in the background…"
-clamdscan --fdpass --multiscan --infected --log="$LOG" "$HOME"
+timeout --kill-after=60 "$MAXSCAN" clamdscan --fdpass --multiscan --infected --log="$LOG" "$HOME"
 rc=$?
+# a clamdscan stopped by timeout writes no ERROR line of its own, and the verdict below needs one. 124 is
+# SIGTERM, 137 the SIGKILL a minute later; 137 before the deadline is some other kill and stays unexplained.
+(( rc == 124 || (rc == 137 && SECONDS >= MAXSCAN) )) && echo "ERROR: Timed out after $(( MAXSCAN / 3600 )) h" >> "$LOG"
 # clamdscan exit: 0 clean, 1 infected, 2 = any error, which includes files that could not be scanned
 # (sockets, pipes, files that vanished mid-scan). Exit 2 says nothing about infections, so read the
 # summary instead. It is printed even when clamdscan gave up halfway (clamd restarted under it:

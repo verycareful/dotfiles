@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Decision tests for stage/usr/local/bin/clamav-watchdog. Needs no root and no clamd: pgrep, socat and
+# Decision tests for stage/usr/local/bin/clamav-watchdog. Needs no root and no clamd: pgrep, ps, socat and
 # systemctl are fakes on PATH, clamd is a busy (`yes`) or idle (`sleep`) process, and the STATS replies
 # are built below. Each case runs the watchdog twice, since the second strike is the one that restarts.
 # The cases run in parallel because every run samples CPU for 5 s.
@@ -14,7 +14,14 @@ mkdir -p "$T/bin" "$T/fx"
 
 cat > "$T/bin/pgrep" <<'EOF'
 #!/usr/bin/env bash
-echo "$FAKE_PID"
+case ${!#} in
+    clamd)     echo "$FAKE_PID" ;;
+    clamdscan) [[ -n $FAKE_SCAN_AGE ]] || exit 1; echo 4242 ;;
+esac
+EOF
+cat > "$T/bin/ps" <<'EOF'
+#!/usr/bin/env bash
+printf '%7s\n' "$FAKE_SCAN_AGE"
 EOF
 cat > "$T/bin/socat" <<'EOF'
 #!/usr/bin/env bash
@@ -41,25 +48,29 @@ scan=(); for i in $(seq 30); do scan+=("FILDES $(( i % 5 )).$(printf '%06d' "$i"
 stats weekly-scan "${scan[@]}"
 : > "$T/fx/no-reply"
 
-cases=(                       # clamd load, STATS reply, expected
+cases=(                       # clamd load, STATS reply, expected, age of a running clamdscan in s
     "busy idle-only restart"      # hot with nothing to scan
     "busy fildes-stuck restart"   # one file scanned far past MaxScanTime
     "busy no-reply restart"       # hot and not answering STATS
     "busy fildes-young leave"     # an on-access scan of a big file
     "busy contscan-long leave"    # a directory scan runs as long as its walk
     "busy weekly-scan leave"      # clamdscan --fdpass --multiscan: many short FILDES jobs
+    "busy no-reply leave 600"     # the same scan with every thread taken, so STATS waits
+    "busy no-reply restart 14400" # a clamdscan this old has outlived the weekly scan's timeout
+    "busy idle-only restart 600"  # a running clamdscan does not excuse a clamd that answers idle
+    "busy fildes-stuck restart 600" # nor one with a file stuck past MaxScanTime
     "idle idle-only leave"
     "idle fildes-stuck leave"
 )
 
-run() { # load fixture expected
-    local pid=$busy d="$T/case-$1-$2" out got=leave
+run() { # load fixture expected [clamdscan age]
+    local pid=$busy d="$T/case-$1-$2-${4:-noscan}" out got=leave name="$1 $2${4:+ (clamdscan ${4}s)}"
     [[ $1 == idle ]] && pid=$idle
     mkdir -p "$d"; sed "s#^STATE=.*#STATE=$d/strikes#" "$WATCHDOG" > "$d/watchdog"
-    out=$(for _ in 1 2; do FX="$T/fx/$2" FAKE_PID=$pid PATH="$T/bin:$PATH" bash "$d/watchdog"; done)
+    out=$(for _ in 1 2; do FX="$T/fx/$2" FAKE_PID=$pid FAKE_SCAN_AGE=${4:-} PATH="$T/bin:$PATH" bash "$d/watchdog"; done)
     grep -q '^RESTART ' <<<"$out" && got=restart
-    if [[ $got == "$3" ]]; then echo "PASS  $1 $2: $got"
-    else echo "FAIL  $1 $2: expected $3, got $got"; sed 's/^/      /' <<<"$out"; fi
+    if [[ $got == "$3" ]]; then echo "PASS  $name: $got"
+    else echo "FAIL  $name: expected $3, got $got"; sed 's/^/      /' <<<"$out"; fi
 }
 
 pids=()

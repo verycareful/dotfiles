@@ -6,9 +6,13 @@
 # row → restart clamd + both tiers. Each strike logs the jobs STATS showed.
 # STATS's QUEUE is no signal: it counts only jobs waiting for a free thread, so with MaxThreads 40 it
 # reads 0 under full load, and a busy clamd would look like a spinning one.
+# STATS itself is a job that waits for a free thread. clamdscan --multiscan (the weekly scan) keeps all
+# 40 busy, so STATS goes unanswered then. No reply is a strike only when no clamdscan younger than
+# MAXSCAN is running. A spinning clamd holds one or two threads and still answers.
 set -uo pipefail
 STATE=/run/clamav-watchdog.strikes
-STUCK=300   # s. MaxScanTime (default 120 s) ends every real single-file scan well before this
+STUCK=300     # s. MaxScanTime (default 120 s) ends every real single-file scan well before this
+MAXSCAN=14400 # s. clamav-weekly-scan.sh stops clamdscan at this age, so the excuse cannot outlast it
 pid=$(pgrep -x clamd | head -1) || { rm -f "$STATE"; exit 0; }
 [[ -n "$pid" ]] || { rm -f "$STATE"; exit 0; }
 a=$(awk '{print $14+$15}' /proc/"$pid"/stat); sleep 5; b=$(awk '{print $14+$15}' /proc/"$pid"/stat 2>/dev/null) || exit 0
@@ -18,8 +22,17 @@ pct=$(( (b - a) * 100 / (5 * $(getconf CLK_TCK)) ))
 stats=$(printf 'zSTATS\0' | timeout 3 socat - UNIX-CONNECT:/run/clamav/clamd.ctl 2>/dev/null | tr -d '\0')
 live=$(awk -v stuck="$STUCK" '/^\t/ && $1 != "STATS" && $1 != "IDLE" && ($1 !~ /^(FILDES|INSTREAM)$/ || $2 < stuck) {n++} END {print n+0}' <<<"$stats")
 jobs=$(awk '/^\t/ && $1 != "STATS" && $1 != "IDLE" {printf "%s%s %.0fs", (n++ ? ", " : ""), $1, $2}' <<<"$stats")
-[[ -n "$stats" ]] || jobs="no STATS reply"
-if (( pct >= 90 && live == 0 )); then
+scan_age=-1   # s since the oldest clamdscan started, -1 when none is running
+if [[ -z "$stats" ]]; then
+    jobs="no STATS reply"
+    if scan=$(pgrep -xo clamdscan); then
+        scan_age=$(ps -o etimes= -p "$scan" 2>/dev/null); scan_age=${scan_age//[^0-9]/}; scan_age=${scan_age:--1}
+    fi
+fi
+if (( pct >= 90 && live == 0 && scan_age >= 0 && scan_age < MAXSCAN )); then
+    echo "clamd at ${pct}% with no STATS reply while clamdscan $scan has run ${scan_age}s: busy, no strike"
+    rm -f "$STATE"
+elif (( pct >= 90 && live == 0 )); then
     n=$(( $(cat "$STATE" 2>/dev/null || echo 0) + 1 )); echo "$n" > "$STATE"
     echo "clamd at ${pct}% with no live scan job (strike $n); jobs: ${jobs:-none}"
     if (( n >= 2 )); then
