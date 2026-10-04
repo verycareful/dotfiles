@@ -36,14 +36,17 @@ for p in "${pkgs[@]}"; do
     # the whole dir into a symlink and hide them. Units go in <pkg>/<name>.service and are linked below instead.
     [[ -e "$p/.config/systemd" ]] && { echo "refusing to stow $p: it contains .config/systemd" >&2; exit 1; }
     [[ -z "$op" ]] && backup_conflicts "$p"
+    # ~/.local/lib is shared with pip and others: make it a real dir so stow links only rgb-music/ into it
+    [[ -z "$op" && $p == scripts ]] && mkdir -p "$HOME/.local/lib"
     stow -v $op -t "$HOME" "$p"
 done
-for unit in quickshell/quickshell.service openrgb/openrgb.service \
+for unit in quickshell/quickshell.service openrgb/openrgb.service openrgb/rgb-music.service \
             clamav/clamav-notify.service clamav/clamav-weekly-scan.service clamav/clamav-weekly-scan.timer; do   # user units shipped by packages
     [[ -n "$op" ]] && continue
     [[ " ${pkgs[*]} " == *" ${unit%%/*} "* || " ${pkgs[*]} " == *" scripts "* ]] || continue
     [[ $unit == clamav/* ]] && ! command -v clamdscan >/dev/null && continue   # ClamAV itself: sudo ./clamav/install-clamav.sh
     [[ -e "$HOME/.config/systemd/user/$(basename "$unit")" ]] || { systemctl --user link "$REPO/$unit" >/dev/null && echo "LINK: unit $(basename "$unit")"; }
+    [[ $unit == openrgb/rgb-music.service ]] && continue   # linked only: `rgb music on` enables it
     systemctl --user enable "$(basename "$unit")" >/dev/null 2>&1 || true
 done
 [[ -d "$BK" ]] && echo "previous configs moved to: $BK  (restore.sh reverses this)"

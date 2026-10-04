@@ -1,0 +1,17 @@
+# Music-lighting palettes: name = one or more #rrggbb colours.
+# Choose one with `rgb music palette NAME` or the panel. `auto` (the cover, else the theme) and
+# `theme` are built in; every line below adds a palette.
+
+white  = #ffffff
+red    = #ff0000
+orange = #ff6a00
+yellow = #ffc800
+green  = #00ff2a
+cyan   = #00e5ff
+blue   = #0033ff
+purple = #8c00ff
+pink   = #ff2d95
+
+fire   = #ff1a00 #ff6a00 #ffc800
+ocean  = #0033ff #00e5ff #00ffb4
+neon   = #ff2d95 #8c00ff #00e5ff

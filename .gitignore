@@ -34,6 +34,9 @@ waybar/.config/waybar/state.css
 thunar/.config/Thunar/accels.scm
 thunar/.config/Thunar/renamerrc
 
+# bytecode Python writes next to rgb-music's modules (they run from the repo through stow)
+__pycache__/
+
 # built by clamav/install-clamav.sh and apply.sh from the .c next to it
 clamav/fts-shim/*.so
 

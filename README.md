@@ -6,7 +6,7 @@
 [![Hyprland](https://img.shields.io/badge/Hyprland-58E1FF?style=flat-square&logo=hyprland&logoColor=white)](https://hyprland.org/)
 [![Lua](https://img.shields.io/badge/Lua-2C2D72?style=flat-square&logo=lua&logoColor=white)](https://www.lua.org/)
 [![Qt 6 QML](https://img.shields.io/badge/Qt%206%20QML-41CD52?style=flat-square&logo=qt&logoColor=white)](https://doc.qt.io/qt-6/qmlapplications.html)
-<!-- Quickshell, Waybar, rofi, wlogout, SDDM, kitty, fastfetch, Kvantum, systemd-networkd, iwd, OpenRGB and ClamAV have no shields.io logos. Swap these plain badges for logo badges if logos become available. -->
+<!-- Quickshell, Waybar, rofi, wlogout, SDDM, kitty, fastfetch, Kvantum, systemd-networkd, iwd, OpenRGB, cava and ClamAV have no shields.io logos. Swap these plain badges for logo badges if logos become available. -->
 [![Quickshell](https://img.shields.io/badge/Quickshell-3B4252?style=flat-square)](https://quickshell.org/)
 [![Waybar](https://img.shields.io/badge/Waybar-3B4252?style=flat-square)](https://github.com/Alexays/Waybar)
 [![rofi](https://img.shields.io/badge/rofi-3B4252?style=flat-square)](https://github.com/davatorium/rofi)
@@ -26,10 +26,12 @@
 [![iwd](https://img.shields.io/badge/iwd-3B4252?style=flat-square)](https://iwd.wiki.kernel.org/)
 [![ClamAV](https://img.shields.io/badge/ClamAV-3B4252?style=flat-square)](https://www.clamav.net/)
 [![OpenRGB](https://img.shields.io/badge/OpenRGB-3B4252?style=flat-square)](https://openrgb.org/)
+[![cava](https://img.shields.io/badge/cava-3B4252?style=flat-square)](https://github.com/karlstav/cava)
 [![LACT](https://img.shields.io/badge/LACT-ED1C24?style=flat-square&logo=amd&logoColor=white)](https://github.com/ilya-zlobintsev/LACT)
 [![RyzenAdj](https://img.shields.io/badge/RyzenAdj-ED1C24?style=flat-square&logo=amd&logoColor=white)](https://github.com/FlyGoat/RyzenAdj)
 <!-- Tooling -->
 [![Bash](https://img.shields.io/badge/Bash-4EAA25?style=flat-square&logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![GNU Stow](https://img.shields.io/badge/GNU%20Stow-A42E2B?style=flat-square&logo=gnu&logoColor=white)](https://www.gnu.org/software/stow/)
 [![C](https://img.shields.io/badge/C-A8B9CC?style=flat-square&logo=c&logoColor=white)](https://en.cppreference.com/w/c)
 <!-- License and status -->
@@ -54,7 +56,7 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
 | `sddm/`    | login screen (own Qt6 QML: blurred wallpaper, centred card); `sudo ./sddm/install-sddm.sh` once, then it follows `theme set` via `/var/lib/dotfiles-sddm` |
 | `network/` | systemd-networkd + iwd + systemd-resolved in place of NetworkManager: `sudo ./network/install-network.sh` (`--nm` switches back). DNS has one setting for Ethernet and one for Wi-Fi (every Wi-Fi network), edited in the DNS settings window (panel DNS card, or `qs ipc call dns open`): IPv4 and IPv6 each Automatic (the network's own, i.e. the ISP's) or your servers, IPv6 can be switched off per connection, plus the DNS-over-TLS server name. `dns-set` writes it as a networkd drop-in, so nothing else can override it; the profile ID never enters the repo. The Ethernet and Wi-Fi toggles use `net`. Wi-Fi picker: `wifi` (SUPER+SHIFT+W, the bar's network icon, or right-click the panel's Wi-Fi toggle) |
-| `openrgb/` | `openrgb.service` (headless server, re-applies the saved preset at login) + `rgb` script; the panel's Lighting row switches presets (`~/.config/OpenRGB/profiles/*.json`) |
+| `openrgb/` | `openrgb.service` (headless server, re-applies the saved preset at login) + `rgb` script; the panel's Lighting row switches presets (`~/.config/OpenRGB/profiles/*.json`). Music-reactive lighting: `rgb-music.service` feeds cava's spectrum of whatever is playing through one of three modes (Pulse, Spectrum, Colour) to the server over its SDK socket, in the playing cover's colours, the theme's, or a palette from `scripts/.local/lib/rgb-music/palettes`. `rgb music on\|off\|mode\|palette`, or the panel; `rgb music calibrate` once maps the fan hub for Spectrum. Tests: `python3 -m unittest discover -s openrgb/test` |
 | `clamav/` | ClamAV on-access scanning: a blocking tier on Downloads and the other inbound folders, a detect tier on the rest of `~`, a weekly full scan, desktop notifications and a watchdog. `sudo ./clamav/install-clamav.sh` once (it also builds the shim that makes clamonacc work on glibc 2.44), `sudo ./clamav/apply.sh` after editing `clamav/stage/`. The panel's ClamAV card shows every unit with a switch. Details in [`clamav/README.md`](clamav/README.md) |
 | `amd/`     | `sudo ./amd/install-lact.sh`: LACT (GPU clocks/power/fans GUI + daemon) and the `amdgpu.ppfeaturemask` kernel parameter that unlocks overdrive; reboot after. `amd/ryzen.conf` + `sudo ./amd/install-ryzenadj.sh`: CPU thermal/PPT/Curve-Optimizer limits via RyzenAdj (AUR), re-applied at boot and after resume; also installs `cpu-tctl`, which the panel's slider calls through polkit |
 | `test/`    | `nested.sh`: try the config in a window         |

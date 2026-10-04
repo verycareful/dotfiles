@@ -1,0 +1,275 @@
+#!/usr/bin/env python3
+"""rgb-music: music-reactive lighting through the OpenRGB server (rgb-music.service).
+
+  rgb-music run         the daemon: cava -> mode -> Direct-mode colours over the SDK socket
+  rgb-music calibrate   find the fan hub's header, LEDs per fan, fan order and RAM direction
+  rgb-music palettes    JSON list of the named palettes, for the panel
+
+Control it with `rgb music ...`; that script owns the service and the state files. The mode and
+palette are read from ~/.local/state/rgb/music-{mode,palette}; SIGHUP re-reads them live.
+"""
+import json
+import os
+import signal
+import subprocess
+import sys
+import threading
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib/rgb-music"))
+import audio  # noqa: E402
+import modes  # noqa: E402
+import palette  # noqa: E402
+import sdk  # noqa: E402
+
+STATE = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state")) / "rgb"
+CACHE = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "rgb-music"
+RUNTIME = Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "rgb-music"
+FPS = 30
+MAX_DT = 0.2                  # a stall longer than this is treated as one frame, not a jump
+POLL_PLAYERS = 2.0            # seconds between checks for a new cover
+ART_CACHE_KEEP = 50
+PLAYERCTL = ["playerctl", "--ignore-player=playerctld", "-a", "metadata",
+             "--format", "{{status}}\t{{mpris:artUrl}}"]
+
+
+def read_state(name, default):
+    try:
+        return (STATE / name).read_text().strip() or default
+    except OSError:
+        return default
+
+
+def load_calibration():
+    try:
+        cal = json.loads((STATE / "layout").read_text())
+    except (OSError, ValueError):
+        return None
+    return cal if modes.valid_calibration(cal) else None
+
+
+def named_palettes():
+    try:
+        return palette.parse_palettes(palette.PALETTES_FILE.read_text())
+    except OSError:
+        return {}
+
+
+class Colours(threading.Thread):
+    """Keeps the cover palette of whatever is playing and the theme palette current."""
+
+    def __init__(self):
+        super().__init__(daemon=True)
+        self.cover, self.theme, self.url = [], palette.current_theme_palette(), None
+
+    def run(self):
+        while True:
+            self.theme = palette.current_theme_palette()
+            try:
+                out = subprocess.run(PLAYERCTL, capture_output=True, text=True, timeout=5).stdout
+            except (OSError, subprocess.TimeoutExpired):
+                out = ""
+            url = palette.playing_art_url(out)
+            if url != self.url:
+                self.url = url
+                path = palette.art_path(url, CACHE / "art") if url else None
+                self.cover = palette.extract(path) if path else []
+                prune(CACHE / "art", ART_CACHE_KEEP)
+            time.sleep(POLL_PLAYERS)
+
+
+def prune(directory, keep):
+    try:
+        files = sorted(directory.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True)
+    except OSError:
+        return
+    for old in files[keep:]:
+        old.unlink(missing_ok=True)
+
+
+class Lights:
+    """The server connection, the LED layout and the last colours sent to each device."""
+
+    def __init__(self):
+        self.client = sdk.Client()
+        self.reload()
+
+    def reload(self):
+        controllers = self.client.controllers()
+        self.layout = modes.build_layout(controllers, load_calibration())
+        for c in controllers:
+            self.client.set_custom_mode(c.index)
+        self.sent = {}
+
+    def show(self, colours):
+        """Send only the devices whose colours changed: the RAM sits on a slow SMBus."""
+        self.client.poll()
+        if self.client.device_list_changed:
+            self.reload()
+            return True
+        for device, leds in colours.items():
+            if self.sent.get(device) != leds:
+                self.client.update_leds(device, leds)
+                self.sent[device] = leds
+        return False
+
+
+def run():
+    reload = threading.Event()
+    signal.signal(signal.SIGHUP, lambda *_: reload.set())
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+
+    lights = Lights()
+    colours = Colours()
+    colours.start()
+    named = named_palettes()
+
+    RUNTIME.mkdir(parents=True, exist_ok=True)
+    conf = RUNTIME / "cava.conf"
+    conf.write_text(audio.cava_config(modes.BANDS, FPS))
+    cava = subprocess.Popen(["cava", "-p", str(conf)], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+
+    def new_mode():
+        name = read_state("music-mode", "pulse")
+        return modes.MODES.get(name, modes.Pulse)(*lights.layout.shape)
+
+    mode, gate, choice = new_mode(), modes.Silence(), read_state("music-palette", "auto")
+    size, last = audio.frame_size(modes.BANDS), time.monotonic()
+    try:
+        while True:
+            frame = cava.stdout.read(size)
+            if len(frame) < size:
+                print("cava exited", file=sys.stderr)
+                return 1
+            now = time.monotonic()
+            dt, last = min(now - last, MAX_DT), now
+            if reload.is_set():
+                reload.clear()
+                named, choice, mode = named_palettes(), read_state("music-palette", "auto"), new_mode()
+            bands = audio.decode(frame)
+            scene = mode.frame(bands, dt, palette.resolve(choice, colours.cover, colours.theme, named))
+            if lights.show(modes.compose(lights.layout, scene, gate.update(bands, dt))):
+                mode = new_mode()
+    finally:
+        cava.terminate()
+        lights.client.close()
+
+
+# Calibration
+
+RED, GREEN, BLUE, WHITE, OFF = (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255), (0, 0, 0)
+LED_COUNTS = [6, 8, 9, 10, 12, 14, 16, 18, 20, 24]
+
+
+def ask(prompt, default=""):
+    try:
+        answer = input(f"{prompt} ").strip().lower()
+    except EOFError:
+        sys.exit(1)
+    return answer or default
+
+
+def calibrate():
+    client = sdk.Client(name="rgb-music calibrate")
+    controllers = client.controllers()
+    for c in controllers:
+        client.set_custom_mode(c.index)
+    sticks = sorted((c for c in controllers if "DRAM" in c.name), key=lambda c: c.location)
+    headers = [(c, z) for c in controllers if "DRAM" not in c.name for z in c.zones if "Addressable" in z.name]
+    if not headers:
+        print("no addressable headers found")
+        return 1
+
+    def paint(fill):
+        """fill(controller, led index) -> colour, for every LED on every device."""
+        for c in controllers:
+            client.update_leds(c.index, [fill(c, i) for i in range(c.num_leds)])
+
+    def zone_led(owner, zone, c, i):
+        """The LED's index within zone, or None when (c, i) is not in it."""
+        return i - zone.start if c.index == owner.index and zone.start <= i < zone.start + zone.count else None
+
+    # 1. which header the hub is on
+    marks = {"r": RED, "g": GREEN, "b": BLUE}
+    for chunk in range(0, len(headers), len(marks)):
+        group = dict(zip(marks, headers[chunk:chunk + len(marks)]))
+        paint(lambda c, i: next((marks[k] for k, (hc, z) in group.items() if zone_led(hc, z, c, i) is not None), OFF))
+        lit = ", ".join(f"{z.name} {'red green blue'.split()[n]}" for n, (_, z) in enumerate(group.values()))
+        picked = ask(f"Lit: {lit}. Which colour are the fans? [{'/'.join(group)}, n = none of these]")
+        if picked in group:
+            owner, zone = group[picked]
+            break
+    else:
+        print("no header chosen; nothing saved")
+        return 1
+
+    def on_fan_header(c, i):
+        return zone_led(owner, zone, c, i)
+
+    while not (answer := ask("How many fans are on the hub? [6]", "6")).isdigit() or int(answer) < 1:
+        print("a number please")
+    fans = int(answer)
+
+    # 2. LEDs per fan: light the first k LEDs until exactly one whole fan is lit
+    per = None
+    for k in LED_COUNTS:
+        if k * fans > zone.count:
+            break
+        paint(lambda c, i: WHITE if (n := on_fan_header(c, i)) is not None and n < k else OFF)
+        answer = ask(f"{k} LEDs lit. Exactly one whole fan lit and nothing else? [y/N, or type the count]")
+        if answer == "y":
+            per = k
+            break
+        if answer.isdigit():
+            per = int(answer)
+            break
+    if not per or per * fans > zone.count:
+        print(f"no LED count chosen that fits {fans} fans in {zone.count} LEDs; nothing saved")
+        return 1
+
+    # 3. physical order: spectrum runs from position 1 (bass) to the last (treble)
+    order = [None] * fans
+    for hub in range(fans):
+        paint(lambda c, i: WHITE if (n := on_fan_header(c, i)) is not None and n // per == hub else OFF)
+        while True:
+            answer = ask(f"This fan's position, 1 (bass end) to {fans} (treble end)?")
+            if answer.isdigit() and 1 <= int(answer) <= fans and order[int(answer) - 1] is None:
+                order[int(answer) - 1] = hub
+                break
+            print("a free position between 1 and", fans, "please")
+
+    # 4. RAM meters run bottom to top
+    led0 = "bottom"
+    if sticks:
+        ids = {c.index for c in sticks}
+        paint(lambda c, i: WHITE if c.index in ids and i == 0 else OFF)
+        led0 = "top" if ask("On the RAM, is the lit LED at the top or the bottom? [t/B]") == "t" else "bottom"
+
+    cal = {"fan_zone": zone.name, "fans": fans, "leds_per_fan": per, "order": order, "ram_led0": led0}
+    STATE.mkdir(parents=True, exist_ok=True)
+    (STATE / "layout").write_text(json.dumps(cal, indent=2) + "\n")
+    print("saved", STATE / "layout")
+    client.close()
+    return 0
+
+
+def palettes():
+    print(json.dumps([{"name": n, "colours": ["#%02x%02x%02x" % c for c in cs]}
+                      for n, cs in named_palettes().items()]))
+    return 0
+
+
+if __name__ == "__main__":
+    command = sys.argv[1] if len(sys.argv) > 1 else ""
+    handlers = {"run": run, "calibrate": calibrate, "palettes": palettes}
+    if command not in handlers:
+        print("usage: rgb-music run|calibrate|palettes", file=sys.stderr)
+        sys.exit(2)
+    try:
+        sys.exit(handlers[command]())
+    except (ConnectionError, OSError) as e:
+        print(f"rgb-music: {e}", file=sys.stderr)
+        sys.exit(1)
+    except KeyboardInterrupt:
+        sys.exit(130)

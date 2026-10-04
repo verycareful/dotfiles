@@ -1,0 +1,15 @@
+[Unit]
+Description=Music-reactive lighting through the OpenRGB server (rgb music on|off)
+# stops with the server; enabling hangs it off openrgb.service, so it comes back with the server
+BindsTo=openrgb.service
+After=openrgb.service
+
+[Service]
+ExecStart=%h/.local/bin/rgb-music run
+# put the remembered preset back, unless the server itself is going away
+ExecStopPost=/bin/sh -c 'systemctl --user -q is-active openrgb.service && exec %h/.local/bin/rgb apply; exit 0'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=openrgb.service

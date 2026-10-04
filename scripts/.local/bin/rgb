@@ -4,7 +4,11 @@
 #   rgb current       the saved preset
 #   rgb set NAME      apply NAME now and remember it
 #   rgb apply         re-apply the saved preset (waits for the server; used by openrgb.service)
-#   rgb status        JSON for the panel: {"profiles":[…],"current":"…"}
+#   rgb status        JSON for the panel: {"profiles":[…],"current":"…","music":{…}}
+#   rgb music on|off|toggle         music-reactive lighting (rgb-music.service); off restores the preset
+#   rgb music mode pulse|spectrum|colour
+#   rgb music palette auto|theme|NAME   auto = the playing cover's colours, else the theme's
+#   rgb music calibrate             find the fan hub's header, LEDs per fan and fan order
 set -uo pipefail
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/rgb"; mkdir -p "$STATE"
 PROFILES="$HOME/.config/OpenRGB/profiles"
@@ -19,17 +23,48 @@ current() { cat "$STATE/current" 2>/dev/null || true; }
 hdr() { printf 'ORGB\0\0\0\0%b\0\0\0%b\0\0\0' "\\x$(printf %02x "$1")" "\\x$(printf %02x "$2")"; }
 load()  { exec 3<>/dev/tcp/localhost/6742 || return 1; { hdr 152 $(( ${#1} + 1 )); printf '%s\0' "$1"; } >&3; exec 3>&-; }
 count() { exec 3<>/dev/tcp/localhost/6742 || return 1; hdr 0 0 >&3; head -c 20 <&3 | tail -c 4 | od -An -tu4 | tr -d ' '; exec 3>&-; }
+UNIT=rgb-music.service
+MUSIC="${BASH_SOURCE%/*}/rgb-music"
+MODES=(pulse spectrum colour)
+music_on() { systemctl --user -q is-active "$UNIT"; }
+music_set() {   # $1 = state file, $2 = value; the daemon re-reads both files on SIGHUP
+    echo "$2" > "$STATE/music-$1"; systemctl --user kill -s HUP "$UNIT" 2>/dev/null; true; }
+palettes() { "$MUSIC" palettes 2>/dev/null || echo '[]'; }
+music() {
+    case "${1:-}" in
+        on)      systemctl --user enable --now "$UNIT" ;;
+        off)     systemctl --user disable --now "$UNIT" ;;
+        toggle)  if music_on; then music off; else music on; fi ;;
+        mode)    [[ " ${MODES[*]} " == *" ${2:-} "* ]] || { echo "modes: ${MODES[*]}" >&2; exit 1; }
+                 music_set mode "$2" ;;
+        palette) [[ ${2:-} == auto || ${2:-} == theme ]] || palettes | grep -q "\"name\": \"${2:-}\"" \
+                     || { echo "no such palette: ${2:-} (auto, theme, or a name from rgb-music palettes)" >&2; exit 1; }
+                 music_set palette "$2" ;;
+        calibrate) was=$(music_on && echo on)
+                 systemctl --user stop "$UNIT"
+                 "$MUSIC" calibrate; rc=$?
+                 if [[ $was == on ]]; then systemctl --user start "$UNIT"; else "$0" apply; fi
+                 exit $rc ;;
+        *)       echo "usage: rgb music on|off|toggle|mode NAME|palette NAME|calibrate" >&2; exit 2 ;;
+    esac
+}
 case "${1:-status}" in
     list)    list ;;
     current) current ;;
     set)     [[ -f "$PROFILES/$2.json" ]] || { echo "no such profile: $2" >&2; exit 1; }
-             load "$2" && echo "$2" > "$STATE/current" && pkill -RTMIN+11 waybar 2>/dev/null; true ;;
+             # while music is on it owns the LEDs: remember the preset for when it is turned off
+             if music_on; then echo "$2" > "$STATE/current"; else load "$2" && echo "$2" > "$STATE/current"; fi
+             pkill -RTMIN+11 waybar 2>/dev/null; true ;;
     apply)   p=$(current); [[ -n "$p" && -f "$PROFILES/$p.json" ]] || exit 0
              # the server opens its port before detection finishes: wait until it holds as many
              # controllers as the profile does, else the load applies to the ones found so far
              want=$(grep -c '"location"' "$PROFILES/$p.json")
              for _ in $(seq 1 60); do (( $(count 2>/dev/null || echo 0) >= want )) && { load "$p"; exit; }; sleep 0.5; done
              echo "openrgb server not ready" >&2; exit 1 ;;
-    status)  printf '{"profiles":[%s],"current":"%s"}\n' "$(list | sed 's/.*/"&"/' | paste -sd,)" "$(current)" ;;
-    *)       echo "usage: rgb list|current|set NAME|apply|status" >&2; exit 2 ;;
+    status)  printf '{"profiles":[%s],"current":"%s","music":{"on":%s,"mode":"%s","palette":"%s","palettes":%s}}\n' \
+                 "$(list | sed 's/.*/"&"/' | paste -sd,)" "$(current)" "$(music_on && echo true || echo false)" \
+                 "$(cat "$STATE/music-mode" 2>/dev/null || echo pulse)" "$(cat "$STATE/music-palette" 2>/dev/null || echo auto)" \
+                 "$(palettes)" ;;
+    music)   shift; music "$@" ;;
+    *)       echo "usage: rgb list|current|set NAME|apply|status|music ..." >&2; exit 2 ;;
 esac
