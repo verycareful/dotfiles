@@ -9,8 +9,10 @@ Singleton {
     id: root
     property var eth: ({ dev: "", up: false, carrier: false })
     property var wifi: ({ dev: "", on: false, ssid: "" })
-    property var dns: ({})              // { ethernet: {v4, v6, tls, name, device, live}, wifi: {...} }
+    property var dns: ({})              // { ethernet: {v4, v6, tls, name, device, live, override}, wifi: {...} }
     property string dnsBusy: ""         // the type being written
+    property string dnsFor: ""          // the type the last result is about
+    property string dnsDone: ""         // dns-set's own line: "Applied to DEV" or "Saved. ..."
     property string dnsError: ""
     signal openDnsWindow()              // dns/DnsWindow.qml listens
 
@@ -19,9 +21,10 @@ Singleton {
     function setWifi(on)     { act.command = ["net", "wifi", on ? "on" : "off"]; act.running = true }
     // v4 / v6: "auto" or space-separated addresses ("" = none); ipv6 "on" | "off";
     // tls "yes" | "opportunistic" | "no"
+    function clearDnsResult() { dnsFor = ""; dnsDone = ""; dnsError = "" }
     function setDns(type, v4, v6, ipv6, tls, name) {
         if (dnsBusy !== "") return
-        dnsBusy = type; dnsError = ""
+        clearDnsResult(); dnsBusy = type
         setter.command = ["pkexec", "/usr/local/bin/dns-set", "set", type, "--v4", v4, "--v6", v6, "--ipv6", ipv6, "--tls", tls, "--name", name]
         setter.running = true
     }
@@ -37,10 +40,14 @@ Singleton {
     Process { id: act; onExited: root.refresh() }
     Process {
         id: setter
+        property string out: ""
         property string err: ""
+        stdout: StdioCollector { onStreamFinished: setter.out = text.trim() }
         stderr: StdioCollector { onStreamFinished: setter.err = text.trim() }
         onExited: (code) => {
-            root.dnsError = code === 0 ? "" : (code === 126 || code === 127) ? "cancelled" : (setter.err.split("\n").pop() || "failed")
+            root.dnsFor = root.dnsBusy
+            root.dnsDone = code === 0 ? (setter.out.split("\n").pop() || "Applied") : ""
+            root.dnsError = code === 0 ? "" : (code === 126 || code === 127) ? "Cancelled: nothing changed" : (setter.err.split("\n").pop() || "Failed")
             root.dnsBusy = ""
             root.refresh()
         }

@@ -34,7 +34,7 @@ Scope {
         implicitHeight: body.implicitHeight + 36
         color: Theme.base
         // show what is installed; reload once more when the fresh status arrives
-        onVisibleChanged: if (visible) { eth.load(); wifi.load(); eth.reloadOnce = wifi.reloadOnce = true; Net.refresh() }
+        onVisibleChanged: if (visible) { eth.load(); wifi.load(); eth.reloadOnce = wifi.reloadOnce = true; Net.clearDnsResult(); Net.refresh() }
 
         ColumnLayout {
             id: body
@@ -52,7 +52,14 @@ Scope {
             Form { id: eth;  type: "ethernet"; visible: root.tab === "ethernet" }
             Form { id: wifi; type: "wifi";     visible: root.tab === "wifi" }
             RowLayout {
-                Text { text: Net.dnsError; color: Theme.red; wrapMode: Text.Wrap; Layout.fillWidth: true; font { family: Theme.fontUi; pixelSize: 11 } }
+                // what the last Apply on this tab did: green applied, yellow saved for later, red failed
+                Text {
+                    readonly property bool busy: Net.dnsBusy === root.tab
+                    readonly property bool mine: Net.dnsFor === root.tab
+                    text: busy ? "Applying (confirm in the password prompt)" : !mine ? "" : Net.dnsError !== "" ? Net.dnsError : Net.dnsDone
+                    color: busy ? Theme.subtext : Net.dnsError !== "" ? Theme.red : Net.dnsDone.startsWith("Applied") ? Theme.green : Theme.yellow
+                    wrapMode: Text.Wrap; Layout.fillWidth: true; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
+                }
                 Widgets.Button { label: "Revert"; onClicked: (root.tab === "ethernet" ? eth : wifi).load() }
                 Widgets.Button { label: Net.dnsBusy !== "" ? "Applying…" : "Apply"; hot: true; onClicked: (root.tab === "ethernet" ? eth : wifi).apply() }
             }
@@ -103,6 +110,12 @@ Scope {
             Layout.fillWidth: true
             text: "In use now: " + (form.cfg.live !== "" ? form.cfg.live : "none")
             color: Theme.subtext; wrapMode: Text.WrapAnywhere; font { family: Theme.fontUi; pixelSize: 10 }
+        }
+        Text {
+            visible: form.cfg.override === true
+            Layout.fillWidth: true; wrapMode: Text.Wrap
+            text: "Temporary servers set with resolvectl are in use. Apply replaces them with the settings below."
+            color: Theme.yellow; font { family: Theme.fontUi; pixelSize: 11 }
         }
         Family { id: v4; title: "IPv4" }
         Family { id: v6; title: "IPv6"; canDisable: true }

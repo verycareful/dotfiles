@@ -32,7 +32,7 @@ Widgets.Tile {
         spacing: 8
         Text { text: line.glyph; color: line.manual ? Theme.accent : Theme.muted; font { family: Theme.fontIcon; pixelSize: 14 } }
         Text {
-            text: (line.manual ? "" : "Automatic  ") + (line.cfg.ipv6 === "off" ? "no IPv6  " : "") + (line.cfg.tls === "yes" ? "󰌾 " : "")
+            text: (line.cfg.override ? "Temporary  " : line.manual ? "" : "Automatic  ") + (line.cfg.ipv6 === "off" ? "no IPv6  " : "") + (line.cfg.tls === "yes" ? "󰌾 " : "")
             visible: text !== ""; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold }
         }
         Text {

@@ -10,6 +10,8 @@
 #        --name        TLS server name, added to every address (<profile-id>.d.adguard-dns.com; tls:// is dropped)
 #        --ipv6 off    no IPv6 on this link at all (no link-local, no router adverts, no DHCPv6);
 #                      --v6 is then ignored. Default on.
+# `set` prints one line saying what happened and exits non-zero when the link did not take the setting.
+# A link that is switched off stays off: the setting is saved and applies when it is switched on.
 # Installed to /usr/local/bin by network/install-network.sh; the DNS window runs `set` via pkexec.
 set -euo pipefail
 NET=/etc/systemd/network
@@ -31,6 +33,11 @@ dev_of() {      # first physical interface of that kind, from sysfs
         fi
     done
 }
+link_on() {     # $1 type, $2 device: administratively up (and for Wi-Fi, not blocked by rfkill)
+    (( $(cat "/sys/class/net/$2/flags" 2>/dev/null || echo 0) & 1 )) || return 1
+    [[ $1 == ethernet ]] || ! rfkill list wlan 2>/dev/null | grep -q 'Soft blocked: yes'
+}
+link_dns() { networkctl status "$1" --json=short 2>/dev/null | jq -c '[.DNS // [] | .[] | .ConfigSource]'; }
 
 case "${1:-}" in
 status)
@@ -52,9 +59,11 @@ status)
             tls=$(sed -n 's/^DNSOverTLS=//p' "$f" | head -1)
         else v4=auto; v6=auto
         fi
-        printf '%s%s:{"v4":%s,"v6":%s,"ipv6":%s,"tls":%s,"name":%s,"device":%s,"live":%s}' "$sep" "$(json_str "$t")" \
+        # servers set at runtime (`resolvectl dns DEV ...`) win over the file until `set` clears them
+        override=false; [[ -n "$dev" && "$(link_dns "$dev")" == *'"runtime"'* ]] && override=true
+        printf '%s%s:{"v4":%s,"v6":%s,"ipv6":%s,"tls":%s,"name":%s,"device":%s,"live":%s,"override":%s}' "$sep" "$(json_str "$t")" \
             "$(json_str "$v4")" "$(json_str "$v6")" "$(json_str "${ipv6:-on}")" "$(json_str "$tls")" "$(json_str "$name")" \
-            "$(json_str "$dev")" "$(json_str "$live")"
+            "$(json_str "$dev")" "$(json_str "$live")" "$override"
         sep=","
     done
     printf '}\n' ;;
@@ -96,10 +105,21 @@ set)
         echo "DNSOverTLS=$tls"
         printf '\n[DHCPv4]\nUseDNS=%s\n\n[DHCPv6]\nUseDNS=%s\n\n[IPv6AcceptRA]\nUseDNS=%s\n' "$(yn "$v4")" "$(yn "$v6")" "$(yn "$v6")"
     } | install -Dm644 /dev/stdin "$(dropin "$type")"
-    # running networkd: re-read the files and reconfigure that link right away
-    if networkctl reload 2>/dev/null; then
-        dev=$(dev_of "$type"); [[ -n "$dev" ]] && { networkctl reconfigure "$dev" 2>/dev/null || true; }
-        resolvectl flush-caches 2>/dev/null || true
-    fi ;;
+    # A plain reload reconfigures every link whose file changed, and reconfiguring sets a link up, so
+    # only load the files here. Without a running networkd (first install) the file is all there is.
+    networkctl reload --no-reconfigure 2>/dev/null || { echo "Saved"; exit 0; }
+    dev=$(dev_of "$type")
+    [[ -n "$dev" ]] || { echo "Saved. No $type device found"; exit 0; }
+    link_on "$type" "$dev" || { echo "Saved. $dev is off; it applies when it is switched on"; exit 0; }
+    resolvectl revert "$dev" 2>/dev/null || true        # drop any runtime override
+    networkctl reconfigure "$dev"
+    resolvectl flush-caches 2>/dev/null || true
+    # applied = networkd holds exactly the static servers written above and nothing set at runtime
+    want=$(jq -cn --argjson n "${#servers[@]}" '[range($n)] | map("static")')
+    for _ in $(seq 20); do
+        [[ "$(link_dns "$dev" | jq -c 'map(select(. == "static" or . == "runtime"))')" == "$want" ]] && { echo "Applied to $dev"; exit 0; }
+        sleep 0.25
+    done
+    echo "Saved, but $dev did not take it: networkd holds $(link_dns "$dev")" >&2; exit 1 ;;
 *) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2 ;;
 esac

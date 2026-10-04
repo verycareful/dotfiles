@@ -3,6 +3,7 @@
 #   net status                      JSON: ethernet {dev, up, carrier}, wifi {dev, on, ssid}
 #   net ethernet on|off|toggle      networkctl up/down (polkit rule: no password for wheel)
 #   net wifi on|off|toggle          rfkill (rfkill group)
+# Switching on also reconfigures the link: dns-set saves without touching a link that is off.
 set -uo pipefail
 dev_of() {
     local d
@@ -14,6 +15,8 @@ dev_of() {
     done
 }
 eth=$(dev_of ethernet); wl=$(dev_of wifi)
+eth_on()  { networkctl up "$eth" && networkctl reconfigure "$eth"; }
+wifi_up() { rfkill unblock wlan && networkctl reconfigure "$wl"; }
 eth_up()  { [[ -n "$eth" ]] && (( $(cat "/sys/class/net/$eth/flags") & 1 )); }
 wifi_on() { [[ -n "$wl" ]] && ! rfkill list wlan 2>/dev/null | grep -q 'Soft blocked: yes'; }
 ssid() {        # connected network, from iwd over D-Bus
@@ -27,11 +30,11 @@ case "${1:-} ${2:-}" in
     jq -cn --arg e "$eth" --argjson eu "$(eth_up && echo true || echo false)" --argjson c "$carrier" \
            --arg w "$wl" --argjson wo "$(wifi_on && echo true || echo false)" --arg s "$(wifi_on && ssid)" \
         '{ethernet: {dev: $e, up: $eu, carrier: $c}, wifi: {dev: $w, on: $wo, ssid: $s}}' ;;
-"ethernet on")     networkctl up "$eth" ;;
+"ethernet on")     eth_on ;;
 "ethernet off")    networkctl down "$eth" ;;
-"ethernet toggle") if eth_up; then networkctl down "$eth"; else networkctl up "$eth"; fi ;;
-"wifi on")         rfkill unblock wlan ;;
+"ethernet toggle") if eth_up; then networkctl down "$eth"; else eth_on; fi ;;
+"wifi on")         wifi_up ;;
 "wifi off")        rfkill block wlan ;;
-"wifi toggle")     if wifi_on; then rfkill block wlan; else rfkill unblock wlan; fi ;;
+"wifi toggle")     if wifi_on; then rfkill block wlan; else wifi_up; fi ;;
 *) sed -n '2,5p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2 ;;
 esac
