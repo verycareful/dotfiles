@@ -10,6 +10,7 @@ hypr/.config/hypr/conf.d/cursor.conf
 hypr/.config/hypr/lua/colors.lua
 hypr/.config/hypr/lua/cursor.lua
 hypr/.config/hypr/hyprlock.conf
+hypr/.config/hypr/hyprtoolkit.conf
 waybar/.config/waybar/colors.css
 quickshell/.config/quickshell/Theme.qml
 wlogout/.config/wlogout/colors.css

@@ -40,6 +40,7 @@ targets = {                                      # template → destination(s) u
     'hypr/colors.conf':   ['hypr/conf.d/colors.conf'],   # legacy hyprlang set, kept for `restore.sh hypr`
     'hypr/cursor.conf':   ['hypr/conf.d/cursor.conf'],
     'hypr/hyprlock.conf': ['hypr/hyprlock.conf'],
+    'hypr/hyprtoolkit.conf': ['hypr/hyprtoolkit.conf'],
     'waybar/colors.css':  ['waybar/colors.css'],
     'quickshell/Theme.qml': ['quickshell/Theme.qml'],
     'wlogout/colors.css': ['wlogout/colors.css'],
@@ -91,6 +92,8 @@ reload() {
     [[ -n "$cur" ]] && command -v gsettings >/dev/null && gsettings set org.gnome.desktop.interface cursor-theme "$cur" 2>/dev/null || true
     # waybar 0.15 crashes on SIGUSR2/hyprctl reload, so restart it instead of signalling
     if systemctl --user is-active -q waybar; then systemctl --user restart waybar; else pkill -x waybar; (setsid waybar >/dev/null 2>&1 &); fi
+    # hyprtoolkit reads its colours once at start: restart the polkit agent (the password prompt)
+    systemctl --user try-restart hyprpolkitagent 2>/dev/null || true
     for s in /tmp/kitty-*; do                                   # recolour open terminals
         [[ -S "$s" ]] && kitty @ --to "unix:$s" set-colors --all --configured "$CFG/kitty/colors.conf" >/dev/null 2>&1 || true
     done
