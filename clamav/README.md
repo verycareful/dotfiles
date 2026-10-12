@@ -8,19 +8,20 @@ side is installed from here as root; the user side (scripts and user units) come
 
 | Path | Purpose |
 |---|---|
-| `stage/etc/clamav/clamd.conf` | scanner daemon config: ClamAV's sample `clamd.conf` as Arch ships it, plus MaxThreads 40, StreamMaxLength 100M, LogRotate, ExcludePath /proc /sys /dev /run |
+| `stage/etc/clamav/clamd.conf` | scanner daemon config: ClamAV's sample `clamd.conf` as Arch ships it, plus MaxThreads 40, StreamMaxLength 100M, LogRotate, ExcludePath /proc /sys /dev /run, MaxDirectoryRecursion 2048, ReadTimeout 3600 |
 | `stage/etc/clamav/clamonacc-block.conf` | **Tier 1, blocking.** `OnAccessPrevention yes` on Downloads, Desktop, Documents, Pictures, Videos, Music, Public, Templates, `.cache/yay`. Opens are held until clamd answers; infected files are denied and quarantined. Files over 10M are left to tier 2. |
 | `stage/etc/clamav/clamonacc-notify.conf` | **Tier 2, detect.** Notify-only on all of `~` minus churn dirs (Steam, browser/shader/thumbnail caches, `~/.gradle`, `.claude`, Trash, Minecraft saves). Scans on close-write, move-in and open; quarantines. Files up to 100M. |
 | `stage/etc/systemd/system/clamav-clamonacc@.service` | template unit; instances `@block` and `@notify` |
 | `stage/etc/sysctl.d/60-clamav-onaccess.conf` | inotify watch limit |
 | `stage/usr/local/bin/clamav-watchdog` + `stage/etc/systemd/system/clamav-watchdog.{service,timer}` | restarts clamd and both tiers when clamd burns CPU with no scan job (see below) |
+| `stage/etc/polkit-1/rules.d/50-dotfiles-clamav.rules` | lets wheel start and stop the notify tier without a password, so the weekly scan can pause it; no other unit or verb |
 | `fts-shim/clamonacc-fts-shim.c` | LD_PRELOAD shim that makes clamonacc's directory discovery work on glibc >= 2.44 (see below). Built and installed to `/usr/local/lib` by `install-clamav.sh` and `apply.sh`. |
 | `clamav-notify.service` | user unit: desktop notification for every detection and quarantine (`scripts/.local/bin/clamav-notify.sh`) |
 | `clamav-weekly-scan.{service,timer}` | user units: full scan of `~` through clamd, Sunday 03:00 (`scripts/.local/bin/clamav-weekly-scan.sh`) |
 | `install-clamav.sh` | root: install clamav, gcc and socat, drop in `stage/`, create `/var/lib/clamav/quarantine`, mask the stock clamonacc unit, freshclam, enable and start everything |
 | `apply.sh` | root: re-apply everything in `stage/` and the shim, restart clamd and both tiers. Use after editing anything in `stage/`. |
 | `cleanup.sh` | root: stop, remove the package and everything `install-clamav.sh` put in place. Keeps the signature DB unless `KEEP_DB=0`. |
-| `test/` | `watchdog.sh` and `weekly-scan.sh`: decision tests with fake `clamd`, `socat`, `clamdscan` and `notify-send`; no root needed |
+| `test/` | `watchdog.sh` and `weekly-scan.sh`: decision tests with fake `clamd`, `socat`, `clamdscan`, `systemctl` and `notify-send`; no root needed |
 
 The panel's ClamAV card (`quickshell/.config/quickshell/panel/ClamAV.qml`, fed by `scripts/.local/bin/panel-clam`)
 shows every unit with a switch, detections since boot, the last weekly scan and the signature date.
@@ -97,6 +98,18 @@ finished scan that skipped a few sockets or pipes. The verdict comes from the lo
 the per-file `Can't access file` means the scan did not finish, and the notification says so with the reason.
 `panel-clam` applies the same rule, so the card shows "incomplete" rather than "clean". A scan still running after
 4 h is stopped and logged as `ERROR: Timed out after 4 h`.
+
+The tiers ignore only the `clamav` user, and the scan runs as you, so the notify tier would queue a second clamd job
+for every file the scan opens. With clamd's 40 threads already busy, those jobs time out, retry on new connections
+and pile up on clamd's single receive thread, which then leaves the scan's session unread. The scan therefore stops
+the notify tier at the start and restarts it at the end. It covers everything the tier would have seen. The polkit
+rule above allows that without a password. The restart runs from an EXIT trap, and again from the unit's
+`ExecStopPost` for a scan killed outright. It only happens if `clamav-daemon.socket` is still active, so a tier
+switched off along with ClamAV stays off. A tier that was already off before the scan is left alone.
+
+clamd closes a session it has not read from for `ReadTimeout` seconds (default 120), and clamdscan reports that as
+`ERROR: Communication error`. The block tier still checks every file the scan opens in the inbound folders, so
+`clamd.conf` sets 3600. The scan script's 4 h timeout still ends a client that really hangs.
 
 clamdscan walks `~` itself (`--fdpass`) and stops `MaxDirectoryRecursion` levels down (default 15). The only trace is
 `LibClamAV Warning: cli_realpath: Invalid arguments.` on stderr, once per directory where it stopped. Nothing goes to the

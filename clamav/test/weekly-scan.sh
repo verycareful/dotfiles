@@ -2,7 +2,8 @@
 # Verdict tests for scripts/.local/bin/clamav-weekly-scan.sh. clamdscan is a fake that appends a canned
 # log and exits with a chosen code, notify-send prints the title and body it was given, and HOME is a
 # temp dir. Checks which notification each clamdscan outcome produces, and that a second run on the
-# same day leaves one summary in the log.
+# same day leaves one summary in the log. systemctl is a fake too (a unit is active while a file named
+# after it exists in $SD), for the pause of the on-access notify tier around the scan.
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 SCAN="$HERE/../../scripts/.local/bin/clamav-weekly-scan.sh"
@@ -11,7 +12,21 @@ mkdir -p "$T/bin" "$T/fx"
 
 cat > "$T/bin/clamdscan" <<'EOF'
 #!/usr/bin/env bash
-for a; do [[ $a == --log=* ]] && log=${a#--log=}; done; cat "$FX" >> "$log"; exit "$RC"
+for a; do [[ $a == --log=* ]] && log=${a#--log=}; done
+[[ -e $SD/clamav-clamonacc@notify.service ]] && echo on > "$SD/tier-during-scan" || echo off > "$SD/tier-during-scan"
+[[ -n ${MASTER_OFF:-} ]] && rm -f "$SD/clamav-daemon.socket"      # the panel switched ClamAV off mid-scan
+[[ -n ${HANG:-} ]] && { touch "$SD/scanning"; sleep 30; }
+cat "$FX" >> "$log"; exit "$RC"
+EOF
+cat > "$T/bin/systemctl" <<'EOF'
+#!/usr/bin/env bash
+args=(); for a; do [[ $a == -* ]] || args+=("$a"); done
+echo "${args[*]}" >> "$SD/calls"
+case ${args[0]} in
+    is-active) [[ -e $SD/${args[1]} ]] ;;
+    start)     [[ -z ${DENY:-} ]] || exit 1; touch "$SD/${args[1]}" ;;
+    stop)      [[ -z ${DENY:-} ]] || exit 1; rm -f "$SD/${args[1]}" ;;
+esac
 EOF
 cat > "$T/bin/notify-send" <<'EOF'
 #!/usr/bin/env bash
@@ -56,8 +71,8 @@ fails=0
 for c in "${cases[@]}"; do
     IFS='|' read -r fx rc title body pre <<<"$c"
     home="$T/home-$fx-${pre:-fresh}"; log="$home/.local/state/clamav/weekly-$(date +%F).log"
-    mkdir -p "${log%/*}"; [[ -n $pre ]] && cp "$T/fx/$pre" "$log"
-    out=$(HOME="$home" FX="$T/fx/$fx" RC=$rc PATH="$T/bin:$PATH" bash "$SCAN")
+    mkdir -p "${log%/*}" "$home/sd"; [[ -n $pre ]] && cp "$T/fx/$pre" "$log"
+    out=$(HOME="$home" SD="$home/sd" XDG_RUNTIME_DIR="$home/sd" FX="$T/fx/$fx" RC=$rc PATH="$T/bin:$PATH" bash "$SCAN")
     got_title=${out%% | *}; got_body=${out#* | }
     summaries=$(grep -c 'SCAN SUMMARY' "$log")
     name="$fx (exit $rc)${pre:+ after an earlier $pre run}"
@@ -68,5 +83,43 @@ for c in "${cases[@]}"; do
         echo "      summaries in log: $summaries"; fails=$(( fails + 1 ))
     fi
 done
-echo "${#cases[@]} cases, $fails failed"
+
+# Pause of the notify tier. Each case starts with the units named in $2 active, runs the scan (or kills it,
+# or runs only the ExecStopPost step), then checks the tier's state during clamdscan and afterwards.
+tier=clamav-clamonacc@notify.service
+pause_case() { # name | units active at start | how | env | tier during scan | tier after | must appear in calls or stderr
+    local name=$1 start=$2 how=$3 env=$4 want_during=$5 want_after=$6 want_text=$7
+    local home="$T/pause-${name// /-}" sd during after err pid
+    sd="$home/sd"; mkdir -p "$home/.local/state/clamav" "$sd"
+    for u in $start; do touch "$sd/$u"; done
+    local run=(env HOME="$home" SD="$sd" XDG_RUNTIME_DIR="$sd" FX="$T/fx/clean" RC=0 PATH="$T/bin:$PATH" $env)
+    case $how in
+        scan)   "${run[@]}" bash "$SCAN" > /dev/null 2> "$home/stderr" ;;
+        term|kill)
+            setsid "${run[@]}" HANG=1 bash "$SCAN" > /dev/null 2> "$home/stderr" & pid=$!
+            for _ in $(seq 50); do [[ -e $sd/scanning ]] && break; sleep 0.1; done
+            kill "-${how^^}" -- "-$pid"; wait "$pid" 2>/dev/null
+            [[ $how == kill ]] && "${run[@]}" bash "$SCAN" --resume-notify-tier ;;   # what ExecStopPost runs
+        resume) "${run[@]}" bash "$SCAN" --resume-notify-tier ;;
+    esac
+    during=$(cat "$sd/tier-during-scan" 2>/dev/null || echo -); after=off; [[ -e $sd/$tier ]] && after=on
+    err=$(cat "$sd/calls" "$home/stderr" 2>/dev/null)
+    if [[ $during == "$want_during" && $after == "$want_after" && ! -e $sd/clamav-weekly-scan.notify-paused \
+          && ( -z $want_text || $err == *"$want_text"* ) ]]; then
+        echo "PASS  pause: $name: during $during, after $after"
+    else
+        echo "FAIL  pause: $name: during $during (want $want_during), after $after (want $want_after)"
+        [[ -n $want_text ]] && echo "      want in calls/stderr: $want_text"
+        sed 's/^/      /' <<<"$err"; fails=$(( fails + 1 ))
+    fi
+}
+sock=clamav-daemon.socket
+pause_case "tier on"                    "$sock $tier" scan   ""            off on  "stop $tier"
+pause_case "tier already off"           "$sock"       scan   ""            off off ""
+pause_case "polkit refuses"             "$sock $tier" scan   "DENY=1"      on  on  "could not pause"
+pause_case "ClamAV switched off mid-scan" "$sock $tier" scan "MASTER_OFF=1" off off ""
+pause_case "scan stopped (SIGTERM)"     "$sock $tier" term   ""            off on  ""
+pause_case "scan killed (SIGKILL)"      "$sock $tier" kill   ""            off on  ""
+pause_case "ExecStopPost, no pause held" "$sock"      resume ""            -   off ""
+echo "$(( ${#cases[@]} + 7 )) cases, $fails failed"
 (( fails == 0 ))

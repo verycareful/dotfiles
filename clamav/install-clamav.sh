@@ -21,6 +21,7 @@ install -v -Dm644 "$S/stage/etc/sysctl.d/60-clamav-onaccess.conf" /etc/sysctl.d/
 install -v -Dm755 "$S/stage/usr/local/bin/clamav-watchdog" /usr/local/bin/clamav-watchdog
 install -v -Dm644 "$S/stage/etc/systemd/system/clamav-watchdog.service" /etc/systemd/system/clamav-watchdog.service
 install -v -Dm644 "$S/stage/etc/systemd/system/clamav-watchdog.timer"   /etc/systemd/system/clamav-watchdog.timer
+install -v -Dm644 "$S/stage/etc/polkit-1/rules.d/50-dotfiles-clamav.rules" /etc/polkit-1/rules.d/50-dotfiles-clamav.rules
 sysctl -q -p /etc/sysctl.d/60-clamav-onaccess.conf && sysctl fs.inotify.max_user_watches
 
 step "Quarantine directory (root-only; outside /home so it can never be re-scanned)"

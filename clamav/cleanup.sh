@@ -26,7 +26,8 @@ rm -rfv /etc/clamav /var/log/clamav /run/clamav \
         /etc/systemd/system/clamav-clamonacc@.service \
         /etc/systemd/system/clamav-watchdog.service /etc/systemd/system/clamav-watchdog.timer \
         /usr/local/bin/clamav-watchdog /usr/local/lib/clamonacc-fts-shim.so \
-        /etc/sysctl.d/60-clamav-onaccess.conf /run/clamav-watchdog.strikes
+        /etc/sysctl.d/60-clamav-onaccess.conf /run/clamav-watchdog.strikes \
+        /etc/polkit-1/rules.d/50-dotfiles-clamav.rules
 if [ "$KEEP_DB" = "0" ]; then
     rm -rfv /var/lib/clamav
 else

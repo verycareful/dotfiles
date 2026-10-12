@@ -6,9 +6,32 @@ set -uo pipefail
 # clamav-watchdog does not count clamd's silence against it while a clamdscan younger than this runs
 # (the scan holds every clamd thread), so the scan must not outlive it. Keep the two in step.
 MAXSCAN=14400 # s
+
+# The notify tier scans every file opened by anyone but clamav, this scan included, so it would queue a
+# second clamd job for each file the scan reads. With clamd's threads already full, those jobs pile up and
+# starve the scan's session. The tier is paused for the scan, which covers everything it would have seen.
+# 50-dotfiles-clamav.rules lets wheel start and stop this one unit without a password.
+NOTIFY_TIER=clamav-clamonacc@notify.service
+PAUSED="${XDG_RUNTIME_DIR:-/tmp}/clamav-weekly-scan.notify-paused"   # exists only while this scan holds the tier
+resume_notify_tier() {
+    [[ -e $PAUSED ]] || return 0
+    rm -f "$PAUSED"
+    # the panel's master switch stops the socket with everything else; the tier stays off with ClamAV
+    systemctl is-active -q clamav-daemon.socket && systemctl --no-ask-password start "$NOTIFY_TIER"
+}
+# clamav-weekly-scan.service runs this as ExecStopPost, for a scan killed before its EXIT trap could run
+if [[ ${1:-} == --resume-notify-tier ]]; then resume_notify_tier; exit 0; fi
+
 LOG_DIR="$HOME/.local/state/clamav"; mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/weekly-$(date +%F).log"
 : > "$LOG"   # clamdscan --log appends; a second run on the same day would leave two summaries here
+
+trap resume_notify_tier EXIT
+trap 'exit 143' TERM; trap 'exit 129' HUP; trap 'exit 130' INT   # so the EXIT trap runs on these too
+if systemctl is-active -q "$NOTIFY_TIER"; then
+    : > "$PAUSED"   # before the stop, so a kill between the two still leaves the tier to be restarted
+    systemctl --no-ask-password stop "$NOTIFY_TIER" || { rm -f "$PAUSED"; echo "could not pause $NOTIFY_TIER, scanning with it running" >&2; }
+fi
 
 notify-send -a ClamAV -i security-medium "Weekly scan" "Scanning $HOME in the background…"
 timeout --kill-after=60 "$MAXSCAN" clamdscan --fdpass --multiscan --infected --log="$LOG" "$HOME"

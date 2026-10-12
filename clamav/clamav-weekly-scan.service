@@ -4,5 +4,7 @@ Description=ClamAV weekly full scan of home
 [Service]
 Type=oneshot
 ExecStart=%h/.local/bin/clamav-weekly-scan.sh
+# restarts the on-access notify tier the scan paused, even when the scan was killed outright
+ExecStopPost=%h/.local/bin/clamav-weekly-scan.sh --resume-notify-tier
 Nice=19
 IOSchedulingClass=idle
