@@ -94,15 +94,23 @@ longer than that.
 
 ## The weekly scan
 
-`clamav-weekly-scan.sh` runs `clamdscan --fdpass --multiscan` over `~`, writes
+`clamav-weekly-scan.sh` runs `clamdscan --fdpass --multiscan` once per top-level entry of `~`, writes
 `~/.local/state/clamav/weekly-YYYY-MM-DD.log` (a second run the same day replaces it) and sends one notification.
 It reports and never quarantines; the on-access tiers do that.
+
+A single session over all of `~` died twice at about 42 min with `ERROR: Communication error`: clamd closed it, and
+the rest of the walk went unscanned. The cause is not pinned down (`local/notes/clamd-spin.md`; traced runs in
+`local/logs/clamav/`). With one session per entry, a session that stops early is run once more. The log says so
+(`NOTE: ~/X: session stopped after N s (...), retrying`), and if the retry fails too, it names the entry
+(`ERROR: ~/X: Communication error`). The other entries are scanned either way. Each entry that finished gets a
+`Scanned ~/X in N s` line. Detections from every attempt are kept, counted once per file, and listed before one
+summary for the whole scan.
 
 clamdscan prints `Infected files: N` even when it gives up halfway, and its exit code is 2 both for that and for a
 finished scan that skipped a few sockets or pipes. The verdict comes from the log instead: any `ERROR:` line other than
 the per-file `Can't access file` means the scan did not finish, and the notification says so with the reason.
-`panel-clam` applies the same rule, so the card shows "incomplete" rather than "clean". A scan still running after
-4 h is stopped and logged as `ERROR: Timed out after 4 h`.
+`panel-clam` applies the same rule, so the card shows "incomplete" rather than "clean". The whole scan stops 4 h after
+it started, logged as `ERROR: Timed out after 4 h, in ~/X` (or `before ~/X`).
 
 The tiers ignore only the `clamav` user, and the scan runs as you, so the notify tier would queue a second clamd job
 for every file the scan opens. With clamd's 40 threads already busy, those jobs time out, retry on new connections
