@@ -38,9 +38,22 @@ QtObject {
         property bool hot: false
         signal clicked
         implicitWidth: bl.implicitWidth + 18; implicitHeight: 26
+        opacity: enabled ? 1 : 0.45
         color: bm.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.5) : Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.8)
         border.width: 1; border.color: bm.containsMouse ? (hot ? Theme.red : Theme.accent) : Theme.overlay
         Text { id: bl; anchors.centerIn: parent; text: parent.label; color: bm.containsMouse ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
         MouseArea { id: bm; anchors.fill: parent; hoverEnabled: true; onClicked: parent.clicked() }
+    }
+    // pill switch; a locked one is greyed out and ignores clicks
+    component Switch: Rectangle {
+        property bool on: false
+        property bool locked: false
+        signal clicked
+        implicitWidth: 30; implicitHeight: 16
+        opacity: locked ? 0.45 : 1
+        color: on ? Theme.primary : Theme.overlay
+        border.width: 1; border.color: on ? Theme.primaryBright : Theme.muted
+        Rectangle { width: 10; height: 10; y: 3; x: parent.on ? parent.width - width - 3 : 3; color: parent.on ? Theme.accent : Theme.subtext; Behavior on x { NumberAnimation { duration: 120 } } }
+        MouseArea { anchors.fill: parent; enabled: !parent.locked; onClicked: parent.clicked() }
     }
 }

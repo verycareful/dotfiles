@@ -24,7 +24,12 @@ side is installed from here as root; the user side (scripts and user units) come
 | `test/` | `watchdog.sh` and `weekly-scan.sh`: decision tests with fake `clamd`, `socat`, `clamdscan`, `systemctl` and `notify-send`; no root needed |
 
 The panel's ClamAV card (`quickshell/.config/quickshell/panel/ClamAV.qml`, fed by `scripts/.local/bin/panel-clam`)
-shows every unit with a switch, detections since boot, the last weekly scan and the signature date.
+shows a master switch, every unit with a switch, detections since boot, the last weekly scan and the signature date.
+The master switch starts or stops everything with one password prompt for the system units. Off also stops
+`clamav-daemon.socket` (any connection would start clamd again) and a running weekly scan. "Scan now" starts
+`clamav-weekly-scan.service`. While a scan runs the button reads "Scanning…", and the notify tier ("Paused for the
+weekly scan") and the Notifier rows are greyed out and locked. The Notifier keeps running, because the block tier
+still scans during the weekly scan and its detections still need a notification.
 
 ## Install from scratch
 

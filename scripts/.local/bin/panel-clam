@@ -25,5 +25,9 @@ if [[ -n "$log" ]]; then
     stopped=${stopped//\\/\\\\}; stopped=${stopped//\"/\\\"}
 fi
 sigs=$(sigtool --info /var/lib/clamav/daily.cld 2>/dev/null | grep -oE 'Build time: .*' | sed 's/Build time: //' | cut -d' ' -f1-3)
-printf '{"units":[%s],"found":%s,"lastScan":"%s","lastInfected":"%s","lastStopped":"%s","log":"%s","sigs":"%s"}\n' \
-    "$(IFS=,; echo "${units[*]}")" "${found:-0}" "$when" "${infected:-}" "$stopped" "$log" "$sigs"
+# a weekly scan run from the timer or the panel (the oneshot unit reads "activating" while it runs), or by hand
+scanning=false
+if [[ $(systemctl --user is-active clamav-weekly-scan.service 2>/dev/null) == activating ]] \
+   || pgrep -u "$(id -u)" -f 'clamav-weekly-scan\.sh$' >/dev/null; then scanning=true; fi
+printf '{"units":[%s],"found":%s,"lastScan":"%s","lastInfected":"%s","lastStopped":"%s","log":"%s","sigs":"%s","scanning":%s}\n' \
+    "$(IFS=,; echo "${units[*]}")" "${found:-0}" "$when" "${infected:-}" "$stopped" "$log" "$sigs" "$scanning"
