@@ -15,7 +15,7 @@
 }
 
 window#waybar {
-    background: alpha(@mantle, 0.60);     /* glass: Hyprland blurs behind this */
+    background: @mantleGlass;     /* glass: Hyprland blurs behind this */
     color: @text;
     border-bottom: 1px solid alpha(@overlay, 0.9);
 }

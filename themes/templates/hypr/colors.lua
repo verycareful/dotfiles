@@ -15,5 +15,5 @@ return {
     red           = "rgb({{red}})",
     green         = "rgb({{green}})",
     yellow        = "rgb({{yellow}})",
-    mantleGlass   = "rgba({{mantle}}99)",
+    mantleGlass   = "rgba({{mantle}}{{glass_hex|99}})",
 }

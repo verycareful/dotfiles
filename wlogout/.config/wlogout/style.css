@@ -7,7 +7,7 @@ window { background-color: alpha(@base, 0.55); }   /* blurred by Hyprland */
 
 button {
     color: @subtext;
-    background-color: alpha(@mantle, 0.7);
+    background-color: @mantleGlass;
     border: 1px solid @overlay;
     margin: 8px;
     background-repeat: no-repeat;

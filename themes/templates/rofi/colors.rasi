@@ -10,7 +10,7 @@
     text:      #{{text}};
     subtext:   #{{subtext}};
     muted:     #{{muted}};
-    mantleGlass:  rgba({{mantle_rgb}}, 0.72);
+    mantleGlass:  rgba({{mantle_rgb}}, {{glass|0.72}});
     baseGlass:    rgba({{base_rgb}}, 0.6);
     primaryGlass: rgba({{primary_rgb}}, 0.45);
 }

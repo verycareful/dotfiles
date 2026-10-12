@@ -22,8 +22,8 @@ QtObject {
     readonly property color yellow:        "#{{yellow}}"
 
     // glass: the panel/card backgrounds (Hyprland blurs behind the layer)
-    readonly property color glassPanel: Qt.rgba(mantle.r, mantle.g, mantle.b, 0.74)
-    readonly property color glassCard:  Qt.rgba(mantle.r, mantle.g, mantle.b, 0.78)
+    readonly property color glassPanel: Qt.rgba(mantle.r, mantle.g, mantle.b, {{glass|0.74}})
+    readonly property color glassCard:  Qt.rgba(mantle.r, mantle.g, mantle.b, {{glass|0.78}})
 
     readonly property string fontUi:      "Oxanium"
     readonly property string fontDisplay: "Quantico"

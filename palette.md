@@ -6,7 +6,7 @@ Generated files are git-ignored (install.sh renders them) and carry a "GENERATED
 header — edit the template or the theme, never the generated copy.
 
 ```sh
-theme list            # harbour, mono
+theme list            # dusk, harbour, mono
 theme set mono        # render + live reload (wallpaper, Hyprland, Waybar, Quickshell, open kitty windows)
 theme toggle          # next theme  (SUPER+Shift+T)
 theme pick            # rofi menu
@@ -35,5 +35,11 @@ Near-black with a royal-blue tint; primary `#1f3799` / `#3b5fe0`, accent orange 
 ## Mono
 Pure greys; primary `#6e6e6e` / `#a3a3a3`, accent white `#ffffff`. Green/red feedback unchanged.
 
+## Dusk
+Black base `#000000`; primary dark grey `#2c3139` / `#a3abb5`, accent blue `#0660c6`. Wallpaper `dusk.jpg` (solid black), cursor Bibata-Modern-Ice, `glass=0.95`. Feedback colours unchanged.
+
 Glass: surfaces use mantle/base at 55–78 % alpha with Hyprland blur behind.
+A theme may set `glass=0.95` (opacity of the mantle-based surfaces: panels, cards, Waybar, rofi, wlogout, hyprlock input, kitty);
+without it each template falls back to its own value via `{{glass|0.74}}`. `{{glass_hex}}` is the same value as an alpha byte for `rgba(hexAA)`.
+Selection tints and inset fields (primary/base glass) keep their own alpha.
 To add a theme: copy a `.theme` file, change the values, add a wallpaper to `wallpapers/`.

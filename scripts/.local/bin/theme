@@ -34,6 +34,7 @@ for k, val in list(v.items()):                    # {{x_rgb}} → "r, g, b" for 
     if re.fullmatch(r'[0-9a-fA-F]{6}', val):
         rgb = [str(int(val[i:i+2], 16)) for i in (0, 2, 4)]
         v[k + '_rgb'] = ', '.join(rgb); v[k + '_ansi'] = '38;2;' + ';'.join(rgb)
+if 'glass' in v: v['glass_hex'] = '%02x' % round(float(v['glass']) * 255)   # alpha byte for rgba(hexAA)
 targets = {                                      # template → destination(s) under $XDG_CONFIG_HOME
     'hypr/colors.lua':    ['hypr/lua/colors.lua'],
     'hypr/cursor.lua':    ['hypr/lua/cursor.lua'],
@@ -54,12 +55,13 @@ targets = {                                      # template → destination(s) u
     'fastfetch/config.jsonc': ['fastfetch/config.jsonc'],
 }
 missing = set()
-def sub(m):
+def sub(m):                                      # {{key}} or {{key|fallback}} when the theme lacks the key
     k = m.group(1)
     if k in v: return v[k]
+    if m.group(2) is not None: return m.group(2)
     missing.add(k); return m.group(0)
 for src, dsts in targets.items():
-    text = re.sub(r'\{\{(\w+)\}\}', sub, open(os.path.join(tpl, src)).read())
+    text = re.sub(r'\{\{(\w+)(?:\|([^}]*))?\}\}', sub, open(os.path.join(tpl, src)).read())
     for d in dsts:
         p = os.path.join(cfg, d); os.makedirs(os.path.dirname(p), exist_ok=True)
         open(p, 'w').write(text)
@@ -94,8 +96,10 @@ reload() {
     if systemctl --user is-active -q waybar; then systemctl --user restart waybar; else pkill -x waybar; (setsid waybar >/dev/null 2>&1 &); fi
     # hyprtoolkit reads its colours once at start: restart the polkit agent (the password prompt)
     systemctl --user try-restart hyprpolkitagent 2>/dev/null || true
+    local kitty_opacity; kitty_opacity=$(sed -n 's/^glass=//p' "$REPO/themes/$(current).theme"); kitty_opacity=${kitty_opacity:-0.78}
     for s in /tmp/kitty-*; do                                   # recolour open terminals
         [[ -S "$s" ]] && kitty @ --to "unix:$s" set-colors --all --configured "$CFG/kitty/colors.conf" >/dev/null 2>&1 || true
+        [[ -S "$s" ]] && kitty @ --to "unix:$s" set-background-opacity --all "$kitty_opacity" >/dev/null 2>&1 || true
     done
     command -v notify-send >/dev/null && notify-send -a theme "Theme: $(current)" "GTK/Qt apps pick it up on next launch" || true
 }
@@ -118,7 +122,8 @@ for line in open(sys.argv[1]):
 for k, val in list(v.items()):
     if re.fullmatch(r'[0-9a-fA-F]{6}', val):
         rgb = [str(int(val[i:i+2], 16)) for i in (0, 2, 4)]; v[k + '_rgb'] = ', '.join(rgb); v[k + '_ansi'] = '38;2;' + ';'.join(rgb)
-print(re.sub(r'\{\{(\w+)\}\}', lambda m: v.get(m.group(1), m.group(0)), open(sys.argv[2]).read()), end='')
+if 'glass' in v: v['glass_hex'] = '%02x' % round(float(v['glass']) * 255)
+print(re.sub(r'\{\{(\w+)(?:\|([^}]*))?\}\}', lambda m: v.get(m.group(1), m.group(2) if m.group(2) is not None else m.group(0)), open(sys.argv[2]).read()), end='')
 PY
              ;;
     *)       sed -n '2,8p' "$0"; exit 1 ;;
