@@ -52,12 +52,24 @@ bind("T",         hl.dsp.layout("togglesplit"),                     "toggle spli
 bind("SHIFT + P", hl.dsp.window.pin(),                              "pin (show on all workspaces)")
 bind("SHIFT + Q", hl.dsp.exit(),                                    "exit Hyprland")
 
--- Alt-Tab: Quickshell switcher (all windows, MRU, thumbnails); releasing Alt focuses the highlighted one
-gbind("ALT + Tab",         run("qs ipc call switcher next"),  "alt-tab: next window")
-gbind("ALT + SHIFT + Tab", run("qs ipc call switcher prev"),  "alt-tab: previous window")
-gbind("ALT + Alt_L",       run("qs ipc call switcher apply"), "alt-tab: go", { release = true })
-gbind("ALT + Alt_R",       run("qs ipc call switcher apply"), "alt-tab: go", { release = true })
-gbind("ALT + Escape",      run("qs ipc call switcher cancel"), "alt-tab: cancel")
+-- Alt-Tab: Quickshell switcher (all windows, MRU, thumbnails); releasing Alt focuses the highlighted one.
+-- The release is read from the raw key event, not a release bind: once Tab has been pressed under Alt,
+-- a release bind on Alt_L/Alt_R never fires (with or without ignore_mods), so the popup would stay open.
+-- The event arrives as (xkb keycode, time_ms, state) with state 0 = released.
+local ALT_KEYCODES = { [64] = true, [108] = true }   -- Alt_L, Alt_R
+local switching = false                              -- set by Alt-Tab so plain Alt releases cost nothing
+local function switcher(cmd, opening)
+    return function()
+        switching = opening
+        hl.dispatch(run("qs ipc call switcher " .. cmd))
+    end
+end
+gbind("ALT + Tab",         switcher("next", true),     "alt-tab: next window")
+gbind("ALT + SHIFT + Tab", switcher("prev", true),     "alt-tab: previous window")
+gbind("ALT + Escape",      switcher("cancel", false),  "alt-tab: cancel")
+hl.on("input.keyboard.key", function(keycode, _, state)
+    if switching and state == 0 and ALT_KEYCODES[keycode] then switcher("apply", false)() end
+end)
 
 -- Focus / move (arrows + vim keys)
 local dirs = {
