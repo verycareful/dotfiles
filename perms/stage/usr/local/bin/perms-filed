@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+"""perms-filed: which programs open which files under one user's home. Run as root.
+
+  perms-filed USER
+
+fanotify FAN_OPEN on the mount holding the home folder; each open is counted against the program
+(the binary's basename, lower-case, as `perms` keys apps) and the folder it falls in (~/.ssh,
+~/Documents, ~/.config/discord). Only the user's own processes count. Totals are flushed every
+FLUSH_SECONDS to /var/lib/perms/files-USER.json (root:USER, 0640), where `perms status` reads them.
+Watch only: the fanotify group is a notification class, so it can never delay or refuse an open.
+"""
+import ctypes
+import errno
+import json
+import os
+import pwd
+import select
+import signal
+import struct
+import sys
+import time
+
+FAN_CLASS_NOTIF = 0x00
+FAN_CLOEXEC = 0x01
+FAN_NONBLOCK = 0x02
+FAN_MARK_ADD = 0x01
+FAN_MARK_MOUNT = 0x10
+FAN_OPEN = 0x20
+FAN_Q_OVERFLOW = 0x4000
+O_LARGEFILE = 0o100000
+AT_FDCWD = -100
+EVENT = struct.Struct("=IBBHQii")      # struct fanotify_event_metadata
+READ_SIZE = 256 * EVENT.size
+
+STATE_DIR = "/var/lib/perms"
+FLUSH_SECONDS = 10
+KEEP_DAYS = 30
+PID_CACHE_SECONDS = 30
+# under these, the folder goes one level deeper; same rule as folder_key in ~/.local/bin/perms
+DEEP_FOLDERS = {".config", ".local", ".local/share", ".local/state", ".cache", ".var", ".var/app"}
+
+libc = ctypes.CDLL(None, use_errno=True)
+libc.fanotify_init.argtypes = [ctypes.c_uint, ctypes.c_uint]
+libc.fanotify_mark.argtypes = [ctypes.c_int, ctypes.c_uint, ctypes.c_uint64, ctypes.c_int, ctypes.c_char_p]
+
+
+def folder_key(path, home):
+    """The folder an access is counted against: ~/Documents, ~/.ssh, ~/.config/discord ("~" for home itself)."""
+    rel = os.path.relpath(path, home)
+    if rel == ".." or rel.startswith("../"):
+        return None
+    dirs = rel.split(os.sep)[:-1]
+    if not dirs:
+        return "~"
+    depth = 1
+    while depth < len(dirs) and "/".join(dirs[:depth]) in DEEP_FOLDERS:
+        depth += 1
+    return "~/" + "/".join(dirs[:depth])
+
+
+def mount_point(path):
+    path = os.path.realpath(path)
+    while not os.path.ismount(path):
+        path = os.path.dirname(path)
+    return path
+
+
+def fanotify(mount):
+    fd = libc.fanotify_init(FAN_CLASS_NOTIF | FAN_CLOEXEC | FAN_NONBLOCK, os.O_RDONLY | O_LARGEFILE | os.O_CLOEXEC)
+    if fd < 0:
+        raise OSError(ctypes.get_errno(), "fanotify_init")
+    if libc.fanotify_mark(fd, FAN_MARK_ADD | FAN_MARK_MOUNT, FAN_OPEN, AT_FDCWD, mount.encode()) != 0:
+        raise OSError(ctypes.get_errno(), f"fanotify_mark {mount}")
+    return fd
+
+
+class Tally:
+    """{app: {folder: [count, first, last]}} plus when counting started."""
+
+    def __init__(self, path, user):
+        self.path, self.user = path, user
+        self.apps, self.since, self.overflows, self.dirty = {}, int(time.time()), 0, False
+        try:
+            with open(path) as f:
+                data = json.load(f)
+            self.apps = {a: {k: list(v) for k, v in fs.items()} for a, fs in data.get("apps", {}).items()}
+            self.since = data.get("since", self.since)
+            self.overflows = data.get("overflows", 0)
+        except (OSError, ValueError, AttributeError):
+            pass
+
+    def count(self, app, folder, now):
+        entry = self.apps.setdefault(app, {}).get(folder)
+        if entry is None:
+            self.apps[app][folder] = [1, now, now]
+        else:
+            entry[0] += 1
+            entry[2] = now
+        self.dirty = True
+
+    def flush(self, now):
+        if not self.dirty:
+            return
+        cutoff = now - KEEP_DAYS * 86400
+        for app in list(self.apps):
+            self.apps[app] = {f: e for f, e in self.apps[app].items() if e[2] >= cutoff}
+            if not self.apps[app]:
+                del self.apps[app]
+        tmp = self.path + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump({"since": self.since, "updated": now, "overflows": self.overflows, "apps": self.apps}, f)
+        os.chown(tmp, 0, self.user.pw_gid)
+        os.chmod(tmp, 0o640)
+        os.replace(tmp, self.path)
+        self.dirty = False
+
+
+class Procs:
+    """pid -> app key for the user's processes, cached so a quick burst of opens costs one lookup."""
+
+    def __init__(self, uid):
+        self.uid, self.cache = uid, {}
+
+    def app(self, pid, now):
+        hit = self.cache.get(pid)
+        if hit and now - hit[1] < PID_CACHE_SECONDS:
+            return hit[0]
+        try:
+            key = None
+            if os.stat(f"/proc/{pid}").st_uid == self.uid:
+                try:
+                    key = os.path.basename(os.readlink(f"/proc/{pid}/exe")).lower()
+                except OSError:
+                    with open(f"/proc/{pid}/comm") as f:
+                        key = f.read().strip().lower()
+        except OSError:
+            key = None                          # exited before we looked: not attributable
+        if len(self.cache) > 4096:
+            self.cache = {p: v for p, v in self.cache.items() if now - v[1] < PID_CACHE_SECONDS}
+        self.cache[pid] = (key, now)
+        return key
+
+
+def main(argv):
+    if len(argv) != 1:
+        sys.exit("usage: perms-filed USER")
+    user = pwd.getpwnam(argv[0])
+    home = os.path.realpath(user.pw_dir)
+    os.makedirs(STATE_DIR, mode=0o755, exist_ok=True)
+    tally = Tally(os.path.join(STATE_DIR, f"files-{user.pw_name}.json"), user)
+    procs = Procs(user.pw_uid)
+    fd = fanotify(mount_point(home))
+    me = os.getpid()
+    prefix = home + "/"
+
+    stop = []
+    signal.signal(signal.SIGTERM, lambda *_: stop.append(1))
+    signal.signal(signal.SIGINT, lambda *_: stop.append(1))
+    last_flush = time.time()
+    while not stop:
+        try:
+            ready, _, _ = select.select([fd], [], [], FLUSH_SECONDS)
+        except InterruptedError:
+            continue
+        now = int(time.time())
+        if ready:
+            try:
+                buf = os.read(fd, READ_SIZE)
+            except BlockingIOError:
+                buf = b""
+            off = 0
+            while off + EVENT.size <= len(buf):
+                event_len, _vers, _res, _mlen, mask, efd, pid = EVENT.unpack_from(buf, off)
+                off += event_len or EVENT.size
+                if mask & FAN_Q_OVERFLOW:
+                    tally.overflows += 1
+                    tally.dirty = True
+                if efd < 0:
+                    continue
+                try:
+                    path = os.readlink(f"/proc/self/fd/{efd}")
+                except OSError:
+                    path = ""
+                finally:
+                    os.close(efd)
+                if pid == me or not path.startswith(prefix):
+                    continue
+                app = procs.app(pid, now)
+                folder = folder_key(path, home) if app else None
+                if folder:
+                    tally.count(app, folder, now)
+        if now - last_flush >= FLUSH_SECONDS:
+            tally.flush(now)
+            last_flush = now
+    tally.flush(int(time.time()))
+
+
+if __name__ == "__main__":
+    try:
+        main(sys.argv[1:])
+    except OSError as e:
+        if e.errno == errno.EPERM:
+            sys.exit("perms-filed: fanotify needs root (CAP_SYS_ADMIN)")
+        raise

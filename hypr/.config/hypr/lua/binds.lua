@@ -17,18 +17,20 @@ local function gbind(keys, dsp, desc, opts)
 end
 local function bind(keys, dsp, desc, opts) return gbind(mod .. " + " .. keys, dsp, desc, opts) end
 local function run(cmd) return hl.dsp.exec_cmd(cmd) end
+-- apps go through the permissions launch gate, which starts them restricted when their clipboard is blocked
+local function app(cmd) return run("~/.local/bin/perms run " .. cmd) end
 
 -- ── Apps ─────────────────────────────────────────────────────
-bind("Return",         run(term),     "terminal")
-bind("B",              run(browser),  "browser")
-bind("E",              run(files),    "file manager")
+bind("Return",         app(term),     "terminal")
+bind("B",              app(browser),  "browser")
+bind("E",              app(files),    "file manager")
 bind("Space",          run(launcher), "app launcher")
-bind("SHIFT + F",      run(browser),          "Firefox")
-bind("SHIFT + C",      run("claude-desktop"), "Claude")
-bind("SHIFT + V",      run(editor),           "VS Code")
-bind("SHIFT + O",      run("spotify"),        "Spotify")
-bind("SHIFT + D",      run("discord"),        "Discord")
-bind("SHIFT + G",      run("signal-desktop"), "Signal")
+bind("SHIFT + F",      app(browser),          "Firefox")
+bind("SHIFT + C",      app("claude-desktop"), "Claude")
+bind("SHIFT + V",      app(editor),           "VS Code")
+bind("SHIFT + O",      app("spotify"),        "Spotify")
+bind("SHIFT + D",      app("discord"),        "Discord")
+bind("SHIFT + G",      app("signal-desktop"), "Signal")
 bind("V",              run("~/.local/bin/clip"),          "clipboard history (Alt+D delete, Alt+X clear)")
 bind("SHIFT + W",      run("~/.local/bin/wifi"),          "Wi-Fi networks (Alt+D forget, Alt+R rescan)")
 bind("SHIFT + N",      run("qs ipc call notifs toggle"),  "notification centre")

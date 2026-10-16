@@ -3,11 +3,13 @@
 //   qs ipc call panel  toggle|open|close|mediabar|status
 //   qs ipc call switcher next|prev|apply|cancel   (Alt-Tab)
 //   qs ipc call dns open|close|toggle             (DNS settings window)
+//   qs ipc call perms open|close|toggle           (permissions window)
 import Quickshell
 import "notifications"
 import "panel"
 import "switcher"
 import "dns"
+import "perms"
 
 ShellRoot {
     Popups {}
@@ -15,4 +17,5 @@ ShellRoot {
     Panel {}
     Switcher {}
     DnsWindow {}
+    PermsWindow {}
 }

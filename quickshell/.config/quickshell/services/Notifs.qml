@@ -22,6 +22,13 @@ Singleton {
     property bool dnd: false
     property int  unread: 0
     property date now: new Date()
+    // every notification each app sent since the shell started, ignored apps included (permissions window)
+    property var  sent: ({})          // { app: { count, last } }
+    function countSent(n) {
+        const app = appKey(n), next = Object.assign({}, sent)
+        next[app] = { count: ((sent[app] || {}).count || 0) + 1, last: Date.now() / 1000 }
+        sent = next
+    }
 
     component Entry: QtObject {
         required property var n           // the Notification
@@ -52,6 +59,7 @@ Singleton {
         persistenceSupported: true
 
         onNotification: n => {
+            if (!n.lastGeneration) root.countSent(n)     // a reload re-emits the old ones
             if (root.ignoredApps.some(re => re.test(n.appName) || re.test(n.desktopEntry))) return
             n.tracked = true
             const item = itemComp.createObject(root, { n: n, read: n.lastGeneration })   // re-emitted after a reload: no popup, keep quiet

@@ -45,7 +45,7 @@ tooltip label { padding: 4px; }
 /* Icon-only modules: Pango does not fall back to other fonts for Private Use
    Area glyphs, so anything that is purely a Nerd Font icon must name it. */
 #idle-inhibitor, #network, #tray, #custom-notifications,
-#custom-keyhint, #custom-power {
+#custom-keyhint, #custom-power, #custom-perms {
     font-family: "JetBrainsMono Nerd Font";
 }
 
@@ -131,6 +131,16 @@ tooltip label { padding: 4px; }
 #network.disconnected { color: @red; }
 
 #wireplumber.muted { color: @muted; }
+
+/* permissions: dim shield when idle, green pill while the mic, camera or screen is in use */
+#custom-perms { font-size: 15px; color: @muted; }
+#custom-perms:hover { color: @accent; }
+#custom-perms.active {
+    color: @text;
+    background: alpha(@green, 0.18);
+    box-shadow: inset 0 -2px @green;
+}
+#custom-perms.error { color: @yellow; }
 
 #tray { padding: 0 8px; }
 #tray > .passive { -gtk-icon-effect: dim; }

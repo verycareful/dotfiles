@@ -37,6 +37,8 @@ thunar/.config/Thunar/renamerrc
 
 # built by clamav/install-clamav.sh and apply.sh from the .c next to it
 clamav/fts-shim/*.so
+# built by perms/install-perms.sh: perms-sandbox and its generated protocol files
+perms/sandbox/build/
 
 # personal notes, scratch, changes_version, reference sources: not published
 /local/

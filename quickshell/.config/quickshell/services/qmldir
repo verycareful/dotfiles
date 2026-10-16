@@ -3,3 +3,4 @@ singleton Panel 1.0 Panel.qml
 singleton Sys 1.0 Sys.qml
 singleton Gpu 1.0 Gpu.qml
 singleton Net 1.0 Net.qml
+singleton Perms 1.0 Perms.qml

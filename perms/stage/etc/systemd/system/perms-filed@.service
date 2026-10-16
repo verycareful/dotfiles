@@ -1,0 +1,27 @@
+# perms file access watcher, one instance per user: perms-filed@USER.service
+# Writes /var/lib/perms/files-USER.json for `perms status` (the permissions window's Files row).
+[Unit]
+Description=perms file access watcher for %i
+RequiresMountsFor=/home
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/perms-filed %i
+Restart=on-failure
+RestartSec=5
+Nice=10
+IOSchedulingClass=idle
+StateDirectory=perms
+StateDirectoryMode=0755
+# No ProtectSystem/ProtectHome/PrivateTmp/ReadWritePaths: each of those gives the service its own
+# mount namespace, and a fanotify mount mark made there watches that namespace's copy of /home,
+# which nobody else opens files through. Hardening below stays outside the mount table.
+CapabilityBoundingSet=CAP_SYS_ADMIN CAP_SYS_PTRACE CAP_DAC_READ_SEARCH CAP_CHOWN CAP_FOWNER
+NoNewPrivileges=yes
+RestrictAddressFamilies=AF_UNIX
+RestrictRealtime=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

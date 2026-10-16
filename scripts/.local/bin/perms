@@ -1,0 +1,737 @@
+#!/usr/bin/env python3
+"""perms: which apps may use the mic, the screen and the clipboard, and what is using what.
+
+  perms status                         JSON for the Quickshell permissions window
+  perms bar                            Waybar: one JSON line whenever live use changes (runs forever)
+  perms set PERM APP allow|block|clear one app's rule
+  perms switch PERM on|off             the global switch (off blocks every app)
+  perms apply                          regenerate the WirePlumber and Hyprland rules and desktop overrides
+  perms run [--app NAME] CMD [ARGS]    launch gate: runs CMD restricted when NAME's clipboard is blocked
+
+PERM is mic, screen or clipboard. APP is the program's binary name, lower-case ("discord").
+Rules: ~/.local/state/perms/rules.json. Enforcement:
+  mic        WirePlumber permission manager: a blocked app sees no Audio/Source node
+  screen     Hyprland screencopy permissions (by binary) and, for portal shares, a WirePlumber
+             permission manager on the app's portal stream (by portal app id)
+  clipboard  perms-sandbox (perms/sandbox/) attaches a Wayland security context, so Hyprland hides
+             the data-control protocols; launches reach it through `perms run` (rofi, Hyprland binds,
+             desktop-entry overrides in ~/.local/share/applications)
+File access history comes from perms-filed (perms/), a root fanotify service.
+"""
+import json
+import os
+import re
+import shutil
+import socket
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+HOME = Path.home()
+USER = os.environ.get("USER") or HOME.name
+STATE = Path(os.environ.get("XDG_STATE_HOME", HOME / ".local/state")) / "perms"
+CONFIG = Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config"))
+DATA = Path(os.environ.get("XDG_DATA_HOME", HOME / ".local/share"))
+RULES_FILE = STATE / "rules.json"
+SEEN_FILE = STATE / "seen.json"
+HYPR_FILE = STATE / "hyprland.lua"                  # loaded by hypr/.config/hypr/lua/perms.lua
+WP_FILE = CONFIG / "wireplumber/wireplumber.conf.d/90-perms.conf"
+APPS_DIR = DATA / "applications"
+SYSTEM_APPS_DIRS = (Path("/usr/share/applications"), Path("/usr/local/share/applications"))
+RUNTIME = Path(os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")) / "perms"
+FILES_DB = Path("/var/lib/perms") / f"files-{USER}.json"   # written by perms-filed
+SANDBOX = "/usr/local/bin/perms-sandbox"
+SELF = str(HOME / ".local/bin/perms")
+
+PERMS = ("mic", "screen", "clipboard")
+MODES = ("allow", "block")
+OVERRIDE_KEY = "X-Perms-Override"
+BAR_INTERVAL = 2.0                  # seconds between live checks in `perms bar`
+SEEN_KEEP_DAYS = 90
+
+# never listed, never blocked: the session's own plumbing
+SYSTEM = {
+    "pipewire", "pipewire-pulse", "wireplumber", "xdg-desktop-portal", "xdg-desktop-portal-hyprland",
+    "xdg-desktop-portal-gtk", "waybar", "quickshell", "qs", "hyprland", "pw-dump", "pw-cli", "pw-mon",
+    "easyeffects", "perms", "perms-sandbox", "hyprlock", "hypridle", "uwsm", "systemd", "hyprland-share-picker",
+}
+# the session's own screen readers, allowed even with the switch off: a prompt from these would
+# land on the lock screen (hyprlock blurs a screenshot), the share picker's previews or Alt-Tab
+SESSION_CAPTURE = ("/usr/bin/hyprlock", "/usr/bin/quickshell", "/usr/bin/hyprland-share-picker")
+# screen capture tools that talk to Hyprland directly (not through the portal); always given an
+# explicit rule so the global switch reaches them
+CAPTURE_TOOLS = ("grim", "hyprpicker", "wf-recorder", "wl-screenrec", "obs")
+# processes that read the clipboard all the time on purpose
+CLIPBOARD_MANAGERS = {"cliphist", "clipman", "copyq", "wl-clip-persist", "clipse"}
+# under these, the folder an access is counted against goes one level deeper (.config/discord)
+DEEP_FOLDERS = {".config", ".local", ".local/share", ".local/state", ".cache", ".var", ".var/app"}
+
+
+# ── rules ────────────────────────────────────────────────────────────────────
+
+def default_rules():
+    return {p: {"on": True, "apps": {}} for p in PERMS}
+
+
+def load_json(path, fallback):
+    try:
+        return json.loads(Path(path).read_text())
+    except (OSError, ValueError):
+        return fallback
+
+
+def save_json(path, data):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n")
+    tmp.replace(path)
+
+
+def load_rules():
+    rules = default_rules()
+    stored = load_json(RULES_FILE, {})
+    for p in PERMS:
+        entry = stored.get(p) or {}
+        rules[p]["on"] = bool(entry.get("on", True))
+        rules[p]["apps"] = {app_key(a): m for a, m in (entry.get("apps") or {}).items() if m in MODES}
+    return rules
+
+
+def app_key(name):
+    """The name rules are keyed by: the binary's basename, lower-case."""
+    return os.path.basename(str(name)).strip().lower()
+
+
+def effective(rules, perm, app):
+    """allow | block for one app. The global switch wins; system plumbing is always allowed."""
+    app = app_key(app)
+    if app in SYSTEM:
+        return "allow"
+    if not rules[perm]["on"]:
+        return "block"
+    return rules[perm]["apps"].get(app, "allow")
+
+
+# regex characters that need quoting; quoted as a one-character class, since a backslash would also
+# have to survive WirePlumber's JSON strings and Lua's, and a class needs no escaping in either
+REGEX_SPECIAL = set(".$*+?()[{}|")
+UNQUOTABLE = set('^]\\"')                    # no class form without a backslash; dropped
+
+
+def literal_regex(name, fold=False):
+    """A regex body matching name literally; fold=True matches it in either case
+    (WirePlumber and Hyprland regexes take no flags)."""
+    out = []
+    for ch in name:
+        if fold and ch.isalpha():
+            out.append(f"[{ch.lower()}{ch.upper()}]")
+        elif ch in REGEX_SPECIAL:
+            out.append(f"[{ch}]")
+        elif ch in UNQUOTABLE:
+            continue
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
+def ci_regex(name):
+    return literal_regex(name, fold=True)
+
+
+# ── WirePlumber ──────────────────────────────────────────────────────────────
+
+# what each blocked permission hides from a client
+WP_HIDDEN = {
+    "mic": '{ media.class = "~Audio/Source.*" }',
+    "screen": '{ media.class = "Video/Source", node.name = "~xdph-streaming-.*" }',
+}
+
+
+def wp_manager_name(blocked):
+    return "perms-block-" + "-".join(sorted(blocked))
+
+
+def render_wireplumber(rules):
+    wp_perms = tuple(WP_HIDDEN)
+    off = {p for p in wp_perms if not rules[p]["on"]}
+    listed = sorted({a for p in wp_perms for a in rules[p]["apps"]} - SYSTEM)
+    per_app = {a: {p for p in wp_perms if effective(rules, p, a) == "block"} for a in listed}
+    combos = {frozenset(s) for s in per_app.values() if s}
+    if off:
+        combos.add(frozenset(off))
+    if not combos:
+        return None
+
+    lines = ["# GENERATED by `perms apply` from ~/.local/state/perms/rules.json. Edit through `perms`.",
+             "access.permission-managers = ["]
+    for combo in sorted(combos, key=lambda c: wp_manager_name(c)):
+        lines += ["  {", f'    name = "{wp_manager_name(combo)}"', '    default_permissions = "all"', "    rules = ["]
+        for p in sorted(combo):
+            lines.append(f'      {{ matches = [ {WP_HIDDEN[p]} ] actions = {{ set-permissions = "-" }} }}')
+        lines += ["    ]", "  }"]
+    lines += ["]", "", "access.rules = ["]
+    # later matches overwrite earlier ones: the catch-all for a global switch first, then each listed app
+    if off:
+        system = "|".join(sorted(literal_regex(s) for s in SYSTEM))
+        lines.append(f'  {{ matches = [ {{ application.process.binary = "!~^({system})$" }} ]')
+        lines.append(f'    actions = {{ update-props = {{ permission_manager_name = "{wp_manager_name(off)}" }} }} }}')
+    for app, blocked in per_app.items():
+        if not blocked and not off:
+            continue
+        rx = ci_regex(app)
+        target = f'"{wp_manager_name(blocked)}"' if blocked else '"default"'
+        lines.append(f'  {{ matches = [ {{ application.process.binary = "~^{rx}$" }} {{ pipewire.access.portal.app_id = "~^{rx}$" }} ]')
+        lines.append(f"    actions = {{ update-props = {{ permission_manager_name = {target} }} }} }}")
+    lines.append("]")
+    return "\n".join(lines) + "\n"
+
+
+# ── Hyprland ─────────────────────────────────────────────────────────────────
+
+def render_hyprland(rules):
+    def perm(binary, kind, mode):
+        return f'hl.permission({{ binary = "{binary}", type = "{kind}", mode = "{mode}" }})'
+
+    screen = "allow" if rules["screen"]["on"] else "deny"
+    out = ["-- GENERATED by `perms apply` from ~/.local/state/perms/rules.json. Edit through `perms`.",
+           "-- Screen capture by binary; binaries without a rule get Hyprland's own prompt.",
+           "hl.config({ ecosystem = { enforce_permissions = true } })"]
+    out += [perm(b, "screencopy", "allow") for b in SESSION_CAPTURE]
+    out += [perm("/usr/(lib|libexec|lib64)/xdg-desktop-portal-hyprland", "screencopy", screen),
+            perm("/usr/(bin|local/bin)/hyprpm", "plugin", "allow")]
+    apps = sorted((set(CAPTURE_TOOLS) | set(rules["screen"]["apps"])) - SYSTEM)
+    for app in apps:
+        mode = "allow" if effective(rules, "screen", app) == "allow" else "deny"
+        out.append(perm(f".*/{ci_regex(app)}", "screencopy", mode))
+    return "\n".join(out) + "\n"
+
+
+# ── desktop entries (clipboard) ──────────────────────────────────────────────
+
+def desktop_exec_app(text):
+    """The app key of a desktop entry's main Exec line, or None."""
+    in_entry = False
+    for line in text.splitlines():
+        line = line.strip()
+        if line.startswith("["):
+            in_entry = line == "[Desktop Entry]"
+        elif in_entry and line.startswith("Exec="):
+            words = line[5:].split()
+            while words and (words[0] == "env" or "=" in words[0]):
+                words.pop(0)
+            return app_key(words[0].strip('"')) if words else None
+    return None
+
+
+def wrap_desktop(text, app):
+    """The entry with every Exec line sent through `perms run`, marked as ours."""
+    out = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("Exec=") and "perms run" not in stripped:
+            line = f"Exec={SELF} run --app {app} {stripped[5:]}"
+        out.append(line)
+        if stripped == "[Desktop Entry]":
+            out.append(f"{OVERRIDE_KEY}=true")
+    return "\n".join(out) + "\n"
+
+
+def is_our_override(path):
+    try:
+        return f"{OVERRIDE_KEY}=true" in path.read_text(errors="replace")
+    except OSError:
+        return False
+
+
+def sync_desktop_overrides(rules):
+    """Overrides for every installed app whose clipboard is blocked; ours that are no longer needed go."""
+    wanted = {}
+    for d in SYSTEM_APPS_DIRS:
+        for f in sorted(d.glob("*.desktop")) if d.is_dir() else ():
+            if f.name in wanted:
+                continue
+            try:
+                text = f.read_text(errors="replace")
+            except OSError:
+                continue
+            app = desktop_exec_app(text)
+            if app and effective(rules, "clipboard", app) == "block":
+                wanted[f.name] = wrap_desktop(text, app)
+    APPS_DIR.mkdir(parents=True, exist_ok=True)
+    changed = False
+    for f in APPS_DIR.glob("*.desktop"):
+        if f.name not in wanted and is_our_override(f):
+            f.unlink()
+            changed = True
+    for name, text in wanted.items():
+        target = APPS_DIR / name
+        if target.exists() and not is_our_override(target):
+            continue                                # the user's own override: leave it
+        if not target.exists() or target.read_text(errors="replace") != text:
+            target.write_text(text)
+            changed = True
+    if changed and shutil.which("update-desktop-database"):
+        subprocess.run(["update-desktop-database", str(APPS_DIR)], capture_output=True)
+
+
+# ── apply ────────────────────────────────────────────────────────────────────
+
+def write_if_changed(path, text):
+    """True when the file changed. None removes it."""
+    path = Path(path)
+    old = path.read_text() if path.exists() else None
+    if old == text:
+        return False
+    if text is None:
+        path.unlink()
+    else:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+    return True
+
+
+def restart_waybar():
+    # waybar 0.15 crashes on hyprctl reload, so it is restarted instead (same as `theme`)
+    if subprocess.run(["systemctl", "--user", "is-active", "-q", "waybar"]).returncode == 0:
+        subprocess.run(["systemctl", "--user", "restart", "waybar"])
+
+
+def apply(rules):
+    if write_if_changed(WP_FILE, render_wireplumber(rules)):
+        subprocess.run(["systemctl", "--user", "restart", "wireplumber"])
+    if write_if_changed(HYPR_FILE, render_hyprland(rules)) and shutil.which("hyprctl"):
+        subprocess.run(["hyprctl", "reload"], capture_output=True)
+        restart_waybar()
+    sync_desktop_overrides(rules)
+
+
+def cmd_set(perm, app, mode):
+    rules = load_rules()
+    app = app_key(app)
+    if app in SYSTEM:
+        sys.exit(f"perms: {app} is part of the session and is always allowed")
+    if mode == "clear":
+        rules[perm]["apps"].pop(app, None)
+    else:
+        rules[perm]["apps"][app] = mode
+    save_json(RULES_FILE, rules)
+    apply(rules)
+
+
+def cmd_switch(perm, state):
+    rules = load_rules()
+    rules[perm]["on"] = state == "on"
+    save_json(RULES_FILE, rules)
+    apply(rules)
+
+
+# ── launch gate ──────────────────────────────────────────────────────────────
+
+def program_of(argv):
+    """The program a command line runs, past a leading `env` and VAR=value assignments."""
+    words = list(argv)
+    if words and app_key(words[0]) == "env":
+        words.pop(0)
+    while words and "=" in words[0] and not words[0].startswith(("/", ".")):
+        words.pop(0)
+    return words[0] if words else None
+
+
+def cmd_run(argv):
+    app = None
+    if argv[:1] == ["--app"] and len(argv) >= 2:
+        app, argv = argv[1], argv[2:]
+    if argv[:1] == ["--"]:
+        argv = argv[1:]
+    program = program_of(argv)
+    if not program:
+        sys.exit("usage: perms run [--app NAME] CMD [ARGS]")
+    # rofi wraps every launch, including desktop overrides that already go through perms
+    if app_key(program) == "perms":
+        os.execvp(argv[0], argv)
+    app = app_key(app or program)
+    rules = load_rules()
+    if effective(rules, "clipboard", app) == "block" and not os.environ.get("PERMS_SANDBOX"):
+        if os.access(SANDBOX, os.X_OK):
+            os.execv(SANDBOX, [SANDBOX, app] + argv)
+        sys.exit(f"perms: {app}'s clipboard is blocked but {SANDBOX} is missing (sudo perms/install-perms.sh); not starting it")
+    os.execvp(argv[0], argv)
+
+
+# ── live state ───────────────────────────────────────────────────────────────
+
+def run_json(cmd, fallback):
+    try:
+        return json.loads(subprocess.run(cmd, capture_output=True, text=True, timeout=5).stdout or "null") or fallback
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        return fallback
+
+
+def pw_graph(dump):
+    """pw-dump JSON -> (clients {id: props}, nodes {id: {props, state}}, links [(out_node, in_node)])."""
+    clients, nodes, links = {}, {}, []
+    for o in dump or []:
+        kind = o.get("type", "").rsplit(":", 1)[-1]
+        info = o.get("info") or {}
+        props = info.get("props") or {}
+        if kind == "Client":
+            clients[o["id"]] = props
+        elif kind == "Node":
+            nodes[o["id"]] = {"props": props, "state": info.get("state")}
+        elif kind == "Link":
+            links.append((info.get("output-node-id"), info.get("input-node-id")))
+    return clients, nodes, links
+
+
+def node_app(node, clients):
+    """(key, display name) of the app behind a stream node."""
+    props = node["props"]
+    client = clients.get(props.get("client.id")) or {}
+    binary = props.get("application.process.binary") or client.get("application.process.binary") or ""
+    name = props.get("application.name") or client.get("application.name") or binary
+    return app_key(binary or name), name
+
+
+def is_screen_node(props):
+    return props.get("media.class") == "Video/Source" and str(props.get("node.name", "")).startswith("xdph-streaming")
+
+
+def live_use(graph):
+    """{mic, screen, camera: {key: display}} for streams that are running now."""
+    clients, nodes, links = graph
+    use = {"mic": {}, "screen": {}, "camera": {}}
+    for node in nodes.values():
+        props = node["props"]
+        if props.get("media.class") == "Stream/Input/Audio" and node["state"] == "running":
+            if "peak detect" in str(props.get("media.name", "")).lower():
+                continue                                    # pavucontrol's level meters
+            key, name = node_app(node, clients)
+            if key and key not in SYSTEM:
+                use["mic"][key] = name
+    for out_id, in_id in links:
+        src, dst = nodes.get(out_id), nodes.get(in_id)
+        if not src or not dst:
+            continue
+        if is_screen_node(src["props"]):
+            kind = "screen"
+        elif src["props"].get("media.class") == "Video/Source":
+            kind = "camera"
+        else:
+            continue
+        key, name = node_app(dst, clients)
+        if key and key not in SYSTEM:
+            use[kind][key] = name
+    if not use["screen"] and any(is_screen_node(n["props"]) for n in nodes.values()):
+        use["screen"]["?"] = "an app (portal share)"
+    return use
+
+
+def proc_key(pid):
+    try:
+        return app_key(os.readlink(f"/proc/{pid}/exe"))
+    except OSError:
+        try:
+            return app_key(Path(f"/proc/{pid}/comm").read_text())
+        except OSError:
+            return ""
+
+
+def my_pids():
+    uid = os.getuid()
+    for entry in os.scandir("/proc"):
+        if entry.name.isdigit():
+            try:
+                if entry.stat().st_uid == uid:
+                    yield int(entry.name)
+            except OSError:
+                pass
+
+
+def proc_env(pid, name):
+    try:
+        for item in Path(f"/proc/{pid}/environ").read_bytes().split(b"\0"):
+            if item.startswith(name.encode() + b"="):
+                return item.split(b"=", 1)[1].decode(errors="replace")
+    except OSError:
+        pass
+    return None
+
+
+def camera_devices_in_use():
+    """{key: key} for processes holding /dev/video* open (most apps open the camera directly)."""
+    users = {}
+    for pid in my_pids():
+        try:
+            for fd in os.scandir(f"/proc/{pid}/fd"):
+                try:
+                    if os.readlink(fd.path).startswith("/dev/video"):
+                        key = proc_key(pid)
+                        if key and key not in SYSTEM:
+                            users[key] = key
+                        break
+                except OSError:
+                    pass
+        except OSError:
+            pass
+    return users
+
+
+def snapshot_live():
+    use = live_use(pw_graph(run_json(["pw-dump"], [])))
+    use["camera"].update({k: v for k, v in camera_devices_in_use().items() if k not in use["camera"]})
+    return use
+
+
+def record_seen(use, now=None):
+    now = int(now or time.time())
+    seen = load_json(SEEN_FILE, {})
+    changed = False
+    for kind, apps in use.items():
+        for key, name in apps.items():
+            if key == "?":
+                continue
+            entry = seen.setdefault(kind, {}).setdefault(key, {})
+            if now - entry.get("last", 0) >= 60 or entry.get("name") != name:
+                entry.update(last=now, name=name)
+                changed = True
+    cutoff = now - SEEN_KEEP_DAYS * 86400
+    for kind in list(seen):
+        for key in [k for k, e in seen[kind].items() if e.get("last", 0) < cutoff]:
+            del seen[kind][key]
+            changed = True
+    if changed:
+        save_json(SEEN_FILE, seen)
+    return seen
+
+
+def parse_ss(text):
+    """`ss -tunpH` output -> {key: {"connections": n, "remotes": n}}."""
+    out = {}
+    for line in text.splitlines():
+        cols = line.split()
+        users = next((i for i, c in enumerate(cols) if c.startswith("users:")), None)
+        if not users or users < 2:
+            continue
+        remote = cols[users - 1].rsplit(":", 1)[0]      # the peer is the column before users:(...)
+        for proc in re.findall(r'\("([^"]+)",pid=(\d+)', line):
+            key = app_key(proc[0])
+            entry = out.setdefault(key, {"connections": 0, "remotes": set()})
+            entry["connections"] += 1
+            entry["remotes"].add(remote)
+    return {k: {"connections": v["connections"], "remotes": len(v["remotes"])} for k, v in out.items()}
+
+
+def network_use():
+    try:
+        text = subprocess.run(["ss", "-tunpH", "state", "established"], capture_output=True, text=True, timeout=5).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return {}
+    return {k: v for k, v in parse_ss(text).items() if k not in SYSTEM}
+
+
+def windows():
+    """{pid: client} for every mapped window."""
+    return {c["pid"]: c for c in run_json(["hyprctl", "clients", "-j"], []) if c.get("pid", 0) > 0}
+
+
+def parent_pid(pid):
+    try:
+        return int(Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[1])
+    except (OSError, ValueError, IndexError):
+        return 0
+
+
+def window_owner(pid, wins):
+    """The pid of the window-owning process pid descends from, or 0."""
+    seen = set()
+    while pid > 1 and pid not in seen:
+        if pid in wins:
+            return pid
+        seen.add(pid)
+        pid = parent_pid(pid)
+    return 0
+
+
+def app_scopes():
+    """{scope name: [pids]} for the session's app-*.scope units (uwsm launches apps into these)."""
+    base = Path(f"/sys/fs/cgroup/user.slice/user-{os.getuid()}.slice/user@{os.getuid()}.service/app.slice")
+    out = {}
+    for d in base.glob("app-*.scope") if base.is_dir() else ():
+        try:
+            pids = [int(p) for p in (d / "cgroup.procs").read_text().split()]
+        except (OSError, ValueError):
+            continue
+        if pids:
+            out[d.name] = pids
+    return out
+
+
+def background_apps(wins):
+    """Apps running with no window: tray apps, daemons started from the desktop."""
+    shown = {proc_key(p) for p in wins}
+    out = set()
+    for pids in app_scopes().values():
+        if any(window_owner(p, wins) for p in pids):
+            continue
+        key = proc_key(pids[0])
+        if key and key not in SYSTEM and key not in shown:
+            out.add(key)
+    return sorted(out)
+
+
+# how freely a running app can read the clipboard; the most open of its windows counts
+CLIPBOARD_OPENNESS = {"restricted": 0, "x11": 1, "open": 2}
+
+
+def clipboard_state(wins):
+    """Per running app: restricted (security context), x11 (XWayland reads freely) or open."""
+    apps = {}
+    for pid, c in wins.items():
+        key = proc_key(pid)
+        if not key or key in SYSTEM:
+            continue
+        state = "restricted" if proc_env(pid, "PERMS_SANDBOX") else "x11" if c.get("xwayland") else "open"
+        if CLIPBOARD_OPENNESS[state] >= CLIPBOARD_OPENNESS.get(apps.get(key), -1):
+            apps[key] = state
+    managers = set()
+    for pid in my_pids():
+        key = proc_key(pid)
+        try:
+            words = [a.decode(errors="replace") for a in Path(f"/proc/{pid}/cmdline").read_bytes().split(b"\0") if a]
+        except OSError:
+            continue
+        if key in CLIPBOARD_MANAGERS:
+            managers.add(key)
+        elif key == "wl-paste" and "--watch" in words[:-1]:
+            managers.add(app_key(words[words.index("--watch") + 1]))   # the program it feeds: cliphist
+    return {"apps": apps, "managers": sorted(managers)}
+
+
+def folder_key(path, home=None):
+    """The folder an access is counted against: ~/Documents, ~/.ssh, ~/.config/discord ("~" for home itself).
+    perms/stage/usr/local/bin/perms-filed has the same rule; test/test_perms.py keeps them in step."""
+    rel = os.path.relpath(path, str(home or HOME))
+    if rel == ".." or rel.startswith("../"):
+        return None
+    dirs = rel.split(os.sep)[:-1]
+    if not dirs:
+        return "~"
+    depth = 1
+    while depth < len(dirs) and "/".join(dirs[:depth]) in DEEP_FOLDERS:
+        depth += 1
+    return "~/" + "/".join(dirs[:depth])
+
+
+def open_files_now():
+    """{key: [folders]} of files under home held open right now (from /proc, no root needed)."""
+    out = {}
+    for pid in my_pids():
+        key = proc_key(pid)
+        if not key or key in SYSTEM:
+            continue
+        try:
+            fds = list(os.scandir(f"/proc/{pid}/fd"))
+        except OSError:
+            continue
+        for fd in fds:
+            try:
+                target = os.readlink(fd.path)
+            except OSError:
+                continue
+            if target.startswith(str(HOME) + "/") and " (deleted)" not in target:
+                f = folder_key(target)
+                if f:
+                    out.setdefault(key, set()).add(f)
+    return {k: sorted(v) for k, v in out.items()}
+
+
+def prune_sockets():
+    """Removes context sockets nobody listens on any more (the app exited)."""
+    for sock in RUNTIME.glob("*.sock") if RUNTIME.is_dir() else ():
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            s.connect(str(sock))
+        except OSError:
+            sock.unlink(missing_ok=True)
+        finally:
+            s.close()
+
+
+def cmd_status():
+    rules = load_rules()
+    use = snapshot_live()
+    seen = record_seen(use)
+    wins = windows()
+    prune_sockets()
+    files = load_json(FILES_DB, None)
+    status = {
+        "rules": rules,
+        "live": use,
+        "seen": seen,
+        "windows": sorted({proc_key(p) for p in wins} - SYSTEM - {""}),
+        "names": {proc_key(p): c.get("class") or proc_key(p) for p, c in wins.items()},
+        "camera_present": any(Path("/dev").glob("video*")),
+        "sandbox_installed": os.access(SANDBOX, os.X_OK),
+        "clipboard": clipboard_state(wins),
+        "network": network_use(),
+        "background": background_apps(wins),
+        "files": {"history": (files or {}).get("apps", {}), "since": (files or {}).get("since"),
+                  "watching": files is not None, "open": open_files_now()},
+        "system": sorted(SYSTEM),
+    }
+    print(json.dumps(status))
+
+
+# ── Waybar ───────────────────────────────────────────────────────────────────
+
+GLYPH = {"mic": "\U000F036C", "camera": "\U000F0100", "screen": "\U000F0379", "idle": "\U000F0499"}
+LABEL = {"mic": "Microphone", "camera": "Camera", "screen": "Screen sharing"}
+
+
+def bar_line(use):
+    active = [k for k in ("mic", "camera", "screen") if use[k]]
+    if not active:
+        return {"text": GLYPH["idle"], "class": "idle", "tooltip": "Permissions: nothing is using the mic, camera or screen"}
+    tip = [f"{LABEL[k]}: {', '.join(sorted(use[k].values()))}" for k in active]
+    return {"text": " ".join(GLYPH[k] for k in active), "class": ["active"] + active, "tooltip": "\n".join(tip)}
+
+
+def cmd_bar():
+    last = None
+    while True:
+        try:
+            use = snapshot_live()
+            record_seen(use)
+            line = json.dumps(bar_line(use), ensure_ascii=False)
+        except Exception as e:                      # keep the module alive; show why it is blank
+            line = json.dumps({"text": GLYPH["idle"], "class": "error", "tooltip": f"perms: {e}"}, ensure_ascii=False)
+        if line != last:
+            print(line, flush=True)
+            last = line
+        time.sleep(BAR_INTERVAL)
+
+
+# ── CLI ──────────────────────────────────────────────────────────────────────
+
+def main(argv):
+    cmd = argv[0] if argv else "status"
+    if cmd == "status":
+        cmd_status()
+    elif cmd == "bar":
+        cmd_bar()
+    elif cmd == "apply":
+        apply(load_rules())
+    elif cmd == "set" and len(argv) == 4 and argv[1] in PERMS and argv[3] in MODES + ("clear",):
+        cmd_set(argv[1], argv[2], argv[3])
+    elif cmd == "switch" and len(argv) == 3 and argv[1] in PERMS and argv[2] in ("on", "off"):
+        cmd_switch(argv[1], argv[2])
+    elif cmd == "run":
+        cmd_run(argv[1:])
+    else:
+        sys.exit(__doc__)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

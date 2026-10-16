@@ -11,7 +11,7 @@
     // ── layout ────────────────────────────────────────────────
     "modules-left":   ["custom/panel", "clock#time", "clock#date", "idle_inhibitor", "custom/weather"],
     "modules-center": ["hyprland/workspaces"],
-    "modules-right":  ["group/media", "network", "wireplumber",
+    "modules-right":  ["group/media", "custom/perms", "network", "wireplumber",
                        "group/traybox", "custom/updates", "custom/notifications", "custom/keyhint", "custom/power"],
 
     // ── left ──────────────────────────────────────────────────
@@ -106,6 +106,15 @@
         "return-type": "json",
         "interval": 2,
         "on-click": "lact gui"
+    },
+    "custom/perms": {
+        // shield while nothing is in use; mic / camera / screen icons in a green pill while an app uses them.
+        // `perms bar` keeps running and prints a line only when that changes.
+        "exec": "~/.local/bin/perms bar",
+        "return-type": "json",
+        "restart-interval": 5,
+        "on-click": "qs ipc call perms toggle",
+        "escape": true
     },
     "network": {
         "format-wifi": "{icon}",

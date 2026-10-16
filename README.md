@@ -6,7 +6,7 @@
 [![Hyprland](https://img.shields.io/badge/Hyprland-58E1FF?style=flat-square&logo=hyprland&logoColor=white)](https://hyprland.org/)
 [![Lua](https://img.shields.io/badge/Lua-2C2D72?style=flat-square&logo=lua&logoColor=white)](https://www.lua.org/)
 [![Qt 6 QML](https://img.shields.io/badge/Qt%206%20QML-41CD52?style=flat-square&logo=qt&logoColor=white)](https://doc.qt.io/qt-6/qmlapplications.html)
-<!-- Quickshell, Waybar, rofi, wlogout, SDDM, kitty, fastfetch, Kvantum, systemd-networkd, iwd, OpenRGB and ClamAV have no shields.io logos. Swap these plain badges for logo badges if logos become available. -->
+<!-- Quickshell, Waybar, rofi, wlogout, SDDM, kitty, fastfetch, Kvantum, systemd-networkd, iwd, OpenRGB, ClamAV and WirePlumber have no shields.io logos. Swap these plain badges for logo badges if logos become available. -->
 [![Quickshell](https://img.shields.io/badge/Quickshell-3B4252?style=flat-square)](https://quickshell.org/)
 [![Waybar](https://img.shields.io/badge/Waybar-3B4252?style=flat-square)](https://github.com/Alexays/Waybar)
 [![rofi](https://img.shields.io/badge/rofi-3B4252?style=flat-square)](https://github.com/davatorium/rofi)
@@ -26,10 +26,12 @@
 [![iwd](https://img.shields.io/badge/iwd-3B4252?style=flat-square)](https://iwd.wiki.kernel.org/)
 [![ClamAV](https://img.shields.io/badge/ClamAV-3B4252?style=flat-square)](https://www.clamav.net/)
 [![OpenRGB](https://img.shields.io/badge/OpenRGB-3B4252?style=flat-square)](https://openrgb.org/)
+[![WirePlumber](https://img.shields.io/badge/WirePlumber-3B4252?style=flat-square)](https://pipewire.pages.freedesktop.org/wireplumber/)
 [![LACT](https://img.shields.io/badge/LACT-ED1C24?style=flat-square&logo=amd&logoColor=white)](https://github.com/ilya-zlobintsev/LACT)
 [![RyzenAdj](https://img.shields.io/badge/RyzenAdj-ED1C24?style=flat-square&logo=amd&logoColor=white)](https://github.com/FlyGoat/RyzenAdj)
 <!-- Tooling -->
 [![Bash](https://img.shields.io/badge/Bash-4EAA25?style=flat-square&logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
+[![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![GNU Stow](https://img.shields.io/badge/GNU%20Stow-A42E2B?style=flat-square&logo=gnu&logoColor=white)](https://www.gnu.org/software/stow/)
 [![C](https://img.shields.io/badge/C-A8B9CC?style=flat-square&logo=c&logoColor=white)](https://en.cppreference.com/w/c)
 <!-- License and status -->
@@ -48,7 +50,7 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |
 | `thunar/`  | file manager: right-click actions (Open Terminal Here in kitty, Open in VS Code, Copy Path, Set as Wallpaper via `wall`) and the preferences in `thunar.xfconf`, which install.sh writes with `xfconf-query` (xfconf also stores window state, so the file itself is not linked). Thumbnails come from tumbler, Extract/Compress from thunar-archive-plugin with ark. Styling follows the GTK theme |
-| `scripts/` | helpers in `~/.local/bin` (`theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`, `net`) |
+| `scripts/` | helpers in `~/.local/bin` (`theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`, `net`, `perms`) |
 | `themes/`  | `*.theme` colour files + `templates/` rendered by `theme` |
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal), all OFL; JetBrainsMono Nerd Font supplies icons |
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
@@ -56,6 +58,7 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 | `network/` | systemd-networkd + iwd + systemd-resolved in place of NetworkManager: `sudo ./network/install-network.sh` (`--nm` switches back). DNS has one setting for Ethernet and one for Wi-Fi (every Wi-Fi network), edited in the DNS settings window (panel DNS card, or `qs ipc call dns open`): IPv4 and IPv6 each Automatic (the network's own, i.e. the ISP's) or your servers, IPv6 can be switched off per connection, plus the DNS-over-TLS server name. `dns-set` writes it as a networkd drop-in and clears any temporary `resolvectl dns` servers on that connection; the window says whether the connection took it, and a connection that is switched off stays off (the setting applies when it is switched on). The profile ID never enters the repo. The Ethernet and Wi-Fi toggles use `net`. Wi-Fi picker: `wifi` (SUPER+SHIFT+W, the bar's network icon, or right-click the panel's Wi-Fi toggle) |
 | `openrgb/` | `openrgb.service` (headless server, re-applies the saved preset at login) + `rgb` script; the panel's Lighting row switches presets (`~/.config/OpenRGB/profiles/*.json`) |
 | `clamav/` | ClamAV on-access scanning: a blocking tier on Downloads and the other inbound folders, a detect tier on the rest of `~`, a weekly full scan, desktop notifications and a watchdog. `sudo ./clamav/install-clamav.sh` once (it also builds the shim that makes clamonacc work on glibc 2.44), `sudo ./clamav/apply.sh` after editing `clamav/stage/`. The panel's ClamAV card has a master switch and a switch for every unit. Details in [`clamav/README.md`](clamav/README.md) |
+| `perms/` | Permissions window (Waybar shield, or `qs ipc call perms open`): microphone, screen sharing and background clipboard reading can be blocked per app or switched off for all; camera, network, file access, notifications and background apps are shown. `perms` (in `scripts/`) keeps the rules in `~/.local/state/perms/` and turns them into WirePlumber permission managers (mic, portal screen shares), Hyprland screencopy permissions, and a launch gate (`perms run`, used by rofi and the app binds) that starts a clipboard-blocked app inside a Wayland security context, where Hyprland hides the clipboard data-control protocols. Old X11 apps and apps started from a terminal are not covered. `sudo ./perms/install-perms.sh` once: it builds that launcher and installs `perms-filed`, a fanotify service that records which app opens files in which folder of `~` (watch only). Tests: `python3 -B -m unittest discover -s perms/test` |
 | `amd/`     | `sudo ./amd/install-lact.sh`: LACT (GPU clocks/power/fans GUI + daemon) and the `amdgpu.ppfeaturemask` kernel parameter that unlocks overdrive; reboot after. `amd/ryzen.conf` + `sudo ./amd/install-ryzenadj.sh`: CPU thermal/PPT/Curve-Optimizer limits via RyzenAdj (AUR), re-applied at boot and after resume; also installs `cpu-tctl`, which the panel's slider calls through polkit |
 | `test/`    | `nested.sh`: try the config in a window         |
 
@@ -70,6 +73,7 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 sudo pacman -S --needed --asexplicit - < packages.txt
 sudo ./clamav/install-clamav.sh   # optional; before ./install.sh, which links the ClamAV user units only if ClamAV is there
 ./install.sh
+sudo ./perms/install-perms.sh     # optional; clipboard blocking and the file access history in the permissions window
 ```
 
 ## License
