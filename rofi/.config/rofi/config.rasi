@@ -12,8 +12,9 @@ configuration {
     sort:                true;
     sorting-method:      "fzf";
     terminal:            "kitty";
-    /* every launch passes the permissions gate (clipboard blocking); ~/.local/bin is on PATH via uwsm */
-    run-command:         "perms run {cmd}";
+    /* every launch passes the permissions gate (clipboard blocking); ~/.local/bin is on PATH via uwsm.
+       Without perms installed the command runs directly; with it, a refusal from the gate stands. */
+    run-command:         "sh -c 'if command -v perms >/dev/null; then exec perms run \"$@\"; else exec \"$@\"; fi' sh {cmd}";
     kb-remove-to-eol:    "";
     kb-accept-entry:     "Return,KP_Enter";
     kb-row-up:           "Up,Control+k,Control+p";

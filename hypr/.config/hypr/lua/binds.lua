@@ -17,8 +17,11 @@ local function gbind(keys, dsp, desc, opts)
 end
 local function bind(keys, dsp, desc, opts) return gbind(mod .. " + " .. keys, dsp, desc, opts) end
 local function run(cmd) return hl.dsp.exec_cmd(cmd) end
--- apps go through the permissions launch gate, which starts them restricted when their clipboard is blocked
-local function app(cmd) return run("~/.local/bin/perms run " .. cmd) end
+-- apps go through the permissions launch gate, which starts them restricted when their clipboard is blocked.
+-- Without perms installed they start directly; with it, a refusal from the gate stands (no fallback).
+local function app(cmd)
+    return run("if [ -x ~/.local/bin/perms ]; then exec ~/.local/bin/perms run " .. cmd .. "; else exec " .. cmd .. "; fi")
+end
 
 -- ── Apps ─────────────────────────────────────────────────────
 bind("Return",         app(term),     "terminal")
