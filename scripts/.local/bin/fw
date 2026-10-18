@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# fw: the ufw firewall (rules in firewall/install-firewall.sh).
+#   fw status    one JSON line for the panel: installed, on, allow-rule count, packets blocked this boot
+#   fw on|off    switch it (pkexec asks for the password)
+#   fw log       blocked packets this boot
+set -uo pipefail
+CONF=/etc/ufw/ufw.conf
+RULES=/etc/ufw/user.rules
+
+case "${1:-status}" in
+    status)
+        if ! command -v ufw >/dev/null || [[ ! -r $CONF ]]; then
+            printf '{"installed":false,"on":false,"rules":0,"blocked":0}\n'; exit 0
+        fi
+        on=false
+        grep -qx 'ENABLED=yes' "$CONF" && systemctl is-active -q ufw && on=true
+        rules=$(grep -c '^### tuple' "$RULES" 2>/dev/null)
+        blocked=$(journalctl -k -b -o cat 2>/dev/null | grep -c '\[UFW BLOCK\]')
+        printf '{"installed":true,"on":%s,"rules":%d,"blocked":%d}\n' "$on" "${rules:-0}" "${blocked:-0}" ;;
+    on)  pkexec ufw enable ;;
+    off) pkexec ufw disable ;;
+    log) journalctl -k -b -o short-precise --grep 'UFW BLOCK' ;;
+    *)   sed -n '2,5p' "$0"; exit 2 ;;
+esac
