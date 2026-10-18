@@ -118,6 +118,13 @@ bind("mouse_down", hl.dsp.focus({ workspace = "e+1" }),       "next workspace (s
 bind("mouse_up",   hl.dsp.focus({ workspace = "e-1" }),       "previous workspace (scroll)")
 bind("S",          hl.dsp.workspace.toggle_special("scratch"), "toggle scratchpad")
 bind("SHIFT + S",  hl.dsp.window.move({ workspace = "special:scratch", follow = true }), "move window to scratchpad")
+-- more scratchpads on the keys beside S: SUPER+key toggles, SUPER+ALT+key moves the focused window in
+-- (ALT because SUPER+SHIFT+D is Discord). Add a row here for another one.
+local pads = { S = "scratch", D = "scratch2", Z = "scratch3" }
+for key, name in pairs(pads) do
+    if key ~= "S" then bind(key, hl.dsp.workspace.toggle_special(name), "toggle scratchpad " .. name) end
+    bind("ALT + " .. key, hl.dsp.window.move({ workspace = "special:" .. name, follow = true }), "move window to scratchpad " .. name)
+end
 -- "close to tray": hide the window (keeps running) / pick a hidden one to bring back
 bind("M",          hl.dsp.window.move({ workspace = "special:tray", follow = false }), "hide window to tray")
 bind("SHIFT + M",  run("~/.local/bin/untray"),                                        "restore window from tray")
