@@ -39,11 +39,14 @@ for p in "${pkgs[@]}"; do
     stow -v $op -t "$HOME" "$p"
 done
 for unit in quickshell/quickshell.service openrgb/openrgb.service \
-            clamav/clamav-notify.service clamav/clamav-weekly-scan.service clamav/clamav-weekly-scan.timer; do   # user units shipped by packages
+            clamav/clamav-notify.service clamav/clamav-weekly-scan.service clamav/clamav-weekly-scan.timer \
+            backup/backup.service backup/backup.timer; do   # user units shipped by packages
     [[ -n "$op" ]] && continue
     [[ " ${pkgs[*]} " == *" ${unit%%/*} "* || " ${pkgs[*]} " == *" scripts "* ]] || continue
     [[ $unit == clamav/* ]] && ! command -v clamdscan >/dev/null && continue   # ClamAV itself: sudo ./clamav/install-clamav.sh
+    [[ $unit == backup/* ]] && ! command -v restic >/dev/null && continue       # restic: sudo ./backup/install-backup.sh
     [[ -e "$HOME/.config/systemd/user/$(basename "$unit")" ]] || { systemctl --user link "$REPO/$unit" >/dev/null && echo "LINK: unit $(basename "$unit")"; }
+    [[ $unit == backup/* ]] && continue   # `backup init` enables the timer once the repository exists
     systemctl --user enable "$(basename "$unit")" >/dev/null 2>&1 || true
 done
 [[ -d "$BK" ]] && echo "previous configs moved to: $BK  (restore.sh reverses this)"

@@ -66,6 +66,11 @@ fw=$("$REPO/scripts/.local/bin/fw" status)
 if [[ $(jq -r .installed <<<"$fw") == true ]]; then
     [[ $(jq -r .on <<<"$fw") == true ]] && ok "firewall on" || bad "firewall off" "fw on"
 else skip "firewall not set up"; fi
+bk=$("$REPO/scripts/.local/bin/backup" status)
+if [[ $(jq -r .setup <<<"$bk") == true ]]; then
+    systemctl --user is-active -q backup.timer && ok "backup timer (last: $(jq -r '.last // ""' <<<"$bk"))" \
+        || bad "backup timer off" "backup init"
+else skip "backup not set up (sudo ./backup/install-backup.sh LABEL=..., then backup init)"; fi
 if [[ -f /var/lib/dotfiles-sddm/theme.conf ]]; then ok "SDDM theme"; else skip "SDDM theme not installed"; fi
 
 printf '\n'

@@ -1,4 +1,4 @@
-// Safeguards: system snapshots (snapper), the firewall (ufw). One row per safeguard, each with its state and actions.
+// Safeguards: system snapshots (snapper), the firewall (ufw), the home backup (restic). One row per safeguard, each with its state and actions.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -56,6 +56,25 @@ Widgets.Tile {
             Widgets.Switch { on: fwRow.v.on === true; enabled: !tile.busy && fwRow.v.installed === true; onClicked: tile.run([tile.bin + "fw", fwRow.v.on ? "off" : "on"], true) }
             Text { text: "\u{F0341}"; color: Theme.muted; font { family: Theme.fontIcon; pixelSize: 11 } }   // lock: needs auth
             Widgets.Button { label: "Log"; onClicked: { Panel.launch(["kitty", "--title", "firewall log", "-e", "bash", "-c", tile.bin + "fw log | less +G"]); Panel.setOpen(false) } }
+        }
+
+        Guard {
+            id: bkRow
+            readonly property var v: tile.s.backup || {}
+            // added bytes from the last run, as a short size
+            function size(b) { return b >= 1073741824 ? (b / 1073741824).toFixed(1) + " GiB" : b >= 1048576 ? Math.round(b / 1048576) + " MiB" : Math.round(b / 1024) + " KiB" }
+            glyph: "\u{F006F}"   // backup-restore
+            tint: !v.setup ? Theme.red : (v.running ? Theme.accent : (v.result === "ok" ? Theme.green : Theme.yellow))
+            title: "Backup"
+            detail: !v.setup ? "Not set up: sudo ./backup/install-backup.sh LABEL=..., then backup init"
+                : (v.running ? "Backing up…" : (v.last !== "" ? "Last " + v.last + (v.result === "ok" ? " (+" + size(v.added) + ")" : "") : "No backup yet"))
+                  + (v.result !== "ok" && v.result !== "" && !v.running ? "  ·  " + v.result : "")
+                  + (v.drive ? "" : "  ·  drive absent")
+            Widgets.Button {
+                label: "Back up now"
+                enabled: !tile.busy && bkRow.v.setup === true && bkRow.v.drive === true && bkRow.v.running !== true
+                onClicked: tile.run(["systemctl", "--user", "start", "--no-block", "backup.service"])
+            }
         }
     }
 }

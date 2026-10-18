@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# backup: restic backup of ~ to the backup drive (sudo ./backup/install-backup.sh sets up the mount).
+#   backup init        create the repository and a random password in ~/.config/restic (once)
+#   backup run         back up now, then thin out old snapshots (the daily timer runs this)
+#   backup status      one JSON line for the panel
+#   backup snapshots   list snapshots
+#   backup browse      mount the snapshots read-only at ~/.local/state/backup/browse (Ctrl+C to unmount)
+# Settings live outside the repo in ~/.config/restic/env (RESTIC_REPOSITORY, RESTIC_PASSWORD_FILE);
+# excludes are backup/excludes.txt in the dotfiles. A missing drive is not an error: the run is skipped.
+set -uo pipefail
+REPO_DIR="$(cd "$(dirname "$(readlink -f "$0")")/../../.." && pwd)"
+CONF="${XDG_CONFIG_HOME:-$HOME/.config}/restic"
+STATE="${XDG_STATE_HOME:-$HOME/.local/state}/backup"
+EXCLUDES="$REPO_DIR/backup/excludes.txt"
+KEEP=(--keep-daily 7 --keep-weekly 4 --keep-monthly 6)
+mkdir -p "$STATE"
+
+load() {
+    [[ -f $CONF/env ]] || return 1
+    set -a
+    # shellcheck source=/dev/null
+    . "$CONF/env"
+    set +a
+    [[ -n ${RESTIC_REPOSITORY:-} && -n ${RESTIC_PASSWORD_FILE:-} ]]
+}
+# A local repository counts only when its drive is really mounted: an empty mount point would otherwise
+# take the backup onto the system disk. Listing it first triggers the automount.
+drive_present() {
+    [[ $RESTIC_REPOSITORY == /* ]] || return 0
+    local m=${RESTIC_REPOSITORY%/*}
+    timeout 10 ls "$m" >/dev/null 2>&1 && mountpoint -q "$m"
+}
+note() { notify-send -a backup -i drive-harddisk "$@"; }
+json_str() { local s=${1//\\/\\\\}; s=${s//\"/\\\"}; printf '"%s"' "$s"; }
+
+case "${1:-status}" in
+    init)
+        mkdir -p "$CONF"; chmod 700 "$CONF"
+        if [[ ! -f $CONF/env ]]; then
+            printf 'RESTIC_REPOSITORY=/mnt/backup/restic\nRESTIC_PASSWORD_FILE=%s/password\n' "$CONF" >"$CONF/env"
+        fi
+        load || { echo "fill in $CONF/env" >&2; exit 1; }
+        if [[ ! -f $RESTIC_PASSWORD_FILE ]]; then
+            (umask 077; head -c 32 /dev/urandom | base64 >"$RESTIC_PASSWORD_FILE")
+            echo "password written to $RESTIC_PASSWORD_FILE"
+        fi
+        drive_present || { echo "backup drive not mounted at ${RESTIC_REPOSITORY%/*}" >&2; exit 1; }
+        restic cat config >/dev/null 2>&1 && { echo "repository already initialised"; exit 0; }
+        restic init || exit 1
+        for u in backup.service backup.timer; do
+            [[ -e ${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/$u ]] || systemctl --user link "$REPO_DIR/backup/$u"
+        done
+        systemctl --user enable --now backup.timer
+        echo
+        echo "Copy the password somewhere that is NOT this disk (a password manager): without it the backup"
+        echo "cannot be read, and if ~ is lost the password file goes with it."
+        echo "  $(cat "$RESTIC_PASSWORD_FILE")"
+        ;;
+    run)
+        load || { echo "not set up: backup init" >&2; exit 1; }
+        if ! drive_present; then
+            echo "skipped: drive absent" >"$STATE/last-result"; echo "backup drive absent, skipped"; exit 0
+        fi
+        start=$(date +%s)
+        # the browse mount lives under ~ and would otherwise be read back into the backup
+        if restic backup "$HOME" --exclude-file "$EXCLUDES" --exclude-caches --exclude "$STATE/browse" \
+                --tag auto --json >"$STATE/last.json" 2>"$STATE/last.err"; then
+            restic forget --tag auto "${KEEP[@]}" --prune >>"$STATE/last.err" 2>&1
+            jq -r 'select(.message_type=="summary") | "ok \(.data_added) \(.total_files_processed)"' "$STATE/last.json" \
+                | tail -1 >"$STATE/last-result"
+            date +%s >"$STATE/last-ok"
+            echo "done in $(( $(date +%s) - start )) s"
+        else
+            echo "failed: $(tail -1 "$STATE/last.err")" >"$STATE/last-result"
+            note -u critical "Backup failed" "$(tail -1 "$STATE/last.err")"
+            exit 1
+        fi ;;
+    status)
+        if ! command -v restic >/dev/null || ! load; then
+            printf '{"setup":false,"running":false,"drive":false,"last":"","result":"","added":0}\n'; exit 0
+        fi
+        running=false; systemctl --user is-active -q backup.service && running=true
+        drive=false; drive_present && drive=true
+        last=""; [[ -f $STATE/last-ok ]] && last=$(date -d "@$(<"$STATE/last-ok")" '+%Y-%m-%d %H:%M')
+        result=$(cat "$STATE/last-result" 2>/dev/null || echo "")
+        added=0; [[ $result == ok\ * ]] && { added=$(cut -d' ' -f2 <<<"$result"); result=ok; }
+        printf '{"setup":true,"running":%s,"drive":%s,"last":"%s","result":%s,"added":%s}\n' \
+            "$running" "$drive" "$last" "$(json_str "$result")" "${added:-0}" ;;
+    snapshots)
+        load && restic snapshots ;;
+    browse)
+        load || exit 1
+        mkdir -p "$STATE/browse"
+        echo "snapshots at $STATE/browse (Ctrl+C here to unmount)"
+        restic mount "$STATE/browse" ;;
+    *) sed -n '2,8p' "$0"; exit 2 ;;
+esac

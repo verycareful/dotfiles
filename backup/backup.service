@@ -1,0 +1,9 @@
+[Unit]
+Description=restic backup of the home folder (backup/ in the dotfiles)
+Documentation=file://%h/.local/bin/backup
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/backup run
+Nice=10
+IOSchedulingClass=idle

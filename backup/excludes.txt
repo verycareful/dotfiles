@@ -1,0 +1,35 @@
+# restic excludes for the home backup (paths are matched anywhere under ~ unless they start with $HOME).
+# Rule: leave out what is re-downloadable or rebuilt; keep saves, configs and your own files.
+
+# caches and trash
+$HOME/.cache
+$HOME/.local/share/Trash
+$HOME/.config/*/Cache
+$HOME/.config/*/Code Cache
+$HOME/.config/*/GPUCache
+$HOME/.config/*/Service Worker/CacheStorage
+
+# game libraries: reinstallable, hundreds of GB (Paradox saves in ~/.local/share stay in)
+$HOME/Games
+$HOME/.local/share/Steam
+$HOME/.local/share/atlauncher
+
+# toolchains and SDKs
+$HOME/.rustup
+$HOME/.cargo/registry
+$HOME/.cargo/git
+$HOME/Android
+$HOME/.gradle
+$HOME/.npm
+$HOME/.m2/repository
+
+# Claude Desktop's VM images (redownloaded on demand)
+$HOME/.config/Claude/vm_bundles
+
+# build output inside projects
+node_modules
+target
+.venv
+__pycache__
+.gradle
+*.o

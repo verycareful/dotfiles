@@ -1,4 +1,4 @@
-// System, ClamAV and safeguard (snapshot, firewall) numbers for the panel, polled only while it is open.
+// System, ClamAV and safeguard (snapshot, firewall, backup) numbers for the panel, polled only while it is open.
 pragma Singleton
 import QtQuick
 import Quickshell
@@ -8,7 +8,7 @@ Singleton {
     id: root
     property var sys: ({ cpu: 0, tctl: 0, memUsed: 0, memTotal: 0, gpu: 0, gpuTemp: 0, vramUsed: 0, vramTotal: 0, uptime: "", updates: "" })
     property var clam: ({ units: [], found: 0, lastScan: "", lastInfected: "", lastStopped: "", log: "", sigs: "", scanning: false })
-    property var safe: ({ snap: {}, fw: {} })
+    property var safe: ({ snap: {}, fw: {}, backup: {} })
     function refreshClam() { clamP.running = true }
     function refreshSafe() { safeP.running = true }
 
