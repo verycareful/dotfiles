@@ -11,6 +11,7 @@ systemd-tmpfiles --create clamav.conf   # /run/clamav /var/log/clamav /var/lib/c
 step "Building and installing the fts shim for clamonacc (glibc >= 2.44 workaround, see fts-shim/)"
 gcc -O2 -fPIC -shared -Wall -o "$S/fts-shim/clamonacc-fts-shim.so" "$S/fts-shim/clamonacc-fts-shim.c" -ldl
 install -v -Dm644 -o root -g root "$S/fts-shim/clamonacc-fts-shim.so" /usr/local/lib/clamonacc-fts-shim.so
+install -v -Dm644 "$S/fts-shim/clamonacc-fts-shim.c" /usr/local/src/dotfiles/clamonacc-fts-shim.c   # the glibc pacman hook rebuilds from this
 
 step "Installing configuration"
 install -v -Dm644 "$S/stage/etc/clamav/clamd.conf"            /etc/clamav/clamd.conf

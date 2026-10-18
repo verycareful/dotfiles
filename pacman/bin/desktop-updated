@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# pacman hook (50-dotfiles-desktop-updated): list what was upgraded and the checks worth running.
+set -uo pipefail
+mapfile -t pkgs
+for p in "${pkgs[@]}"; do printf '  %s %s\n' "$p" "$(pacman -Q "$p" 2>/dev/null | cut -d' ' -f2)"; done
+cat <<'MSG'
+  Check, as your user:  doctor        (Hyprland config errors, Quickshell IPC, units)
+                        hyprctl configerrors
+  Quickshell reloads its config by itself; Hyprland picks up its new version at the next login.
+  If the Lua config breaks on a new Hyprland, ./restore.sh hypr in the dotfiles switches to the .conf fallback.
+MSG

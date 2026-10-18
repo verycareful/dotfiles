@@ -1,0 +1,12 @@
+# clamonacc runs with an LD_PRELOAD fts shim built against glibc; rebuild it whenever glibc or clamav changes.
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = glibc
+Target = clamav
+
+[Action]
+Description = Rebuilding the clamonacc fts shim
+When = PostTransaction
+Exec = /usr/local/lib/dotfiles/rebuild-fts-shim

@@ -5,6 +5,7 @@ set -euo pipefail
 S="$(cd "$(dirname "$0")" && pwd)"
 gcc -O2 -fPIC -shared -Wall -o "$S/fts-shim/clamonacc-fts-shim.so" "$S/fts-shim/clamonacc-fts-shim.c" -ldl
 install -v -Dm644 -o root -g root "$S/fts-shim/clamonacc-fts-shim.so" /usr/local/lib/clamonacc-fts-shim.so
+install -v -Dm644 "$S/fts-shim/clamonacc-fts-shim.c" /usr/local/src/dotfiles/clamonacc-fts-shim.c   # the glibc pacman hook rebuilds from this
 install -v -Dm644 "$S/stage/etc/clamav/clamd.conf"            /etc/clamav/clamd.conf
 install -v -Dm644 "$S/stage/etc/clamav/clamonacc-block.conf"  /etc/clamav/clamonacc-block.conf
 install -v -Dm644 "$S/stage/etc/clamav/clamonacc-notify.conf" /etc/clamav/clamonacc-notify.conf

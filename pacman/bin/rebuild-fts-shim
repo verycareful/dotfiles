@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# pacman hook (60-dotfiles-clamonacc-shim): rebuild the clamonacc fts shim and restart the on-access tiers.
+# The source is copied to /usr/local/src/dotfiles by pacman/install-hooks.sh; without it, or without ClamAV, nothing happens.
+set -uo pipefail
+SRC=/usr/local/src/dotfiles/clamonacc-fts-shim.c
+LIB=/usr/local/lib/clamonacc-fts-shim.so
+[[ -f $SRC && -f $LIB ]] || exit 0
+command -v gcc >/dev/null || { echo "  gcc missing: the fts shim was not rebuilt" >&2; exit 0; }
+tmp=$(mktemp --suffix=.so)
+if gcc -O2 -fPIC -shared -Wall -o "$tmp" "$SRC" -ldl; then
+    install -m644 -o root -g root "$tmp" "$LIB"
+    echo "  rebuilt $LIB"
+    for u in $(systemctl list-units --state=active --no-legend --plain 'clamav-clamonacc@*' | cut -d' ' -f1); do
+        systemctl try-restart "$u" && echo "  restarted $u"
+    done
+else
+    echo "  fts shim build failed; the old one stays in place" >&2
+fi
+rm -f "$tmp"

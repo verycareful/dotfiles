@@ -1,0 +1,14 @@
+# After an upgrade of the compositor or the shell, say what to check: both change config syntax often.
+[Trigger]
+Operation = Upgrade
+Type = Package
+Target = hyprland
+Target = quickshell
+Target = hyprlock
+Target = hypridle
+
+[Action]
+Description = Desktop packages updated: checks to run
+When = PostTransaction
+NeedsTargets
+Exec = /usr/local/lib/dotfiles/desktop-updated
