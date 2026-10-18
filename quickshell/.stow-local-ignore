@@ -1,0 +1,2 @@
+# quickshell.service is linked into ~/.config/systemd/user by install.sh, not stowed into ~
+^/quickshell\.service$

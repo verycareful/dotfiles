@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# doctor: check that the dotfiles are deployed and running, and say how to fix what is not.
+#   doctor        every check, one line each; exit 1 if anything failed
+# Checks: stow links, packages.txt, rendered theme files, session and user units, Hyprland config errors,
+# Quickshell IPC, the pre-commit hook, and each optional system part (absent ones are skipped, not failed).
+set -uo pipefail
+REPO="$(cd "$(dirname "$(readlink -f "$0")")/../../.." && pwd)"
+fails=0
+ok()   { printf '  \033[32m✓\033[0m %s\n' "$1"; }
+bad()  { printf '  \033[31m✗\033[0m %s\n      fix: %s\n' "$1" "$2"; fails=$((fails + 1)); }
+skip() { printf '  \033[90m- %s\033[0m\n' "$1"; }
+section() { printf '\n\033[1m%s\033[0m\n' "$1"; }
+
+section "Links"
+mapfile -t pkgs < <(sed -n 's/^ALL=(\(.*\))$/\1/p' "$REPO/install.sh" | tr ' ' '\n')
+for p in "${pkgs[@]}"; do
+    out=$(cd "$REPO" && stow -n -v -t "$HOME" "$p" 2>&1 | grep -E '^LINK|CONFLICT|existing target')
+    if [[ -z $out ]]; then ok "$p"; else bad "$p: $(head -1 <<<"$out")" "./install.sh $p"; fi
+done
+
+section "Packages"
+mapfile -t want < <(grep -v '^#' "$REPO/packages.txt" | tr ' ' '\n' | grep -v '^$')
+missing=$(pacman -T "${want[@]}" 2>/dev/null | tr '\n' ' ')
+if [[ -z $missing ]]; then ok "${#want[@]} from packages.txt"; else bad "not installed: $missing" "sudo pacman -S --needed --asexplicit $missing"; fi
+
+section "Theme"
+theme=$(cat "${XDG_STATE_HOME:-$HOME/.local/state}/theme/current" 2>/dev/null || echo "")
+gen_missing=()
+CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
+for f in hypr/lua/colors.lua waybar/colors.css quickshell/Theme.qml kitty/colors.conf rofi/themes/colors.rasi \
+         gtk-3.0/gtk.css fish/conf.d/colors.fish starship.toml; do
+    [[ -e $CFG/$f ]] || gen_missing+=("$f")
+done
+if [[ -n $theme && ${#gen_missing[@]} -eq 0 ]]; then ok "$theme rendered"
+else bad "theme files missing: ${gen_missing[*]:-no current theme}" "theme set ${theme:-harbour}"; fi
+
+section "Session"
+for u in waybar quickshell hypridle hyprsunset hyprpolkitagent; do
+    if systemctl --user is-active -q "$u"; then ok "$u"; else bad "$u is not running" "systemctl --user start $u"; fi
+done
+if systemctl --user is-enabled -q openrgb 2>/dev/null; then
+    systemctl --user is-active -q openrgb && ok openrgb || bad "openrgb is not running" "systemctl --user restart openrgb"
+fi
+errs=$(hyprctl configerrors 2>/dev/null | grep -v '^$')
+if [[ -z $errs ]]; then ok "Hyprland config"; else bad "Hyprland config: $(head -1 <<<"$errs")" "hyprctl configerrors"; fi
+if timeout 3 qs ipc call panel status >/dev/null 2>&1; then ok "Quickshell IPC"; else bad "Quickshell does not answer IPC" "systemctl --user restart quickshell"; fi
+
+section "Repo"
+if [[ $(git -C "$REPO" config core.hooksPath) == .githooks ]]; then ok "pre-commit hook"; else bad "pre-commit hook not enabled" "git -C $REPO config core.hooksPath .githooks"; fi
+
+section "System (optional)"
+if command -v clamdscan >/dev/null; then
+    [[ -f /usr/local/lib/clamonacc-fts-shim.so ]] && ok "ClamAV fts shim" || bad "ClamAV fts shim missing" "sudo ./clamav/install-clamav.sh"
+    for u in clamav-daemon clamav-clamonacc@block clamav-clamonacc@notify; do
+        systemctl is-active -q "$u" && ok "$u" || bad "$u is not running" "panel ClamAV card, or sudo systemctl start $u"
+    done
+else skip "ClamAV not installed"; fi
+if [[ -x /usr/local/bin/perms-sandbox ]]; then
+    systemctl list-units --state=active --no-legend 'perms-filed@*' | grep -q . \
+        && ok "perms (sandbox, perms-filed)" || bad "perms-filed is not running" "sudo ./perms/install-perms.sh"
+else skip "perms not installed"; fi
+if command -v snapper >/dev/null && snapper -c root list >/dev/null 2>&1; then
+    systemctl is-active -q snapper-timeline.timer && ok "snapper (timeline on)" || bad "snapper timeline off" "sudo ./snapper/install-snapper.sh"
+else skip "snapper not set up (sudo ./snapper/install-snapper.sh)"; fi
+fw=$("$REPO/scripts/.local/bin/fw" status)
+if [[ $(jq -r .installed <<<"$fw") == true ]]; then
+    [[ $(jq -r .on <<<"$fw") == true ]] && ok "firewall on" || bad "firewall off" "fw on"
+else skip "firewall not set up"; fi
+if [[ -f /var/lib/dotfiles-sddm/theme.conf ]]; then ok "SDDM theme"; else skip "SDDM theme not installed"; fi
+
+printf '\n'
+if (( fails == 0 )); then echo "All good."; else echo "$fails problem(s)."; exit 1; fi

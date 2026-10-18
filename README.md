@@ -53,7 +53,7 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |
 | `thunar/`  | file manager: right-click actions (Open Terminal Here in kitty, Open in VS Code, Copy Path, Set as Wallpaper via `wall`) and the preferences in `thunar.xfconf`, which install.sh writes with `xfconf-query` (xfconf also stores window state, so the file itself is not linked). Thumbnails come from tumbler, Extract/Compress from thunar-archive-plugin with ark. Styling follows the GTK theme |
-| `scripts/` | helpers in `~/.local/bin` (`clip`: clipboard history on SUPER+V with image thumbnails; `screenrec`: gpu-screen-recorder on ALT+Print (area), ALT+SHIFT+Print (screen), SUPER+ALT+Print (window), CTRL+ALT+Print (area with mic), the same key again stops, saved to `~/Videos/Recordings` with a red timer on the bar; SUPER+SHIFT+R keeps a 60 s instant replay, SUPER+ALT+R saves it; `theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`, `net`, `perms`, `snap`, `fw`) |
+| `scripts/` | helpers in `~/.local/bin` (`clip`: clipboard history on SUPER+V with image thumbnails; `screenrec`: gpu-screen-recorder on ALT+Print (area), ALT+SHIFT+Print (screen), SUPER+ALT+Print (window), CTRL+ALT+Print (area with mic), the same key again stops, saved to `~/Videos/Recordings` with a red timer on the bar; SUPER+SHIFT+R keeps a 60 s instant replay, SUPER+ALT+R saves it; `theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`, `net`, `perms`, `snap`, `fw`, `doctor`) |
 | `themes/`  | `*.theme` colour files + `templates/` rendered by `theme` |
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal), all OFL; JetBrainsMono Nerd Font supplies icons |
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
@@ -71,7 +71,8 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 1. Edit files in the repo.
 2. `./test/nested.sh` to try them in a nested Hyprland window.
 3. `./install.sh` (stow) to deploy for real (re-run `./install.sh scripts` after adding a new script, since `~/.local/bin` is linked per file). Existing configs are moved to `~/.local/state/dotfiles-backup/` first; `./restore.sh` reverses it (only useful right after a first install; once you live on these dotfiles, fix a broken login with `./install.sh`, not `restore.sh`). Hyprland reloads its Lua config on save (`hyprctl reload` forces it). `hyprctl dispatch` takes Lua now (`hyprctl dispatch 'hl.dsp.exit()'`); scripts use `~/.local/bin/hdsp 'LUA' LEGACY…` so they also work on the fallback config. `hyprctl repl` is a live Lua prompt; SUPER+/ lists every bind with its description.
-4. Commit.
+4. `doctor` checks the result: links, packages, theme files, session units, Hyprland config errors, Quickshell IPC, the pre-commit hook and each optional system part, with the fix for anything wrong.
+5. Commit.
 
 ## Fresh machine
 ```sh
