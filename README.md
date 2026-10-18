@@ -45,7 +45,7 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 
 | dir        | what                                             |
 |------------|--------------------------------------------------|
-| `hypr/`    | Hyprland (`hyprland.lua` → `lua/*.lua`; the pre-0.55 `hyprland.conf` → `conf.d/*.conf` set is kept as a fallback, `./restore.sh hypr` swaps between them), hyprlock, hypridle |
+| `hypr/`    | Hyprland (`hyprland.lua` → `lua/*.lua`; the pre-0.55 `hyprland.conf` → `conf.d/*.conf` set is kept as a fallback, `./restore.sh hypr` swaps between them), hyprlock, hypridle, hyprsunset (night light schedule: 4500 K from 19:00, 3500 K from 22:30, off from 06:30; the panel toggle overrides it until the next step) |
 | `waybar/`  | status bar                                       |
 | `rofi/`    | launcher / menus                                 |
 | `quickshell/` | Quickshell: notification server, popups + centre (`qs ipc call notifs toggle|dnd|clear|status`) and the widget panel, on the anchor button / SUPER+A (`qs ipc call panel toggle|mediabar|status`): app search, quick toggles, CPU thermal-limit slider (`pkexec cpu-tctl`), media, system card (GPU via LACT), lighting, ClamAV status, calendar. Alt-Tab is a Quickshell switcher too: all windows with live thumbnails, release Alt to jump to one on its own workspace (`qs ipc call switcher next|prev|apply|cancel`). An on-screen display at the bottom centre shows volume and mute and microphone mute as PipeWire reports them (keys, panel and pavucontrol alike), plus Caps Lock and brightness from their binds (`qs ipc call osd caps|brightness`). `Theme.qml` is rendered by `theme` and hot-reloads |
