@@ -35,6 +35,7 @@ done
 ln -sfn "$TMP" "$TMP/config/hypr"
 XDG_STATE_HOME="$TMP/state" "$REPO/scripts/.local/bin/theme" set "$(cat "$HOME/.local/state/theme/current" 2>/dev/null || echo harbour)" --no-reload >/dev/null
 # configs reference ~/.local/bin/<script>; point them at the repo copies instead
+# shellcheck disable=SC2088  # the literal "~/" in the configs is what gets replaced
 grep -rl '~/.local/bin/' "$TMP" | xargs -r sed -i "s#~/.local/bin/#$REPO/scripts/.local/bin/#g"
 
 echo "config: $TMP/hyprland.lua"

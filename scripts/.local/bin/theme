@@ -16,7 +16,7 @@ TPL="$REPO/themes/templates"
 CFG="${XDG_CONFIG_HOME:-$HOME/.config}"
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/theme"; mkdir -p "$STATE"
 
-themes()  { ls "$REPO"/themes/*.theme | xargs -n1 basename | sed 's/\.theme$//'; }
+themes()  { local f; for f in "$REPO"/themes/*.theme; do f=${f##*/}; echo "${f%.theme}"; done; }
 current() { cat "$STATE/current" 2>/dev/null || echo harbour; }
 
 render() {  # $1 theme name
@@ -87,7 +87,8 @@ sddm_render() {  # $1 theme name, $2 output dir — theme.conf + the wallpaper b
 }
 
 reload() {
-    local wp="${WALL_DIR:-$HOME/Pictures/Wallpapers}/$(cat "$STATE/wallpaper" 2>/dev/null)"
+    local wp
+    wp="${WALL_DIR:-$HOME/Pictures/Wallpapers}/$(cat "$STATE/wallpaper" 2>/dev/null)"
     [[ -f "$wp" ]] && command -v wall >/dev/null && wall set "$wp" >/dev/null 2>&1 || true
     command -v hyprctl >/dev/null && hyprctl reload >/dev/null 2>&1 || true   # also re-runs the cursor exec
     local cur; cur=$(sed -n 's/^cursor=//p' "$REPO/themes/$(current).theme")

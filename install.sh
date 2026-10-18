@@ -50,6 +50,9 @@ done
 
 [[ -n "$op" ]] && exit 0
 
+# pre-commit hook: refuses AdGuard profile IDs and private keys (test/secrets.sh)
+git -C "$REPO" config core.hooksPath .githooks
+
 # render the colour files for the active theme (harbour on a fresh machine)
 "$REPO/scripts/.local/bin/theme" set "$(cat "$HOME/.local/state/theme/current" 2>/dev/null || echo harbour)" --no-reload
 

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Blocks a commit whose staged lines hold an AdGuard profile ID or a private key (test/secrets.sh).
+# install.sh points core.hooksPath here.
+exec "$(git rev-parse --show-toplevel)/test/secrets.sh" --staged

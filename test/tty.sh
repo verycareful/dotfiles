@@ -31,6 +31,7 @@ for pkg in waybar rofi kitty quickshell wlogout fastfetch; do
 done
 cp -r "$REPO/gtk/.config/." "$TMP/config/"
 cp -r "$REPO/qt/.config/."  "$TMP/config/"
+# shellcheck disable=SC2088  # the literal "~/" in the configs is what gets replaced
 grep -rl '~/.local/bin/' "$TMP" | xargs -r sed -i "s#~/.local/bin/#$REPO/scripts/.local/bin/#g"
 
 export XDG_CONFIG_HOME="$TMP/config"

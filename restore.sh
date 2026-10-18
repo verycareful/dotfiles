@@ -34,7 +34,7 @@ BK="${1:-$(ls -d "$HOME"/.local/state/dotfiles-backup/[0-9]*/ 2>/dev/null | sort
 (cd "$BK" && { find .config -mindepth 1 -maxdepth 1 2>/dev/null; find . -path ./.config -prune -o -type f -print; } | sed 's#^\./##') | while IFS= read -r rel; do
     mkdir -p "$HOME/$(dirname "$rel")"
     if [[ -d "$BK/$rel" && -d "$HOME/$rel" ]]; then      # target dir exists: merge, don't nest
-        cp -a "$BK/$rel/." "$HOME/$rel/" && rm -rf "$BK/$rel" && echo "merged $rel"
+        cp -a "$BK/$rel/." "$HOME/$rel/" && rm -rf "${BK:?}/${rel:?}" && echo "merged $rel"
     else
         mv -v "$BK/$rel" "$HOME/$rel"
     fi

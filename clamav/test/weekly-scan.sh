@@ -111,6 +111,7 @@ pause_case() { # name | units active at start | how | env | tier during scan | t
     local home="$T/pause-${name// /-}" sd during after err pid
     sd="$home.sd"; mkdir -p "$home/.local/state/clamav" "$sd"
     for u in $start; do touch "$sd/$u"; done
+    # shellcheck disable=SC2206  # $env holds extra VAR=value words and is meant to split
     local run=(env HOME="$home" SD="$sd" XDG_RUNTIME_DIR="$sd" FX="$T/fx/clean" RC=0 PATH="$T/bin:$PATH" $env)
     case $how in
         scan)   "${run[@]}" bash "$SCAN" > /dev/null 2> "$sd/stderr" ;;

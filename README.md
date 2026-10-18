@@ -65,7 +65,7 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 | `snapper/` | Btrfs snapshots of `/`: `sudo ./snapper/install-snapper.sh` sets up snapper's root config (hourly timeline, 5 hourly, 7 daily, 4 weekly), snap-pac (a pre/post pair around every pacman transaction) and grub-btrfs (a GRUB submenu to boot any snapshot), and lets the wheel group list and take snapshots without root. `snap now|list|status|gui` in `scripts/`; the panel's Safeguards card shows the last snapshot, takes one and opens btrfs-assistant. `/home` is not snapshotted (game libraries churn too much there) |
 | `firewall/` | ufw: `sudo ./firewall/install-firewall.sh` drops all inbound traffic except KDE Connect (1714-1764 tcp+udp) from private LAN ranges, and leaves rules added by hand alone. `fw on|off|status|log` in `scripts/`; the Safeguards card has a switch (pkexec), the allow-rule count, packets blocked this boot and the block log |
 | `amd/`     | `sudo ./amd/install-lact.sh`: LACT (GPU clocks/power/fans GUI + daemon) and the `amdgpu.ppfeaturemask` kernel parameter that unlocks overdrive; reboot after. `amd/ryzen.conf` + `sudo ./amd/install-ryzenadj.sh`: CPU thermal/PPT/Curve-Optimizer limits via RyzenAdj (AUR), re-applied at boot and after resume; also installs `cpu-tctl`, which the panel's slider calls through polkit |
-| `test/`    | `nested.sh`: try the config in a window         |
+| `test/`    | `nested.sh`: try the config in a window; `lint.sh`: ShellCheck, `luac -p` on the Lua config, the perms tests and `secrets.sh`, the same checks CI runs on every push; `secrets.sh` refuses AdGuard profile IDs and private keys, and runs as the pre-commit hook (`.githooks/`, set by install.sh) |
 
 ## Workflow
 1. Edit files in the repo.
