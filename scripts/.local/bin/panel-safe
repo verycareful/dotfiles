@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# panel-safe: snapshot, firewall and backup state as one JSON line for the panel's Safeguards card.
+set -uo pipefail
+B="$(dirname "$(readlink -f "$0")")"
+printf '{"snap":%s}\n' "$("$B/snap" status)"

@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# snap: btrfs snapshots of / through snapper (set up by sudo ./snapper/install-snapper.sh).
+#   snap status        one JSON line for the panel: available, count, last snapshot, timeline on/off
+#   snap now [desc]    take a snapshot now (wheel may, without root)
+#   snap list          the snapshot table
+#   snap gui           btrfs-assistant (browse, diff and restore; it asks for the password itself)
+set -uo pipefail
+CFG=root
+
+status() {
+    local json
+    if ! command -v snapper >/dev/null || ! json=$(snapper --jsonout -c "$CFG" list 2>/dev/null); then
+        printf '{"available":false,"count":0,"last":"","lastDesc":"","timeline":false}\n'; return
+    fi
+    local timeline=false
+    systemctl is-active -q snapper-timeline.timer && timeline=true
+    jq -c --argjson tl "$timeline" --arg cfg "$CFG" '
+        [.[$cfg][] | select(.number != 0)] as $s
+        | ($s | max_by(.number)) as $l
+        | { available: true, count: ($s | length),
+            last: ($l.date // "" | .[0:16]), lastDesc: ($l.description // ""), timeline: $tl }' <<<"$json"
+}
+
+case "${1:-status}" in
+    status) status ;;
+    now)
+        desc="${2:-manual}"
+        if snapper -c "$CFG" create --cleanup-algorithm number --description "$desc"; then
+            notify-send -a snapper -i drive-harddisk "Snapshot taken" "$desc"
+        else
+            notify-send -a snapper -u critical -i dialog-error "Snapshot failed" "Is snapper set up? sudo ./snapper/install-snapper.sh"
+            exit 1
+        fi ;;
+    list) snapper -c "$CFG" list ;;
+    gui)  exec btrfs-assistant ;;
+    *)    sed -n '2,6p' "$0"; exit 2 ;;
+esac

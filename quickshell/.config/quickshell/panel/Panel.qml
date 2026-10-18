@@ -51,6 +51,7 @@ Scope {
                 System   { Layout.fillWidth: true }
                 Lighting { Layout.fillWidth: true }
                 ClamAV   { Layout.fillWidth: true }
+                Safeguards { Layout.fillWidth: true }
                 Calendar { Layout.fillWidth: true }
             }
             Connections { target: Panel; function onOpenChanged() { if (Panel.open) search.focusItem.forceActiveFocus() } }
