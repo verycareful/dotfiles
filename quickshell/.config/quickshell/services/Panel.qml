@@ -20,6 +20,16 @@ Singleton {
     }
     function toggle() { setOpen(!open) }
 
+    // ── launching ────────────────────────────────────────────
+    // Every GUI program started from Quickshell goes into its own app-*.scope (uwsm app). Spawned directly it
+    // would sit in quickshell.service's cgroup, and restarting Quickshell would kill it. Electron apps lose
+    // their GPU and network processes that way even though their main process moves to a scope of its own.
+    function launch(cmd) { Quickshell.execDetached(["uwsm", "app", "--"].concat(cmd)) }
+    // Desktop apps also pass the permissions launch gate, like rofi and the app binds
+    function launchApp(cmd) {
+        launch(["sh", "-c", 'if command -v perms >/dev/null; then exec perms run "$@"; else exec "$@"; fi', "sh"].concat(cmd))
+    }
+
     // ── media on bar ─────────────────────────────────────────
     // waybar reloads its CSS when style.css changes; state.css is @imported from it.
     function setMediaOnBar(on) {

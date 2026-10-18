@@ -40,7 +40,7 @@ Widgets.Tile {
                 : v.count + " of /" + (v.last !== "" ? "  ·  last " + v.last + " (" + v.lastDesc + ")" : "")
                   + (v.timeline ? "  ·  hourly" : "  ·  timeline off")
             Widgets.Button { label: "Snapshot now"; enabled: !tile.busy && snapRow.v.available === true; onClicked: tile.run([tile.bin + "snap", "now", "panel"]) }
-            Widgets.Button { label: "Browse"; onClicked: { Quickshell.execDetached([tile.bin + "snap", "gui"]); Panel.setOpen(false) } }
+            Widgets.Button { label: "Browse"; onClicked: { Panel.launch([tile.bin + "snap", "gui"]); Panel.setOpen(false) } }
         }
 
         Guard {
@@ -55,7 +55,7 @@ Widgets.Tile {
                   + "  ·  " + v.blocked + " blocked this boot"
             Widgets.Switch { on: fwRow.v.on === true; enabled: !tile.busy && fwRow.v.installed === true; onClicked: tile.run([tile.bin + "fw", fwRow.v.on ? "off" : "on"], true) }
             Text { text: "\u{F0341}"; color: Theme.muted; font { family: Theme.fontIcon; pixelSize: 11 } }   // lock: needs auth
-            Widgets.Button { label: "Log"; onClicked: { Quickshell.execDetached(["kitty", "--title", "firewall log", "-e", "bash", "-c", tile.bin + "fw log | less +G"]); Panel.setOpen(false) } }
+            Widgets.Button { label: "Log"; onClicked: { Panel.launch(["kitty", "--title", "firewall log", "-e", "bash", "-c", tile.bin + "fw log | less +G"]); Panel.setOpen(false) } }
         }
     }
 }

@@ -88,7 +88,7 @@ Rectangle {
                 maximumLineCount: card.popup ? 4 : 12
                 elide: Text.ElideRight
                 linkColor: Theme.primaryBright
-                onLinkActivated: link => Quickshell.execDetached(["xdg-open", link])
+                onLinkActivated: link => Panel.launch(["xdg-open", link])
             }
 
             // action buttons ("Open", "Mark as read", …) — run, but keep the notification

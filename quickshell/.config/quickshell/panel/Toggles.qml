@@ -14,7 +14,7 @@ RowLayout {
 
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F0200}"; label: "Ethernet";   on: Net.eth.up;                    onClicked: Net.setEthernet(!Net.eth.up) }
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F05A9}"; label: "Wi-Fi";      on: Net.wifi.on;                   onClicked: Net.setWifi(!Net.wifi.on)
-                     onSecondary: { Quickshell.execDetached([Quickshell.env("HOME") + "/.local/bin/wifi"]); Panel.setOpen(false) } }
+                     onSecondary: { Panel.launch([Quickshell.env("HOME") + "/.local/bin/wifi"]); Panel.setOpen(false) } }
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F00AF}"; label: "Bluetooth";  on: bt ? bt.enabled : false;       onClicked: if (bt) bt.enabled = !bt.enabled }
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F009B}"; label: "Do not disturb"; on: Notifs.dnd;                onClicked: Notifs.setDnd(!Notifs.dnd) }
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F0594}"; label: "Night light"; on: Panel.nightLight;             onClicked: Panel.setNightLight(!Panel.nightLight) }

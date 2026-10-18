@@ -44,7 +44,7 @@ ColumnLayout {
                 anchors { left: parent.left; right: parent.right; top: parent.top; margins: 12 }
                 spacing: 8
                 Head { glyph: "\u{F08AE}"; label: "GPU"; name: Gpu.name !== "" ? Gpu.name : "Radeon"
-                       action: Widgets.Button { label: "Open LACT"; onClicked: { Quickshell.execDetached(["lact", "gui"]); Panel.setOpen(false) } } }
+                       action: Widgets.Button { label: "Open LACT"; onClicked: { Panel.launch(["lact", "gui"]); Panel.setOpen(false) } } }
                 Meter { value: Gpu.busyPct; big: Math.round(Gpu.busyPct) + " %"; note: Gpu.clock + " MHz"; hot: Gpu.busyPct >= 95 }
                 Line  { items: [[Math.round(Gpu.tempEdge) + " °C", "edge", Gpu.tempEdge >= 90], [Math.round(Gpu.tempJunc) + " °C", "junction", Gpu.tempJunc >= 100], [Math.round(Gpu.tempMem) + " °C", "memory", Gpu.tempMem >= 95]] }
                 Meter { value: Gpu.vramTotal > 0 ? Gpu.vramUsed / Gpu.vramTotal * 100 : 0; big: Gpu.vramUsed.toFixed(1) + " GiB"; note: "of " + Math.round(Gpu.vramTotal) + " GiB VRAM · " + Gpu.vclock + " MHz"; small: true }

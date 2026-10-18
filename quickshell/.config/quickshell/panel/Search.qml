@@ -34,7 +34,7 @@ ColumnLayout {
     }
     function launch(e) {
         if (!e) return
-        e.execute()
+        Panel.launchApp(e.command)
         input.text = ""
         Panel.setOpen(false)
     }

@@ -89,7 +89,7 @@ Widgets.Tile {
             ColumnLayout {
                 spacing: 4
                 Widgets.Button { Layout.fillWidth: true; label: tile.scanning ? "Scanning…" : "Scan now"; enabled: !tile.scanning && tile.busyUnit === ""; onClicked: tile.scanNow() }
-                Widgets.Button { Layout.fillWidth: true; label: "Open log"; enabled: c.log !== ""; onClicked: Quickshell.execDetached(["kitty", "--title", "clamav log", "-e", "less", "+G", c.log]) }
+                Widgets.Button { Layout.fillWidth: true; label: "Open log"; enabled: c.log !== ""; onClicked: Panel.launch(["kitty", "--title", "clamav log", "-e", "less", "+G", c.log]) }
             }
         }
         // units, two columns
