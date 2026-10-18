@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# actions: one rofi menu for the desktop's own commands (SUPER+X).
+#   actions        open the menu
+# Each row is "glyph  label" mapped to a command below; add a row to both arrays to extend it.
+set -uo pipefail
+B="$HOME/.local/bin"
+
+labels=(
+    "󰏘  Theme…"
+    "󰸉  Wallpaper…"
+    "󰅍  Clipboard history"
+    "󰞅  Emoji…"
+    "󰃬  Calculator"
+    "󰹑  Screenshot: area"
+    "󰑊  Record: area (again to stop)"
+    "󰕧  Instant replay on/off"
+    "󰆓  Snapshot of / now"
+    "󰒃  Firewall on/off"
+    "󰖩  Wi-Fi networks"
+    "󰇖  DNS settings"
+    "󰌾  Permissions"
+    "󰑓  Reload Hyprland"
+    "󰑐  Restart Waybar"
+    "󰑐  Restart Quickshell"
+    "󰐥  Power menu"
+)
+cmds=(
+    "$B/theme pick"
+    "$B/wall pick"
+    "$B/clip"
+    "rofimoji --action copy"
+    "rofi -show calc -modi calc -no-show-match -no-sort -calc-command 'echo -n {result} | wl-copy'"
+    "$B/shot area"
+    "$B/screenrec area"
+    "$B/screenrec replay"
+    "$B/snap now menu"
+    "fw_toggle"
+    "$B/wifi"
+    "qs ipc call dns open"
+    "qs ipc call perms open"
+    "hyprctl reload"
+    "systemctl --user restart waybar"
+    "systemctl --user restart quickshell"
+    "wlogout -b 5 -T 520 -B 520 -L 440 -R 440"
+)
+
+fw_toggle() {
+    if [[ $("$B/fw" status | jq -r .on) == true ]]; then "$B/fw" off; else "$B/fw" on; fi
+}
+
+i=$(printf '%s\n' "${labels[@]}" | rofi -dmenu -i -p "actions" -format i) || exit 0
+[[ -n $i ]] || exit 0
+cmd=${cmds[$i]}
+if [[ $cmd == fw_toggle ]]; then fw_toggle; else eval "$cmd"; fi
