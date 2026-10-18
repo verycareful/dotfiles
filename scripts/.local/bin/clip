@@ -1,15 +1,41 @@
 #!/usr/bin/env bash
-# clip — clipboard history (cliphist) in rofi.
+# clip: clipboard history (cliphist) in rofi; images show as thumbnails.
 #   Enter    copy the entry back to the clipboard
 #   Alt+D    delete the highlighted entry (picker reopens)
 #   Alt+X    clear the whole history and the current clipboard
 #   clip wipe   same as Alt+X, from the shell
+# Thumbnails are decoded once per entry into ~/.cache/clip-thumbs and dropped when the entry leaves the history.
 set -uo pipefail
-if [[ "${1:-}" == "wipe" ]]; then cliphist wipe; wl-copy --clear; notify-send -a clipboard "Clipboard" "History cleared"; exit 0; fi
+THUMBS="${XDG_CACHE_HOME:-$HOME/.cache}/clip-thumbs"
+if [[ "${1:-}" == "wipe" ]]; then cliphist wipe; wl-copy --clear; rm -rf "$THUMBS"; notify-send -a clipboard "Clipboard" "History cleared"; exit 0; fi
 list=$(cliphist list) || exit 0
 [[ -n "$list" ]] || { notify-send -a clipboard "Clipboard" "History is empty"; exit 0; }
-sel=$(rofi -dmenu -i -p "clipboard" -mesg "Enter copy · Alt+D delete · Alt+X clear all" \
-      -kb-custom-1 "Alt+d" -kb-custom-2 "Alt+x" <<<"$list"); rc=$?
+
+# rofi rows: image entries carry "\0icon\x1f<thumb>"; rofi hands back the row text without it.
+# Printed straight to rofi: a bash variable cannot hold the NUL.
+mkdir -p "$THUMBS"
+rows() {
+    local line id thumb
+    while IFS= read -r line; do
+        id=${line%%$'\t'*}
+        if [[ $line =~ \[\[\ binary\ data\ .*\ (png|jpeg|jpg|bmp|webp|gif)\  ]]; then
+            thumb="$THUMBS/$id.png"
+            [[ -s $thumb ]] || cliphist decode <<<"$line" | magick - -thumbnail 256x256 "$thumb" 2>/dev/null
+            printf '%s\0icon\x1f%s\n' "$line" "$thumb"
+        else
+            printf '%s\n' "$line"
+        fi
+    done <<<"$list"
+}
+# drop thumbnails whose entry has left the history
+for f in "$THUMBS"/*.png; do
+    [[ -e $f ]] || continue
+    id=$(basename "$f" .png)
+    grep -q "^$id"$'\t' <<<"$list" || rm -f "$f"
+done
+
+sel=$(rows | rofi -dmenu -i -show-icons -theme-str "element-icon { size: 2.4em; }" -p "clipboard" -mesg "Enter copy · Alt+D delete · Alt+X clear all" \
+      -kb-custom-1 "Alt+d" -kb-custom-2 "Alt+x"); rc=$?
 case $rc in
     0)  [[ -n "$sel" ]] && cliphist decode <<<"$sel" | wl-copy ;;
     10) [[ -n "$sel" ]] && cliphist delete <<<"$sel"; exec "$0" ;;

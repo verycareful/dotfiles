@@ -52,7 +52,7 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |
 | `thunar/`  | file manager: right-click actions (Open Terminal Here in kitty, Open in VS Code, Copy Path, Set as Wallpaper via `wall`) and the preferences in `thunar.xfconf`, which install.sh writes with `xfconf-query` (xfconf also stores window state, so the file itself is not linked). Thumbnails come from tumbler, Extract/Compress from thunar-archive-plugin with ark. Styling follows the GTK theme |
-| `scripts/` | helpers in `~/.local/bin` (`theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`, `net`, `perms`, `snap`, `fw`) |
+| `scripts/` | helpers in `~/.local/bin` (`clip`: clipboard history on SUPER+V with image thumbnails; `theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`, `net`, `perms`, `snap`, `fw`) |
 | `themes/`  | `*.theme` colour files + `templates/` rendered by `theme` |
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal), all OFL; JetBrainsMono Nerd Font supplies icons |
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
