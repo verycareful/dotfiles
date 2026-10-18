@@ -3,7 +3,7 @@
 hyprland uwsm hypridle hyprlock hyprsunset hyprpolkitagent hyprpicker xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
 waybar rofi quickshell awww wlogout
 kitty fish starship fastfetch
-grim slurp satty wl-clipboard cliphist
+grim slurp satty gpu-screen-recorder wl-clipboard cliphist
 brightnessctl playerctl pamixer
 iwd blueman udiskie gvfs thunar
 tumbler ffmpegthumbnailer thunar-archive-plugin ark

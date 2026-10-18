@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# screenrec: screen recording with gpu-screen-recorder (VAAPI encode on the GPU, next to no CPU cost).
+#   screenrec area|full|window [--mic]   start recording, or stop the one running (same key twice)
+#   screenrec stop                       stop whatever is recording
+#   screenrec replay                     instant replay on/off: the last 60 s are kept in memory, nothing is written
+#   screenrec save                       write the replay buffer to a file
+#   screenrec status                     JSON for the Waybar module
+# Desktop audio is always recorded; --mic mixes the default microphone in.
+# Recordings go to ~/Videos/Recordings. The first capture may ask for the password: gpu-screen-recorder
+# reads the screen through its KMS helper, which needs CAP_SYS_ADMIN.
+set -uo pipefail
+OUT="${XDG_VIDEOS_DIR:-$HOME/Videos}/Recordings"
+RUN="${XDG_RUNTIME_DIR:-/tmp}/screenrec"
+PID="$RUN/pid"
+MODE="$RUN/mode"          # "record <file>" or "replay"
+REPLAY_SECONDS=60
+FPS=60
+mkdir -p "$OUT" "$RUN"
+
+running() { [[ -f $PID ]] && kill -0 "$(<"$PID")" 2>/dev/null; }
+bar() { pkill -RTMIN+12 waybar 2>/dev/null || true; }
+
+# capture target for gpu-screen-recorder: a monitor name, or a region "WxH+X+Y"
+target() {
+    case "$1" in
+        full)   hyprctl monitors -j | jq -r '.[] | select(.focused) | .name' ;;
+        area)   slurp -d -f '%wx%h+%x+%y' ;;
+        window) hyprctl activewindow -j | jq -r '"\(.size[0])x\(.size[1])+\(.at[0])+\(.at[1])"' ;;
+    esac
+}
+
+start() {   # $1 = what to capture, $2 = --mic or empty
+    local t audio="default_output" file
+    t=$(target "$1") || exit 0
+    [[ -n $t && $t != null* ]] || exit 0
+    [[ ${2:-} == --mic ]] && audio="default_output|default_input"
+    local where=(-w "$t")
+    [[ $1 != full ]] && where=(-w region -region "$t")
+    file="$OUT/$(date +%Y-%m-%d_%H-%M-%S).mp4"
+    setsid gpu-screen-recorder "${where[@]}" -f "$FPS" -a "$audio" -c mp4 -q very_high -o "$file" >"$RUN/log" 2>&1 &
+    echo $! >"$PID"; echo "record $file" >"$MODE"
+    bar
+}
+
+stop() {
+    running || { rm -f "$PID" "$MODE"; bar; return 1; }
+    local mode; mode=$(<"$MODE")
+    kill -INT "$(<"$PID")"
+    for _ in $(seq 1 50); do running || break; sleep 0.1; done   # let it finish the file
+    rm -f "$PID" "$MODE"; bar
+    if [[ $mode == record\ * ]]; then
+        local file=${mode#record }
+        notify-send -a recorder -i video-x-generic "Recording saved" "$(basename "$file")"
+        printf 'file://%s' "$file" | wl-copy -t text/uri-list
+    else
+        notify-send -a recorder -i video-x-generic "Instant replay off"
+    fi
+}
+
+case "${1:-}" in
+    area|full|window)
+        if running; then stop; else start "$1" "${2:-}"; fi ;;
+    stop) stop ;;
+    replay)
+        if running; then
+            [[ $(<"$MODE") == replay ]] || { notify-send -a recorder "Recording in progress" "Stop it first (same key again)"; exit 1; }
+            stop
+        else
+            setsid gpu-screen-recorder -w "$(target full)" -f "$FPS" -a default_output -c mp4 -q very_high \
+                -r "$REPLAY_SECONDS" -o "$OUT" >"$RUN/log" 2>&1 &
+            echo $! >"$PID"; echo replay >"$MODE"; bar
+            notify-send -a recorder -i video-x-generic "Instant replay on" "The last ${REPLAY_SECONDS} s are kept: screenrec save (SUPER+ALT+R)"
+        fi ;;
+    save)
+        if running && [[ $(<"$MODE") == replay ]]; then
+            kill -USR1 "$(<"$PID")"
+            notify-send -a recorder -i video-x-generic "Replay saved" "Last ${REPLAY_SECONDS} s in $(basename "$OUT")"
+        else
+            notify-send -a recorder "Instant replay is off" "Start it with SUPER+SHIFT+R"
+        fi ;;
+    status)
+        if running; then
+            if [[ $(<"$MODE") == replay ]]; then
+                printf '{"text":"󰑊","tooltip":"Instant replay on (SUPER+ALT+R saves, click stops)","class":"replay"}\n'
+            else
+                since=$(stat -c %Y "$PID"); s=$(( $(date +%s) - since ))
+                printf '{"text":"󰑊 %d:%02d","tooltip":"Recording (click or the same key stops)","class":"recording"}\n' $((s/60)) $((s%60))
+            fi
+        else
+            printf '{"text":"","class":"idle"}\n'
+        fi ;;
+    *) sed -n '2,8p' "$0"; exit 2 ;;
+esac

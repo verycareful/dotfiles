@@ -11,7 +11,7 @@
     // ── layout ────────────────────────────────────────────────
     "modules-left":   ["custom/panel", "clock#time", "clock#date", "idle_inhibitor", "custom/weather"],
     "modules-center": ["hyprland/workspaces"],
-    "modules-right":  ["group/media", "custom/perms", "network", "wireplumber",
+    "modules-right":  ["custom/rec", "group/media", "custom/perms", "network", "wireplumber",
                        "group/traybox", "custom/updates", "custom/notifications", "custom/keyhint", "custom/power"],
 
     // ── left ──────────────────────────────────────────────────
@@ -150,6 +150,15 @@
     "tray": {
         "icon-size": 16,
         "spacing": 8
+    },
+    "custom/rec": {
+        // red while screenrec records (elapsed time) or keeps an instant replay; empty otherwise
+        "exec": "~/.local/bin/screenrec status",
+        "return-type": "json",
+        "interval": 1,
+        "signal": 12,
+        "hide-empty-text": true,
+        "on-click": "~/.local/bin/screenrec stop"
     },
     "custom/updates": {
         "exec": "~/.local/bin/updates",

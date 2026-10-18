@@ -47,6 +47,13 @@ bind("slash",          run("~/.local/bin/keyhint"),       "this cheatsheet")
 gbind("Print",         run("~/.local/bin/shot area"),   "screenshot: area")
 gbind("SHIFT + Print", run("~/.local/bin/shot full"),   "screenshot: full screen")
 bind("Print",          run("~/.local/bin/shot window"), "screenshot: window")
+-- ── Screen recording (gpu-screen-recorder): the same key again stops ──
+gbind("ALT + Print",         run("~/.local/bin/screenrec area"),        "record: area (again to stop)")
+gbind("ALT + SHIFT + Print", run("~/.local/bin/screenrec full"),        "record: full screen (again to stop)")
+bind("ALT + Print",          run("~/.local/bin/screenrec window"),      "record: window (again to stop)")
+gbind("CTRL + ALT + Print",  run("~/.local/bin/screenrec area --mic"),  "record: area with microphone")
+bind("SHIFT + R",            run("~/.local/bin/screenrec replay"),      "instant replay on/off (last 60 s)")
+bind("ALT + R",              run("~/.local/bin/screenrec save"),        "instant replay: save")
 
 -- ── Windows ──────────────────────────────────────────────────
 bind("Q",         hl.dsp.window.close(),                            "close window")

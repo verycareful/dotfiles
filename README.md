@@ -6,7 +6,7 @@
 [![Hyprland](https://img.shields.io/badge/Hyprland-58E1FF?style=flat-square&logo=hyprland&logoColor=white)](https://hyprland.org/)
 [![Lua](https://img.shields.io/badge/Lua-2C2D72?style=flat-square&logo=lua&logoColor=white)](https://www.lua.org/)
 [![Qt 6 QML](https://img.shields.io/badge/Qt%206%20QML-41CD52?style=flat-square&logo=qt&logoColor=white)](https://doc.qt.io/qt-6/qmlapplications.html)
-<!-- Quickshell, Waybar, rofi, wlogout, SDDM, kitty, fastfetch, Kvantum, systemd-networkd, iwd, OpenRGB, ClamAV, snapper, ufw and WirePlumber have no shields.io logos. Swap these plain badges for logo badges if logos become available. -->
+<!-- Quickshell, Waybar, rofi, wlogout, SDDM, kitty, fastfetch, Kvantum, systemd-networkd, iwd, OpenRGB, ClamAV, snapper, ufw, gpu-screen-recorder and WirePlumber have no shields.io logos. Swap these plain badges for logo badges if logos become available. -->
 [![Quickshell](https://img.shields.io/badge/Quickshell-3B4252?style=flat-square)](https://quickshell.org/)
 [![Waybar](https://img.shields.io/badge/Waybar-3B4252?style=flat-square)](https://github.com/Alexays/Waybar)
 [![rofi](https://img.shields.io/badge/rofi-3B4252?style=flat-square)](https://github.com/davatorium/rofi)
@@ -28,6 +28,7 @@
 [![OpenRGB](https://img.shields.io/badge/OpenRGB-3B4252?style=flat-square)](https://openrgb.org/)
 [![snapper](https://img.shields.io/badge/snapper-3B4252?style=flat-square)](http://snapper.io/)
 [![ufw](https://img.shields.io/badge/ufw-3B4252?style=flat-square)](https://launchpad.net/ufw)
+[![gpu-screen-recorder](https://img.shields.io/badge/gpu--screen--recorder-3B4252?style=flat-square)](https://git.dec05eba.com/gpu-screen-recorder/about/)
 [![WirePlumber](https://img.shields.io/badge/WirePlumber-3B4252?style=flat-square)](https://pipewire.pages.freedesktop.org/wireplumber/)
 [![LACT](https://img.shields.io/badge/LACT-ED1C24?style=flat-square&logo=amd&logoColor=white)](https://github.com/ilya-zlobintsev/LACT)
 [![RyzenAdj](https://img.shields.io/badge/RyzenAdj-ED1C24?style=flat-square&logo=amd&logoColor=white)](https://github.com/FlyGoat/RyzenAdj)
@@ -52,7 +53,7 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |
 | `thunar/`  | file manager: right-click actions (Open Terminal Here in kitty, Open in VS Code, Copy Path, Set as Wallpaper via `wall`) and the preferences in `thunar.xfconf`, which install.sh writes with `xfconf-query` (xfconf also stores window state, so the file itself is not linked). Thumbnails come from tumbler, Extract/Compress from thunar-archive-plugin with ark. Styling follows the GTK theme |
-| `scripts/` | helpers in `~/.local/bin` (`clip`: clipboard history on SUPER+V with image thumbnails; `theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`, `net`, `perms`, `snap`, `fw`) |
+| `scripts/` | helpers in `~/.local/bin` (`clip`: clipboard history on SUPER+V with image thumbnails; `screenrec`: gpu-screen-recorder on ALT+Print (area), ALT+SHIFT+Print (screen), SUPER+ALT+Print (window), CTRL+ALT+Print (area with mic), the same key again stops, saved to `~/Videos/Recordings` with a red timer on the bar; SUPER+SHIFT+R keeps a 60 s instant replay, SUPER+ALT+R saves it; `theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`, `net`, `perms`, `snap`, `fw`) |
 | `themes/`  | `*.theme` colour files + `templates/` rendered by `theme` |
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal), all OFL; JetBrainsMono Nerd Font supplies icons |
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
