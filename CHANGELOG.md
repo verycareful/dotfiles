@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.0.1] - 2026-10-21 17:20 (IST)
+
+### Changed
+- SUPER+SHIFT+D opens Vesktop instead of the official Discord client. Vesktop can share the audio of a single
+  application with a screen share; the official Linux client sends the whole system's audio.
+- ClamAV on-access scanning skips `~/.config/vesktop`, as it does `~/.config/discord`.
+
+### Results
+32 tests across 1 suite, all passed, Lua syntax and secrets checks clean (0.004s, CachyOS Linux).
+
 ## [1.0.0.0] - 2026-10-21 17:12 (IST)
 
 First versioned release. It records the configuration as it stands on CachyOS with Hyprland.
