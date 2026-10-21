@@ -54,6 +54,7 @@ targets = {                                      # template → destination(s) u
     'starship.toml':      ['starship.toml'],
     'fastfetch/config.jsonc': ['fastfetch/config.jsonc'],
     'btop/dotfiles.theme': ['btop/themes/dotfiles.theme'],
+    'vesktop/dotfiles.theme.css': ['vesktop/themes/dotfiles.theme.css'],
 }
 missing = set()
 def sub(m):                                      # {{key}} or {{key|fallback}} when the theme lacks the key
@@ -96,6 +97,23 @@ except ValueError:
 settings["workbench.colorCustomizations"] = json.load(sys.stdin)
 json.dump(settings, open(path, "w"), indent=4)
 ' "$code" || true
+    fi
+    # Vesktop: the rendered theme sits in its themes folder; turn it on once in enabledThemes, the rest kept.
+    # Vencord re-reads the themes folder while running, so a theme switch applies live.
+    local vesk="$CFG/vesktop/settings/settings.json"
+    if [[ -f $vesk ]]; then
+        python3 -c '
+import json, sys
+path, css = sys.argv[1], "dotfiles.theme.css"
+try:
+    settings = json.load(open(path))
+except ValueError:
+    sys.exit("theme: Vesktop settings.json is not valid JSON; theme not enabled")
+themes = settings.setdefault("enabledThemes", [])
+if css not in themes:
+    themes.append(css)
+    json.dump(settings, open(path, "w"), indent=4)
+' "$vesk" || true
     fi
     # Firefox: userChrome.css in every profile, unless one there is not ours; user.js turns stylesheets on
     local ff="$CFG/mozilla/firefox" prof css
@@ -142,7 +160,7 @@ reload() {
         [[ -S "$s" ]] && kitty @ --to "unix:$s" set-colors --all --configured "$CFG/kitty/colors.conf" >/dev/null 2>&1 || true
         [[ -S "$s" ]] && kitty @ --to "unix:$s" set-background-opacity --all "$kitty_opacity" >/dev/null 2>&1 || true
     done
-    command -v notify-send >/dev/null && notify-send -a theme "Theme: $(current)" "GTK/Qt apps, btop and Firefox pick it up on next launch" || true
+    command -v notify-send >/dev/null && notify-send -a theme "Theme: $(current)" "GTK/Qt apps, btop and Firefox pick it up on next launch; Vesktop now" || true
 }
 
 case "${1:-}" in

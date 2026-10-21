@@ -39,7 +39,7 @@
 [![GNU Stow](https://img.shields.io/badge/GNU%20Stow-A42E2B?style=flat-square&logo=gnu&logoColor=white)](https://www.gnu.org/software/stow/)
 [![C](https://img.shields.io/badge/C-A8B9CC?style=flat-square&logo=c&logoColor=white)](https://en.cppreference.com/w/c)
 <!-- Version -->
-[![Version](https://img.shields.io/badge/Version-1.0.0.1-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.0.1.0-blue?style=flat-square)](CHANGELOG.md)
 <!-- License and status -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 [![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square)](#)
@@ -57,7 +57,7 @@ Hyprland rice: sharp corners, glass, switchable themes (Harbour: navy/orange · 
 | `fish/`    | shell + starship prompt                          |
 | `thunar/`  | file manager: right-click actions (Open Terminal Here in kitty, Open in VS Code, Copy Path, Set as Wallpaper via `wall`) and the preferences in `thunar.xfconf`, which install.sh writes with `xfconf-query` (xfconf also stores window state, so the file itself is not linked). Thumbnails come from tumbler, Extract/Compress from thunar-archive-plugin with ark. Styling follows the GTK theme |
 | `scripts/` | helpers in `~/.local/bin` (`clip`: clipboard history on SUPER+V with image thumbnails; `screenrec`: gpu-screen-recorder on ALT+Print (area), ALT+SHIFT+Print (screen), SUPER+ALT+Print (window), CTRL+ALT+Print (area with mic), the same key again stops, saved to `~/Videos/Recordings` with a red timer on the bar; SUPER+SHIFT+R keeps a 60 s instant replay, SUPER+ALT+R saves it; `theme`, `wall`, `shot`, `gpu-status`, `weather`, `keyhint`, `wifi`, `net`, `perms`, `snap`, `fw`, `doctor`, `backup`) |
-| `themes/`  | `*.theme` colour files + `templates/` rendered by `theme`. Besides the desktop it colours btop (selects its `dotfiles` theme), VS Code (`workbench.colorCustomizations` in settings.json, applied live; the rest of the file is kept) and Firefox (`userChrome.css` in each profile plus the user.js pref that enables it; a userChrome.css that is not ours is left alone). btop and Firefox take it on next start |
+| `themes/`  | `*.theme` colour files + `templates/` rendered by `theme`. Besides the desktop it colours btop (selects its `dotfiles` theme), VS Code (`workbench.colorCustomizations` in settings.json, applied live; the rest of the file is kept) and Firefox (`userChrome.css` in each profile plus the user.js pref that enables it; a userChrome.css that is not ours is left alone) and Vesktop (`dotfiles.theme.css` in its themes folder, enabled once in its settings: colours, small corner radii and the theme fonts, applied live). btop and Firefox take it on next start |
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal), all OFL; JetBrainsMono Nerd Font supplies icons |
 | `wallpapers/` | default wallpaper (linked into `~/Pictures/Wallpapers` by install.sh) |
 | `sddm/`    | login screen (own Qt6 QML: blurred wallpaper, centred card); `sudo ./sddm/install-sddm.sh` once, then it follows `theme set` via `/var/lib/dotfiles-sddm` |

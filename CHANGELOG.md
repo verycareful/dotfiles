@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.1.0] - 2026-10-21 17:32 (IST)
+
+### Added
+- Vesktop theme: `theme set` renders `dotfiles.theme.css` into Vesktop's themes folder and enables it once in its
+  settings, keeping every other setting. It maps the active theme onto Discord's colour tokens (backgrounds, text,
+  icons, borders, buttons, inputs, code syntax), sets small corner radii, and uses Oxanium, Quantico and
+  Share Tech Mono. A theme switch applies while Vesktop is running.
+
+### Results
+32 tests across 1 suite, all passed, Lua syntax and secrets checks clean (0.004s, CachyOS Linux).
+
 ## [1.0.0.1] - 2026-10-21 17:20 (IST)
 
 ### Changed
