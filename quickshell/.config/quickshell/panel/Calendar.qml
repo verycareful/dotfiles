@@ -36,7 +36,7 @@ Widgets.Tile {
                     Layout.fillWidth: true
                     implicitHeight: 22
                     color: isToday ? Theme.accent : "transparent"
-                    Text { anchors.centerIn: parent; visible: parent.day >= 1; text: parent.day; color: parent.isToday ? Theme.base : ((index % 7) >= 5 ? Theme.subtext : Theme.text); font { family: Theme.fontUi; pixelSize: 11; weight: parent.isToday ? Font.Bold : Font.Normal } }
+                    Text { anchors.centerIn: parent; visible: parent.day >= 1; text: parent.day; color: parent.isToday ? Theme.textOnAccent : ((index % 7) >= 5 ? Theme.subtext : Theme.text); font { family: Theme.fontUi; pixelSize: 11; weight: parent.isToday ? Font.Bold : Font.Normal } }
                 }
             }
         }

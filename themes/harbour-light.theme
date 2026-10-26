@@ -1,0 +1,27 @@
+# Harbour Light: blue-white base, royal-blue links, orange accent. Light sibling of harbour. Values are hex without '#'.
+name=harbour-light
+wallpaper=tetons.jpg
+cursor=Bibata-Modern-Amber
+mode=light
+base=f5f7fc
+mantle=eaeef8
+surface=dde3f2
+overlay=c7d0e8
+primary=c3d0f7
+primary_bright=1f3fbf
+accent=e0670f
+accent_dim=b85410
+text=111a30
+subtext=3f4a66
+muted=7a84a0
+red=c8243a
+green=1e8a4c
+yellow=a87100
+magenta=7a3fc4
+cyan=0e7f93
+red_bright=e03a50
+green_bright=26a35c
+yellow_bright=c08a10
+blue_bright=3b5fe0
+magenta_bright=9257e0
+cyan_bright=1696ad

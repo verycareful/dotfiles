@@ -38,7 +38,7 @@ ColumnLayout {
                     id: countLabel
                     anchors.centerIn: parent
                     text: group.g.count
-                    color: group.g.unreadCount > 0 ? Theme.base : Theme.subtext
+                    color: group.g.unreadCount > 0 ? Theme.textOnAccent : Theme.subtext
                     font { family: Theme.fontUi; pixelSize: 11; weight: Font.Bold }
                 }
             }

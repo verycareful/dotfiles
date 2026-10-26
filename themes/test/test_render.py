@@ -66,6 +66,28 @@ class Parse(Tmp):
 
     def test_every_mode_sets_the_same_keys(self):
         self.assertEqual(*[set(m) for m in render.MODES.values()])
+        self.assertEqual(*[set(m) for m in render.MODE_ROLES.values()])
+
+    def test_mode_roles_point_at_colours(self):
+        for roles in render.MODE_ROLES.values():
+            self.assertLessEqual(set(roles.values()), set(render.COLOURS))
+
+    def test_mode_roles_take_the_named_colour(self):
+        raw = {'mode': 'light', 'subtext': '444444', 'surface': 'eeeeee', 'base': 'ffffff', 'overlay': 'dddddd'}
+        v = render.values(raw)
+        self.assertEqual((v['ansi_black'], v['qt_light'], v['ansi_black_rgb']), ('444444', 'ffffff', '68, 68, 68'))
+
+    def test_on_accent_picks_the_higher_contrast(self):
+        self.assertEqual(render.values({'accent': 'ff8c32', 'base': '06080e', 'text': 'e4e8f4'})['on_accent'], '06080e')
+        self.assertEqual(render.values({'accent': '0660c6', 'base': 'f7f7f8', 'text': '12151a'})['on_accent'], 'f7f7f8')
+
+    def test_theme_on_accent_wins(self):
+        v = render.values({'accent': '0660c6', 'base': '000000', 'text': 'e4e8f0', 'on_accent': '000000'})
+        self.assertEqual(v['on_accent'], '000000')
+
+    def test_contrast_extremes(self):
+        self.assertAlmostEqual(render.contrast('000000', 'ffffff'), 21.0)
+        self.assertAlmostEqual(render.contrast('777777', '777777'), 1.0)
 
 
 class Fill(unittest.TestCase):
@@ -104,6 +126,9 @@ class Problems(Tmp):
 
     def test_missing_wallpaper(self):
         self.assertEqual(self.problems(self.theme(wallpaper='gone.jpg')), ['wallpaper gone.jpg is not in wallpapers/'])
+
+    def test_bad_on_accent(self):
+        self.assertEqual(self.problems(self.theme(on_accent='fff')), ['on_accent=fff is not six hex digits'])
 
     def test_bad_glass(self):
         self.assertEqual(self.problems(self.theme(glass='1.5')), ['glass=1.5 is not a number from 0 to 1'])
@@ -148,6 +173,29 @@ class RealThemes(unittest.TestCase):
         for p in themes:
             with self.subTest(theme=p.stem):
                 self.assertEqual(render.problems(p), [])
+
+    def test_every_dark_theme_has_a_light_sibling(self):
+        names = {p.stem for p in render.THEMES.glob('*.theme')}
+        for p in render.THEMES.glob('*.theme'):
+            mode = render.load(p)['mode']
+            with self.subTest(theme=p.stem):
+                self.assertEqual(mode == 'light', p.stem.endswith('-light'))
+                if mode == 'dark':
+                    self.assertIn(p.stem + '-light', names)
+
+    def test_text_is_readable(self):
+        """WCAG AA for body text (4.5:1) on every background it sits on, and 3:1 for text on an accent fill."""
+        for p in sorted(render.THEMES.glob('*.theme')):
+            v = render.values(render.load(p))
+            for fg, bg, floor in [('text', 'base', 4.5), ('text', 'mantle', 4.5), ('text', 'surface', 4.5),
+                                  ('subtext', 'mantle', 4.5), ('text', 'primary', 4.5), ('on_accent', 'accent', 3)]:
+                with self.subTest(theme=p.stem, pair=f'{fg} on {bg}'):
+                    self.assertGreaterEqual(render.contrast(v[fg], v[bg]), floor)
+
+    def test_qml_properties_are_not_signal_handlers(self):
+        """QML reads a property named onX as a handler for signal x and refuses to load the file."""
+        text = (render.TEMPLATES / 'quickshell' / 'Theme.qml').read_text()
+        self.assertNotRegex(text, r'property\s+\w+\s+on[A-Z]')
 
     def test_render_leaves_no_placeholders(self):
         for p in sorted(render.THEMES.glob('*.theme')):

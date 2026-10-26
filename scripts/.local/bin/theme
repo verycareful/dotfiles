@@ -4,6 +4,7 @@
 #   theme current         name of the active theme
 #   theme set NAME        render colour files for NAME and reload running apps
 #   theme toggle          cycle to the next theme
+#   theme light | dark    switch to the light or dark half of the current pair (NAME / NAME-light)
 #   theme pick            choose with rofi
 #   theme render TPL [N]  print template file TPL rendered with theme N (default: current)
 #   theme check [N...]    validate themes (default: all) against every template
@@ -20,6 +21,12 @@ STATE="${XDG_STATE_HOME:-$HOME/.local/state}/theme"; mkdir -p "$STATE"
 
 themes()  { local f; for f in "$REPO"/themes/*.theme; do f=${f##*/}; echo "${f%.theme}"; done; }
 current() { cat "$STATE/current" 2>/dev/null || echo harbour; }
+sibling() {  # $1 light|dark: the current theme's counterpart in that mode, if the repo has it
+    local base; base=$(current); base=${base%-light}
+    [[ $1 == light ]] && base="$base-light"
+    [[ -f "$REPO/themes/$base.theme" ]] || { echo "no $1 theme for $(current)" >&2; exit 1; }
+    echo "$base"
+}
 
 render() {  # $1 theme name
     local name="$1" file="$REPO/themes/$1.theme"
@@ -128,9 +135,10 @@ case "${1:-}" in
     toggle)  mapfile -t all < <(themes); cur=$(current); next="${all[0]}"
              for i in "${!all[@]}"; do [[ "${all[$i]}" == "$cur" ]] && next="${all[$(( (i+1) % ${#all[@]} ))]}"; done
              render "$next"; reload ;;
+    light|dark) next=$(sibling "$1"); [[ $next == "$(current)" ]] || { render "$next"; [[ "${2:-}" == "--no-reload" ]] || reload; } ;;
     pick)    sel=$(themes | rofi -dmenu -p "theme") && [[ -n "$sel" ]] && { render "$sel"; reload; } ;;
     sddm)    sddm_render "${2:-$(current)}" "${3:-/var/lib/dotfiles-sddm}" ;;
     render)  python3 "$REPO/themes/render.py" one "${3:-$(current)}" "${2:?template path}" ;;
     check)   python3 "$REPO/themes/render.py" check "${@:2}" ;;
-    *)       sed -n '2,10p' "$0"; exit 1 ;;
+    *)       sed -n '2,11p' "$0"; exit 1 ;;
 esac

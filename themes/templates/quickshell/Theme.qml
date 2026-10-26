@@ -14,6 +14,7 @@ QtObject {
     readonly property color primaryBright: "#{{primary_bright}}"
     readonly property color accent:        "#{{accent}}"
     readonly property color accentDim:     "#{{accent_dim}}"
+    readonly property color textOnAccent:  "#{{on_accent}}"   // text and icons on an accent fill
     readonly property color text:          "#{{text}}"
     readonly property color subtext:       "#{{subtext}}"
     readonly property color muted:         "#{{muted}}"

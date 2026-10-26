@@ -69,7 +69,7 @@ element selected.normal {
     border:           0 0 0 2px;
     border-color:     @accent;
 }
-element selected.urgent { background-color: @accent; text-color: @base; }
+element selected.urgent { background-color: @accent; text-color: @onAccent; }
 element selected.active { background-color: @primaryGlass; text-color: @primaryBr; }
 
 element-icon {

@@ -86,7 +86,7 @@ tooltip label { padding: 4px; }
     background: alpha(@primary, 0.55);
     padding: 0 14px;
 }
-#workspaces button.urgent { color: @base; background: @accent; }
+#workspaces button.urgent { color: @onAccent; background: @accent; }
 #workspaces button.empty  { color: alpha(@muted, 0.45); }
 
 /* ── right ────────────────────────────────────────────────── */
@@ -157,4 +157,4 @@ tooltip label { padding: 4px; }
     font-size: 14px;
     padding: 0 12px 0 12px;
 }
-#custom-power:hover { color: @base; background: @accent; }
+#custom-power:hover { color: @onAccent; background: @accent; }

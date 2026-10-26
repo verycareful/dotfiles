@@ -21,12 +21,24 @@ COLOURS = ('base', 'mantle', 'surface', 'overlay', 'primary', 'primary_bright', 
            'text', 'subtext', 'muted', 'red', 'green', 'yellow', 'magenta', 'cyan',
            'red_bright', 'green_bright', 'yellow_bright', 'blue_bright', 'magenta_bright', 'cyan_bright')
 
+# Colours a theme may set; values() derives them otherwise.
+OPTIONAL_COLOURS = ('on_accent',)
+
 # Values that follow from mode, so templates name them instead of branching on it.
 MODES = {
     'dark':  {'gtk_theme': 'adw-gtk3-dark', 'gtk_prefer_dark': '1', 'icon_theme': 'Papirus-Dark',
               'color_scheme': 'prefer-dark'},
     'light': {'gtk_theme': 'adw-gtk3', 'gtk_prefer_dark': '0', 'icon_theme': 'Papirus',
               'color_scheme': 'prefer-light'},
+}
+
+# Colour roles whose meaning flips with mode: each name is set to the value of the named key. ANSI black and white
+# stay dark and light on either background; Qt's bevel shades keep Light lighter than Dark.
+MODE_ROLES = {
+    'dark':  {'ansi_black': 'surface', 'ansi_black_bright': 'overlay', 'ansi_white': 'subtext', 'ansi_white_bright': 'text',
+              'qt_light': 'overlay', 'qt_midlight': 'surface', 'qt_mid': 'mantle', 'qt_dark': 'base'},
+    'light': {'ansi_black': 'subtext', 'ansi_black_bright': 'muted', 'ansi_white': 'overlay', 'ansi_white_bright': 'surface',
+              'qt_light': 'base', 'qt_midlight': 'mantle', 'qt_mid': 'surface', 'qt_dark': 'overlay'},
 }
 
 TARGETS = {  # template -> destination(s) under $XDG_CONFIG_HOME
@@ -70,11 +82,31 @@ def load(path):
     return raw
 
 
+def luminance(hexval):
+    """WCAG relative luminance of a six-digit hex colour."""
+    def channel(c):
+        c = int(c, 16) / 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = (channel(hexval[i:i + 2]) for i in (0, 2, 4))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast(a, b):
+    la, lb = sorted((luminance(a), luminance(b)), reverse=True)
+    return (la + 0.05) / (lb + 0.05)
+
+
 def values(raw):
-    """The theme's own keys plus the derived ones: x_rgb ('r, g, b' for rgba()), x_ansi ('38;2;r;g;b'),
-    glass_hex (glass as an alpha byte for rgba(hexAA)) and the MODES set."""
+    """The theme's own keys plus the derived ones: the MODE_ROLES colours, on_accent (text drawn on an accent
+    fill: the theme's own, else whichever of base and text contrasts more with accent), x_rgb ('r, g, b' for
+    rgba()) and x_ansi ('38;2;r;g;b') for every hex value, glass_hex (glass as an alpha byte for rgba(hexAA))
+    and the MODES set."""
     v = dict(raw)
-    for k, val in raw.items():
+    v.update({role: raw[k] for role, k in MODE_ROLES.get(raw.get('mode'), {}).items() if k in raw})
+    if 'on_accent' not in raw and all(HEX.fullmatch(raw.get(k, '')) for k in ('accent', 'base', 'text')):
+        v['on_accent'] = max(('base', 'text'), key=lambda k: contrast(raw[k], raw['accent']))
+        v['on_accent'] = raw[v['on_accent']]
+    for k, val in list(v.items()):
         if HEX.fullmatch(val):
             rgb = [str(int(val[i:i + 2], 16)) for i in (0, 2, 4)]
             v[k + '_rgb'] = ', '.join(rgb)
@@ -112,7 +144,8 @@ def problems(path, tpl_root=TEMPLATES, wallpapers=WALLPAPERS):
     raw = load(path)
     absent = [k for k in META + COLOURS if k not in raw]
     out = [f'missing key: {k}' for k in absent]
-    out += [f'{k}={raw[k]} is not six hex digits' for k in COLOURS if k in raw and not HEX.fullmatch(raw[k])]
+    out += [f'{k}={raw[k]} is not six hex digits' for k in COLOURS + OPTIONAL_COLOURS
+            if k in raw and not HEX.fullmatch(raw[k])]
     if 'name' in raw and raw['name'] != path.stem:
         out.append(f'name={raw["name"]} does not match the file name {path.name}')
     if 'mode' in raw and raw['mode'] not in MODES:

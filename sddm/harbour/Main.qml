@@ -75,7 +75,7 @@ Rectangle {
             Rectangle {                                          // login button
                 width: parent.width; height: 42
                 color: root.busy ? config.Muted : (loginArea.containsMouse ? config.PrimaryBright : config.Accent)
-                Text { anchors.centerIn: parent; text: root.busy ? "…" : "login"; color: loginArea.containsMouse ? config.Text : config.Base; font { family: root.fontUi; pixelSize: 15; bold: true; letterSpacing: 2 } }
+                Text { anchors.centerIn: parent; text: root.busy ? "…" : "login"; color: loginArea.containsMouse ? config.Text : config.OnAccent; font { family: root.fontUi; pixelSize: 15; bold: true; letterSpacing: 2 } }
                 MouseArea { id: loginArea; anchors.fill: parent; hoverEnabled: true; onClicked: root.tryLogin() }
             }
             Text { visible: root.failed; text: "wrong password"; color: config.Red; font { family: root.fontUi; pixelSize: 12 } }

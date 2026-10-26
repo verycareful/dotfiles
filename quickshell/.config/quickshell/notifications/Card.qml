@@ -148,7 +148,7 @@ Rectangle {
                     implicitWidth: 26; implicitHeight: 26
                     color: shover.containsMouse ? Theme.accent : Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.8)
                     border.width: 1; border.color: Theme.overlay
-                    Text { anchors.centerIn: parent; text: "\u{F048A}"; color: shover.containsMouse ? Theme.base : Theme.subtext; font { family: Theme.fontIcon; pixelSize: 14 } }   // send
+                    Text { anchors.centerIn: parent; text: "\u{F048A}"; color: shover.containsMouse ? Theme.textOnAccent : Theme.subtext; font { family: Theme.fontIcon; pixelSize: 14 } }   // send
                     MouseArea { id: shover; anchors.fill: parent; hoverEnabled: true; onClicked: Notifs.reply(card.entry, reply.text) }
                 }
             }

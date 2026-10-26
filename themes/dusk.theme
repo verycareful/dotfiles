@@ -4,6 +4,7 @@ wallpaper=dusk.jpg
 cursor=Bibata-Modern-Ice
 mode=dark
 glass=0.95
+on_accent=000000
 base=000000
 mantle=070707
 surface=111111

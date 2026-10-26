@@ -8,6 +8,7 @@
 @define-color primaryBr #{{primary_bright}};
 @define-color accent    #{{accent}};
 @define-color accentDm  #{{accent_dim}};
+@define-color onAccent  #{{on_accent}};
 @define-color text      #{{text}};
 @define-color subtext   #{{subtext}};
 @define-color muted     #{{muted}};

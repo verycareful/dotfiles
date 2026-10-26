@@ -7,6 +7,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.3.0] - 2026-10-26 12:21 (IST)
+
+### Added
+- Light themes: `harbour-light`, `mono-light` and `dusk-light`, one beside each dark theme with the same accent
+  and wallpaper.
+- `theme light` and `theme dark` switch to the other half of the current pair.
+- Derived colours that make one set of templates serve both modes: `on_accent` (text on an accent fill: the
+  theme's own, else whichever of `base` and `text` contrasts more with the accent), ANSI black and white that stay
+  dark and light on either background, and Qt bevel shades that keep their order.
+
+### Changed
+- Text on accent fills uses `on_accent` everywhere: GTK, kitty selection and cursor, VS Code buttons, Vesktop
+  primary buttons, Waybar's urgent workspace and power hover, rofi's urgent row, the Quickshell notification count,
+  reply button and calendar day, and the login button. Dusk sets it to black, so it looks as before.
+
+### Fixed
+- VS Code buttons drew light text on the accent (1.1:1 on mono's white, 1.9:1 on harbour's orange); they use
+  `on_accent`.
+
+### Tests
+- Mode roles and `on_accent` (contrast choice, theme override, bad value), WCAG contrast at the extremes, every
+  dark theme having a `-light` sibling, AA contrast for body text in every theme, and no Theme.qml property named
+  like a QML signal handler.
+
+### Results
+62 tests across 2 suites, all passed, 6 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.025s, CachyOS Linux).
+
 ## [1.0.2.2] - 2026-10-26 12:15 (IST)
 
 ### Fixed

@@ -87,9 +87,9 @@
     --control-primary-background-hover: #{{accent_dim}} !important;
     --control-primary-background-active: #{{accent_dim}} !important;
     --control-primary-border-default: #{{accent}} !important;
-    --control-primary-text-default: #{{base}} !important;
-    --control-primary-text-hover: #{{base}} !important;
-    --control-primary-text-active: #{{base}} !important;
+    --control-primary-text-default: #{{on_accent}} !important;
+    --control-primary-text-hover: #{{on_accent}} !important;
+    --control-primary-text-active: #{{on_accent}} !important;
     --control-secondary-background-default: #{{surface}} !important;
     --control-secondary-background-hover: #{{overlay}} !important;
     --control-secondary-background-active: #{{overlay}} !important;

@@ -1,0 +1,27 @@
+# Mono Light: white and black. Black is the accent; green/red stay for ok/error feedback. Light sibling of mono.
+name=mono-light
+wallpaper=tetons-mono.jpg
+cursor=Bibata-Modern-Classic
+mode=light
+base=ffffff
+mantle=f5f5f5
+surface=e8e8e8
+overlay=d4d4d4
+primary=cfcfcf
+primary_bright=4a4a4a
+accent=000000
+accent_dim=3a3a3a
+text=0d0d0d
+subtext=545454
+muted=8a8a8a
+red=d0263a
+green=148a4a
+yellow=a37400
+magenta=3d3d3d
+cyan=2a2a2a
+red_bright=e5384d
+green_bright=1fa35a
+yellow_bright=bf8a0a
+blue_bright=5c5c5c
+magenta_bright=4f4f4f
+cyan_bright=383838
