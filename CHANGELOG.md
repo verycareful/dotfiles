@@ -7,6 +7,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.2.0] - 2026-10-26 12:12 (IST)
+
+### Added
+- `theme check` validates every theme against every template: each colour role and `name`, `mode`, `wallpaper`
+  and `cursor` present, colours as six hex digits, `name` matching the file name, the wallpaper in `wallpapers/`,
+  `glass` between 0 and 1, and every `{{key}}` in a template either set by the theme or given a fallback.
+  `test/lint.sh` and CI run it.
+- Every theme declares `mode=dark` or `mode=light`. Templates name the values that follow from it
+  (`{{gtk_theme}}`, `{{gtk_prefer_dark}}`, `{{icon_theme}}`, `{{color_scheme}}`), so the GTK settings switch
+  between adw-gtk3 and adw-gtk3-dark and between Papirus and Papirus-Dark with the theme.
+- `theme set` sets GNOME's `color-scheme` from the theme's mode, so libadwaita and GTK4 apps switch while running.
+
+### Changed
+- Rendering lives in one place, `themes/render.py`, used by `theme set`, `theme render` and `theme check`.
+  The output for harbour, mono and dusk is byte-identical.
+- `theme set` checks the theme before writing anything. A theme with a missing key leaves the current colour
+  files alone.
+
+### Tests
+- `themes/test/test_render.py`: theme parsing, derived values (`_rgb`, `_ansi`, `glass_hex`, mode values),
+  placeholder fallbacks, each validation failure, rendering every target, a bad theme writing nothing, and every
+  real theme rendering every template with no placeholder left.
+
+### Results
+53 tests across 2 suites, all passed, 3 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.016s, CachyOS Linux).
+
 ## [1.0.1.4] - 2026-10-26 12:03 (IST)
 
 ### Fixed

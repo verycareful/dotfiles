@@ -2,6 +2,7 @@
 name=mono
 wallpaper=tetons-mono.jpg
 cursor=Bibata-Modern-Ice
+mode=dark
 base=000000
 mantle=060606
 surface=101010

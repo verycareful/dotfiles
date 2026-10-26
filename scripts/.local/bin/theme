@@ -6,8 +6,10 @@
 #   theme toggle          cycle to the next theme
 #   theme pick            choose with rofi
 #   theme render TPL [N]  print template file TPL rendered with theme N (default: current)
+#   theme check [N...]    validate themes (default: all) against every template
 #   theme sddm [N] [DIR]  render the login screen (theme.conf + blurred bg.jpg) into DIR
 #                         (default /var/lib/dotfiles-sddm, set up by sddm/install-sddm.sh)
+# themes/render.py does the rendering and checks a theme before writing any of it.
 # Rendering writes into $XDG_CONFIG_HOME (which is symlinked into the repo by
 # stow, so the generated files stay tracked). --no-reload skips the live reload.
 set -euo pipefail
@@ -21,54 +23,7 @@ current() { cat "$STATE/current" 2>/dev/null || echo harbour; }
 
 render() {  # $1 theme name
     local name="$1" file="$REPO/themes/$1.theme"
-    [[ -f "$file" ]] || { echo "no such theme: $name" >&2; exit 1; }
-    python3 - "$file" "$TPL" "$CFG" <<'PY'
-import sys, re, os, shutil
-theme_file, tpl, cfg = sys.argv[1:]
-v = {}
-for line in open(theme_file):
-    line = line.split('#', 1)[0].strip()
-    if '=' in line:
-        k, val = line.split('=', 1); v[k.strip()] = val.strip()
-for k, val in list(v.items()):                    # {{x_rgb}} → "r, g, b" for rgba(); {{x_ansi}} → "38;2;r;g;b"
-    if re.fullmatch(r'[0-9a-fA-F]{6}', val):
-        rgb = [str(int(val[i:i+2], 16)) for i in (0, 2, 4)]
-        v[k + '_rgb'] = ', '.join(rgb); v[k + '_ansi'] = '38;2;' + ';'.join(rgb)
-if 'glass' in v: v['glass_hex'] = '%02x' % round(float(v['glass']) * 255)   # alpha byte for rgba(hexAA)
-targets = {                                      # template → destination(s) under $XDG_CONFIG_HOME
-    'hypr/colors.lua':    ['hypr/lua/colors.lua'],
-    'hypr/cursor.lua':    ['hypr/lua/cursor.lua'],
-    'hypr/colors.conf':   ['hypr/conf.d/colors.conf'],   # legacy hyprlang set, kept for `restore.sh hypr`
-    'hypr/cursor.conf':   ['hypr/conf.d/cursor.conf'],
-    'hypr/hyprlock.conf': ['hypr/hyprlock.conf'],
-    'hypr/hyprtoolkit.conf': ['hypr/hyprtoolkit.conf'],
-    'waybar/colors.css':  ['waybar/colors.css'],
-    'quickshell/Theme.qml': ['quickshell/Theme.qml'],
-    'wlogout/colors.css': ['wlogout/colors.css'],
-    'rofi/colors.rasi':   ['rofi/themes/colors.rasi'],
-    'kitty/colors.conf':  ['kitty/colors.conf'],
-    'gtk/gtk.css':        ['gtk-3.0/gtk.css', 'gtk-4.0/gtk.css'],
-    'gtk/settings.ini':   ['gtk-3.0/settings.ini', 'gtk-4.0/settings.ini'],
-    'qt/colors.conf':     ['qt6ct/colors/current.conf', 'qt5ct/colors/current.conf'],
-    'fish/colors.fish':   ['fish/conf.d/colors.fish'],
-    'starship.toml':      ['starship.toml'],
-    'fastfetch/config.jsonc': ['fastfetch/config.jsonc'],
-    'btop/dotfiles.theme': ['btop/themes/dotfiles.theme'],
-    'vesktop/dotfiles.theme.css': ['vesktop/themes/dotfiles.theme.css'],
-}
-missing = set()
-def sub(m):                                      # {{key}} or {{key|fallback}} when the theme lacks the key
-    k = m.group(1)
-    if k in v: return v[k]
-    if m.group(2) is not None: return m.group(2)
-    missing.add(k); return m.group(0)
-for src, dsts in targets.items():
-    text = re.sub(r'\{\{(\w+)(?:\|([^}]*))?\}\}', sub, open(os.path.join(tpl, src)).read())
-    for d in dsts:
-        p = os.path.join(cfg, d); os.makedirs(os.path.dirname(p), exist_ok=True)
-        open(p, 'w').write(text)
-if missing: sys.exit(f"theme file lacks keys: {sorted(missing)}")
-PY
+    python3 "$REPO/themes/render.py" all "$name" "$CFG"
     apps "$name"
     echo "$name" > "$STATE/current"
     # wallpaper for the theme
@@ -151,6 +106,9 @@ reload() {
     command -v hyprctl >/dev/null && hyprctl reload >/dev/null 2>&1 || true   # also re-runs the cursor exec
     local cur; cur=$(sed -n 's/^cursor=//p' "$REPO/themes/$(current).theme")
     [[ -n "$cur" ]] && command -v gsettings >/dev/null && gsettings set org.gnome.desktop.interface cursor-theme "$cur" 2>/dev/null || true
+    # libadwaita and GTK4 apps follow color-scheme while running; settings.ini only reaches them at launch
+    local scheme; scheme=$(sed -n 's/^mode=//p' "$REPO/themes/$(current).theme")
+    [[ -n "$scheme" ]] && command -v gsettings >/dev/null && gsettings set org.gnome.desktop.interface color-scheme "prefer-$scheme" 2>/dev/null || true
     # waybar 0.15 crashes on SIGUSR2/hyprctl reload, so restart it instead of signalling
     if systemctl --user is-active -q waybar; then systemctl --user restart waybar; else pkill -x waybar; (setsid waybar >/dev/null 2>&1 &); fi
     # hyprtoolkit reads its colours once at start: restart the polkit agent (the password prompt)
@@ -172,18 +130,7 @@ case "${1:-}" in
              render "$next"; reload ;;
     pick)    sel=$(themes | rofi -dmenu -p "theme") && [[ -n "$sel" ]] && { render "$sel"; reload; } ;;
     sddm)    sddm_render "${2:-$(current)}" "${3:-/var/lib/dotfiles-sddm}" ;;
-    render)  python3 - "$REPO/themes/${3:-$(current)}.theme" "${2:?template path}" <<'PY'
-import sys, re
-v = {}
-for line in open(sys.argv[1]):
-    line = line.split('#', 1)[0].strip()
-    if '=' in line: k, val = line.split('=', 1); v[k.strip()] = val.strip()
-for k, val in list(v.items()):
-    if re.fullmatch(r'[0-9a-fA-F]{6}', val):
-        rgb = [str(int(val[i:i+2], 16)) for i in (0, 2, 4)]; v[k + '_rgb'] = ', '.join(rgb); v[k + '_ansi'] = '38;2;' + ';'.join(rgb)
-if 'glass' in v: v['glass_hex'] = '%02x' % round(float(v['glass']) * 255)
-print(re.sub(r'\{\{(\w+)(?:\|([^}]*))?\}\}', lambda m: v.get(m.group(1), m.group(2) if m.group(2) is not None else m.group(0)), open(sys.argv[2]).read()), end='')
-PY
-             ;;
-    *)       sed -n '2,8p' "$0"; exit 1 ;;
+    render)  python3 "$REPO/themes/render.py" one "${3:-$(current)}" "${2:?template path}" ;;
+    check)   python3 "$REPO/themes/render.py" check "${@:2}" ;;
+    *)       sed -n '2,10p' "$0"; exit 1 ;;
 esac

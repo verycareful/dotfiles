@@ -10,7 +10,9 @@ theme list            # dusk, harbour, mono
 theme set mono        # render + live reload (wallpaper, Hyprland, Waybar, Quickshell, open kitty windows)
 theme toggle          # next theme  (SUPER+Shift+T)
 theme pick            # rofi menu
+theme check           # validate every theme against every template (test/lint.sh runs it)
 ```
+`theme set` checks the theme first and writes nothing if anything is wrong.
 GTK and Qt apps read their colours at launch, so they change on next start.
 
 ## Roles
@@ -29,6 +31,11 @@ GTK and Qt apps read their colours at launch, so they change on next start.
 | red / green / yellow   | error / ok / warning — kept in every theme       |
 | magenta, cyan, *_bright | terminal ANSI only                              |
 
+Besides the colours every theme sets `name` (the file name), `wallpaper` (a file in `wallpapers/`), `cursor`
+and `mode` (`dark` or `light`). Templates never branch on `mode`; they name the values that follow from it:
+`{{gtk_theme}}`, `{{gtk_prefer_dark}}`, `{{icon_theme}}`, `{{color_scheme}}` (see `MODES` in `themes/render.py`).
+`theme set` also sets GNOME's `color-scheme` from `mode`, so libadwaita apps switch while running.
+
 ## Harbour
 Near-black with a royal-blue tint; primary `#1f3799` / `#3b5fe0`, accent orange `#ff8c32`.
 
@@ -42,4 +49,4 @@ Glass: surfaces use mantle/base at 55–78 % alpha with Hyprland blur behind.
 A theme may set `glass=0.95` (opacity of the mantle-based surfaces: panels, cards, Waybar, rofi, wlogout, hyprlock input, kitty);
 without it each template falls back to its own value via `{{glass|0.74}}`. `{{glass_hex}}` is the same value as an alpha byte for `rgba(hexAA)`.
 Selection tints and inset fields (primary/base glass) keep their own alpha.
-To add a theme: copy a `.theme` file, change the values, add a wallpaper to `wallpapers/`.
+To add a theme: copy a `.theme` file, change the values, add a wallpaper to `wallpapers/`, run `theme check`.
