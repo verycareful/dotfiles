@@ -27,7 +27,7 @@ tooltip {
 }
 tooltip label { padding: 4px; }
 
-/* every module: even padding, thin separators via margin */
+/* every module: even padding, no dividers between modules */
 .modules-left  > widget > *,
 .modules-right > widget > * {
     padding: 0 11px;
@@ -37,10 +37,6 @@ tooltip label { padding: 4px; }
 }
 .modules-left  > widget:first-child > * { margin-left: 8px; }
 .modules-right > widget:last-child  > * { margin-right: 8px; }
-
-/* hairline dividers between right-side modules */
-.modules-right > widget > * { border-left: 1px solid alpha(@overlay, 0.6); }
-.modules-right > widget:first-child > * { border-left: none; }
 
 /* Icon-only modules: Pango does not fall back to other fonts for Private Use
    Area glyphs, so anything that is purely a Nerd Font icon must name it. */
@@ -100,13 +96,10 @@ tooltip label { padding: 4px; }
     font-family: "JetBrainsMono Nerd Font";
     font-size: 15px;
     padding: 0 5px;
-    border-left: none;
 }
 #custom-media-next { padding-right: 8px; }
 #custom-media-play { color: @accent; }
 #custom-media-prev:hover, #custom-media-next:hover, #custom-media-play:hover { color: @text; }
-/* first module in a group keeps the group's divider */
-.modules-right > widget > box > widget:first-child > * { border-left: 1px solid alpha(@overlay, 0.6); }
 
 /* tray arrow: two labels, one collapsed to zero size. Waybar (git) puts the .expanded class on
    the group box (#traybox) while the drawer is open, which swaps them: down → left.
@@ -121,7 +114,7 @@ tooltip label { padding: 4px; }
 #traybox.expanded #custom-tray-left label        { font-size: 15px; color: @accent; }
 #traybox.expanded #custom-tray-down              { padding: 0; min-width: 0; }
 #traybox.expanded #custom-tray-down label        { font-size: 0px; }
-#tray.tray-drawer { border-left: none; padding: 0 6px; }
+#tray.tray-drawer { padding: 0 6px; }
 
 #cpu, #memory, #custom-gpu { color: @subtext; }
 #cpu.warning,  #memory.warning,  #custom-gpu.warning  { color: @yellow; }

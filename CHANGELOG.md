@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.2.1] - 2026-10-26 12:13 (IST)
+
+### Fixed
+- Waybar has no divider lines between modules on the right; spacing alone separates them.
+
+### Results
+53 tests across 2 suites, all passed, 3 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.016s, CachyOS Linux).
+
 ## [1.0.2.0] - 2026-10-26 12:12 (IST)
 
 ### Added
