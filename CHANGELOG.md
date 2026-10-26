@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.1.2] - 2026-10-26 11:52 (IST)
+
+### Changed
+- App launchers move from SUPER+SHIFT to SUPER+ALT: Firefox (F), Claude (C), VS Code (V), Spotify (O),
+  Discord (D) and Signal (G). SUPER+SHIFT is left for moving windows.
+
+### Results
+32 tests across 1 suite, all passed, Lua syntax and secrets checks clean (0.004s, CachyOS Linux).
+
 ## [1.0.1.1] - 2026-10-26 11:51 (IST)
 
 ### Fixed

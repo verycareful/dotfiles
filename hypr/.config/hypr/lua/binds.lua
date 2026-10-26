@@ -28,12 +28,12 @@ bind("Return",         app(term),     "terminal")
 bind("B",              app(browser),  "browser")
 bind("E",              app(files),    "file manager")
 bind("Space",          run(launcher), "app launcher")
-bind("SHIFT + F",      app(browser),          "Firefox")
-bind("SHIFT + C",      app("claude-desktop"), "Claude")
-bind("SHIFT + V",      app(editor),           "VS Code")
-bind("SHIFT + O",      app("spotify"),        "Spotify")
-bind("ALT + D",        app("vesktop"),        "Discord (Vesktop)")   -- ALT: SUPER+SHIFT+D is scratchpad 2
-bind("SHIFT + G",      app("signal-desktop"), "Signal")
+bind("ALT + F",        app(browser),          "Firefox")
+bind("ALT + C",        app("claude-desktop"), "Claude")
+bind("ALT + V",        app(editor),           "VS Code")
+bind("ALT + O",        app("spotify"),        "Spotify")
+bind("ALT + D",        app("vesktop"),        "Discord (Vesktop)")
+bind("ALT + G",        app("signal-desktop"), "Signal")
 bind("V",              run("~/.local/bin/clip"),          "clipboard history (Alt+D delete, Alt+X clear)")
 bind("X",              run("~/.local/bin/actions"),       "actions menu (theme, wallpaper, record, snapshot, firewall, restarts)")
 bind("period",         run("rofimoji --action copy"),     "emoji picker (copies)")
@@ -117,7 +117,7 @@ bind("Tab",        hl.dsp.focus({ workspace = "previous" }),  "previous workspac
 bind("mouse_down", hl.dsp.focus({ workspace = "e+1" }),       "next workspace (scroll)")
 bind("mouse_up",   hl.dsp.focus({ workspace = "e-1" }),       "previous workspace (scroll)")
 -- scratchpads on S and the keys beside it: SUPER+key toggles, SUPER+SHIFT+key moves the focused window in.
--- Add a row here for another one (an app on SUPER+SHIFT+key moves to SUPER+ALT+key).
+-- Add a row here for another one. Apps launch on SUPER+ALT+key, so SHIFT stays free for these.
 local pads = { S = "scratch", D = "scratch2", Z = "scratch3" }
 for key, name in pairs(pads) do
     bind(key,               hl.dsp.workspace.toggle_special(name), "toggle scratchpad " .. name)
