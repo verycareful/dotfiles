@@ -160,6 +160,24 @@ class RenderAll(Tmp):
         self.assertFalse(cfg.exists())
 
 
+class Catalogue(Tmp):
+    def test_wallpaper_prefers_the_copy_in_wall_dir(self):
+        real = render.load(sorted(render.THEMES.glob('*.theme'))[0])
+        (self.wall / real['wallpaper']).write_bytes(b'')
+        entries = {e['name']: e for e in render.catalogue(self.wall)}
+        self.assertEqual(entries[real['name']]['wallpaper'], str(self.wall / real['wallpaper']))
+
+    def test_wallpaper_falls_back_to_the_repo(self):
+        for e in render.catalogue(self.dir / 'nowhere'):
+            self.assertEqual(Path(e['wallpaper']).parent, render.WALLPAPERS)
+
+    def test_every_theme_with_its_colours(self):
+        entries = render.catalogue(self.wall)
+        self.assertEqual(sorted(e['name'] for e in entries), sorted(p.stem for p in render.THEMES.glob('*.theme')))
+        for e in entries:
+            self.assertTrue(set(render.META + render.COLOURS) <= set(e))
+
+
 class RealThemes(unittest.TestCase):
     """The themes and templates in the repo."""
 

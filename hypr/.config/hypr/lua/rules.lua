@@ -12,6 +12,8 @@ hl.window_rule({ match = { class = "^(io.github.ilya_zlobintsev.LACT)$" }, size 
 hl.window_rule({ match = { title = "^(DNS settings)$" }, float = true, center = true })
 -- Quickshell's permissions window (Waybar shield, `qs ipc call perms open`)
 hl.window_rule({ match = { title = "^(Permissions)$" }, float = true, center = true })
+-- Quickshell's theme window (SUPER+SHIFT+T, `qs ipc call themes open`)
+hl.window_rule({ match = { title = "^(Themes)$" }, float = true, center = true })
 
 -- File pickers / dialogs
 local dialogs = "^(Open File|Save File|Open Folder|Select .*)$"

@@ -4,6 +4,7 @@
 //   qs ipc call switcher next|prev|apply|cancel   (Alt-Tab)
 //   qs ipc call dns open|close|toggle             (DNS settings window)
 //   qs ipc call perms open|close|toggle           (permissions window)
+//   qs ipc call themes open|close|toggle          (theme window, SUPER+Shift+T)
 //   qs ipc call osd caps|brightness               (on-screen display; volume and mic follow PipeWire)
 import Quickshell
 import "notifications"
@@ -11,6 +12,7 @@ import "panel"
 import "switcher"
 import "dns"
 import "perms"
+import "themes"
 import "osd"
 
 ShellRoot {
@@ -20,5 +22,6 @@ ShellRoot {
     Switcher {}
     DnsWindow {}
     PermsWindow {}
+    ThemeWindow {}
     Osd {}
 }

@@ -26,7 +26,7 @@ labels=(
     "󰐥  Power menu"
 )
 cmds=(
-    "$B/theme pick"
+    "$B/theme window"
     "$B/wall pick"
     "$B/clip"
     "rofimoji --action copy"

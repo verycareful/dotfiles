@@ -6,6 +6,8 @@
 #   theme toggle          cycle to the next theme
 #   theme light | dark    switch to the light or dark half of the current pair (NAME / NAME-light)
 #   theme pick            choose with rofi
+#   theme window          choose in the Quickshell theme window (SUPER+Shift+T)
+#   theme json            every theme's colours and wallpaper as JSON (what the window reads)
 #   theme render TPL [N]  print template file TPL rendered with theme N (default: current)
 #   theme check [N...]    validate themes (default: all) against every template
 #   theme sddm [N] [DIR]  render the login screen (theme.conf + blurred bg.jpg) into DIR
@@ -139,6 +141,8 @@ case "${1:-}" in
     pick)    sel=$(themes | rofi -dmenu -p "theme") && [[ -n "$sel" ]] && { render "$sel"; reload; } ;;
     sddm)    sddm_render "${2:-$(current)}" "${3:-/var/lib/dotfiles-sddm}" ;;
     render)  python3 "$REPO/themes/render.py" one "${3:-$(current)}" "${2:?template path}" ;;
+    window)  qs ipc call themes open ;;
+    json)    python3 "$REPO/themes/render.py" json ;;
     check)   python3 "$REPO/themes/render.py" check "${@:2}" ;;
-    *)       sed -n '2,11p' "$0"; exit 1 ;;
+    *)       sed -n '2,13p' "$0"; exit 1 ;;
 esac

@@ -3,8 +3,10 @@
   render.py all THEME CFG         check THEME, then render every template in TARGETS under CFG
   render.py one THEME TEMPLATE    print one template rendered (VS Code, Firefox, SDDM)
   render.py check [THEME...]      validate themes (default: all) against every template
+  render.py json                  every theme's name, mode, colours and wallpaper path as JSON (the theme window)
 THEME is a name (themes/NAME.theme) or a path to a .theme file.
 A template names a value as {{key}}, or {{key|fallback}} when a theme may leave the key out."""
+import json
 import os
 import re
 import sys
@@ -182,6 +184,19 @@ def render_all(path, cfg, tpl_root=TEMPLATES, wallpapers=WALLPAPERS):
     return []
 
 
+def catalogue(wall_dir):
+    """Every theme as a dict of its META, COLOURS and on_accent values, with the wallpaper as a path: the copy in
+    wall_dir when there is one, else the repo's."""
+    out = []
+    for p in sorted(THEMES.glob('*.theme')):
+        v = values(load(p))
+        entry = {k: v.get(k, '') for k in META + COLOURS + OPTIONAL_COLOURS}
+        wp = Path(wall_dir) / entry['wallpaper']
+        entry['wallpaper'] = str(wp if wp.is_file() else WALLPAPERS / entry['wallpaper'])
+        out.append(entry)
+    return out
+
+
 def report(name, bad):
     for line in bad:
         print(f'{name}: {line}', file=sys.stderr)
@@ -205,6 +220,10 @@ def main(argv):
         if not failed:
             print(f'{len(names)} themes ok against {len(templates())} templates')
         return 1 if failed else 0
+    if cmd == 'json' and not args:
+        wall_dir = os.environ.get('WALL_DIR', os.path.expanduser('~/Pictures/Wallpapers'))
+        print(json.dumps(catalogue(wall_dir)))
+        return 0
     print(__doc__, file=sys.stderr)
     return 2
 

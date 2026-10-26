@@ -7,6 +7,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.4.0] - 2026-10-26 12:24 (IST)
+
+### Added
+- Theme window (SUPER+SHIFT+T, `theme window`, or Theme in the actions menu): a Quickshell window with a preview
+  card per theme, each showing its wallpaper under a small mock bar and window drawn in its colours, dark and light
+  halves side by side. A click or Enter applies the theme, arrow keys move between cards, and the window stays
+  open while the shell reloads into the new colours.
+- `theme json` prints every theme's name, mode, colours and wallpaper path, which the window reads.
+
+### Changed
+- SUPER+SHIFT+T opens the theme window instead of cycling to the next theme; `theme toggle` still cycles.
+
+### Tests
+- `theme json`: every theme listed with its colours, the wallpaper taken from the wallpaper folder when it is
+  there and from the repo otherwise.
+
+### Results
+65 tests across 2 suites, all passed, 6 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.025s, CachyOS Linux).
+
 ## [1.0.3.0] - 2026-10-26 12:21 (IST)
 
 ### Added

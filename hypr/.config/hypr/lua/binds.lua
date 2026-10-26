@@ -41,7 +41,7 @@ bind("C",              run("rofi -show calc -modi calc -no-show-match -no-sort -
 bind("SHIFT + W",      run("~/.local/bin/wifi"),          "Wi-Fi networks (Alt+D forget, Alt+R rescan)")
 bind("SHIFT + N",      run("qs ipc call notifs toggle"),  "notification centre")
 bind("A",              run("qs ipc call panel toggle"),   "widget panel")
-bind("SHIFT + T",      run("~/.local/bin/theme toggle"),  "toggle theme (harbour/mono)")
+bind("SHIFT + T",      run("qs ipc call themes toggle"),  "theme window (pick a theme)")
 bind("Escape",         run("hyprlock"),                   "lock screen")
 bind("SHIFT + Escape", run("wlogout -b 5 -T 520 -B 520 -L 440 -R 440"), "power menu")
 bind("slash",          run("~/.local/bin/keyhint"),       "this cheatsheet")
