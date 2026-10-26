@@ -1,0 +1,6 @@
+# Dolphin and Thunar both provide org.freedesktop.FileManager1 (apps call it for "show in folder").
+# A user service file wins over the system ones, so this pins the name to Thunar.
+[D-BUS Service]
+Name=org.freedesktop.FileManager1
+Exec=/usr/bin/Thunar --gapplication-service
+SystemdService=thunar.service

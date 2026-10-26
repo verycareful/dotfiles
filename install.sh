@@ -36,6 +36,8 @@ for p in "${pkgs[@]}"; do
     # the whole dir into a symlink and hide them. Units go in <pkg>/<name>.service and are linked below instead.
     [[ -e "$p/.config/systemd" ]] && { echo "refusing to stow $p: it contains .config/systemd" >&2; exit 1; }
     [[ -z "$op" ]] && backup_conflicts "$p"
+    # apps install their own D-Bus services next to ours, so the dir must be real, not folded into the repo
+    [[ -z "$op" && -d "$p/.local/share/dbus-1/services" ]] && mkdir -p "$HOME/.local/share/dbus-1/services"
     stow -v $op -t "$HOME" "$p"
 done
 for unit in quickshell/quickshell.service openrgb/openrgb.service \
@@ -98,7 +100,7 @@ if command -v xdg-mime >/dev/null; then
         xdg-mime default "$app" $types
     done <<'EOF'
 firefox.desktop             x-scheme-handler/http x-scheme-handler/https
-org.kde.dolphin.desktop     inode/directory
+thunar.desktop              inode/directory
 micro.desktop               text/plain text/markdown application/json
 EOF
 fi

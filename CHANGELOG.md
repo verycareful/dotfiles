@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.1.4] - 2026-10-26 12:03 (IST)
+
+### Fixed
+- Folders open in Thunar, the file manager SUPER+E starts. `install.sh` sets Thunar as the folder default, and the
+  `thunar` package ships a user D-Bus service that gives `org.freedesktop.FileManager1` ("show in folder" from
+  Firefox, Vesktop, VS Code) to Thunar. With Dolphin also installed, either could answer it before.
+- `install.sh` creates `~/.local/share/dbus-1/services` before stowing, so only the service file is linked and
+  services that apps install there stay out of the repo.
+
+### Results
+32 tests across 1 suite, all passed, Lua syntax and secrets checks clean (0.004s, CachyOS Linux).
+
 ## [1.0.1.3] - 2026-10-26 12:01 (IST)
 
 ### Added
