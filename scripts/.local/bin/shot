@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# shot — screenshot via grim/slurp, annotate with satty, copy to clipboard
+# shot: screenshot via grim/slurp, copied to the clipboard at once; satty opens hidden in the tray
+# (special:tray, see rules.lua) for annotating. SUPER+SHIFT+M brings it up. In satty, Ctrl+C copies the
+# annotated image, Ctrl+S saves it to ~/Pictures/Screenshots.
 #   shot area | full | window
 set -euo pipefail
 OUT="${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
-mkdir -p "$OUT"
-FILE="$OUT/$(date +%Y-%m-%d_%H-%M-%S).png"
+RAW="${XDG_RUNTIME_DIR:-$HOME/.cache}/shot"
+mkdir -p "$OUT" "$RAW"
+NAME="$(date +%Y-%m-%d_%H-%M-%S).png"
 
 case "${1:-area}" in
     area)   geom=$(slurp -d) ;;
@@ -13,5 +16,8 @@ case "${1:-area}" in
     *) echo "usage: shot {area|full|window}" >&2; exit 1 ;;
 esac
 
-if [[ -n "$geom" ]]; then grim -g "$geom" - ; else grim - ; fi \
-  | satty --filename - --output-filename "$FILE" --copy-command wl-copy --early-exit
+if [[ -n "$geom" ]]; then grim -g "$geom" "$RAW/$NAME"; else grim "$RAW/$NAME"; fi
+wl-copy --type image/png < "$RAW/$NAME"
+notify-send -a shot -i "$RAW/$NAME" "Screenshot copied" "Annotate in satty: SUPER+SHIFT+M" 2>/dev/null || true
+satty --filename "$RAW/$NAME" --output-filename "$OUT/$NAME" --copy-command wl-copy --early-exit || true
+rm -f "$RAW/$NAME"

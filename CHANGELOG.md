@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.2.2] - 2026-10-26 12:15 (IST)
+
+### Fixed
+- A screenshot is copied to the clipboard as soon as it is taken, and satty opens hidden in the tray
+  (`special:tray`) instead of over the current workspace. SUPER+SHIFT+M brings it up to annotate; Ctrl+S there
+  saves to `~/Pictures/Screenshots`. The unannotated capture is kept only while satty is open.
+
+### Results
+53 tests across 2 suites, all passed, 3 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.016s, CachyOS Linux).
+
 ## [1.0.2.1] - 2026-10-26 12:13 (IST)
 
 ### Fixed

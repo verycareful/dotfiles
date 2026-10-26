@@ -17,6 +17,9 @@ hl.window_rule({ match = { title = "^(Permissions)$" }, float = true, center = t
 local dialogs = "^(Open File|Save File|Open Folder|Select .*)$"
 hl.window_rule({ match = { title = dialogs }, float = true, center = true })
 
+-- satty (screenshot annotation, started by `shot`) opens hidden in the tray, so the screen stays as it was
+hl.window_rule({ match = { class = "^(org.satty.satty)$" }, workspace = "special:tray silent" })
+
 -- Picture-in-picture always on top
 hl.window_rule({ match = { title = "^(Picture-in-Picture)$" }, float = true, pin = true })
 
