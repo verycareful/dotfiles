@@ -32,7 +32,7 @@ bind("SHIFT + F",      app(browser),          "Firefox")
 bind("SHIFT + C",      app("claude-desktop"), "Claude")
 bind("SHIFT + V",      app(editor),           "VS Code")
 bind("SHIFT + O",      app("spotify"),        "Spotify")
-bind("SHIFT + D",      app("vesktop"),        "Discord (Vesktop)")
+bind("ALT + D",        app("vesktop"),        "Discord (Vesktop)")   -- ALT: SUPER+SHIFT+D is scratchpad 2
 bind("SHIFT + G",      app("signal-desktop"), "Signal")
 bind("V",              run("~/.local/bin/clip"),          "clipboard history (Alt+D delete, Alt+X clear)")
 bind("X",              run("~/.local/bin/actions"),       "actions menu (theme, wallpaper, record, snapshot, firewall, restarts)")
@@ -116,14 +116,12 @@ end
 bind("Tab",        hl.dsp.focus({ workspace = "previous" }),  "previous workspace")
 bind("mouse_down", hl.dsp.focus({ workspace = "e+1" }),       "next workspace (scroll)")
 bind("mouse_up",   hl.dsp.focus({ workspace = "e-1" }),       "previous workspace (scroll)")
-bind("S",          hl.dsp.workspace.toggle_special("scratch"), "toggle scratchpad")
-bind("SHIFT + S",  hl.dsp.window.move({ workspace = "special:scratch", follow = true }), "move window to scratchpad")
--- more scratchpads on the keys beside S: SUPER+key toggles, SUPER+ALT+key moves the focused window in
--- (ALT because SUPER+SHIFT+D is Discord). Add a row here for another one.
+-- scratchpads on S and the keys beside it: SUPER+key toggles, SUPER+SHIFT+key moves the focused window in.
+-- Add a row here for another one (an app on SUPER+SHIFT+key moves to SUPER+ALT+key).
 local pads = { S = "scratch", D = "scratch2", Z = "scratch3" }
 for key, name in pairs(pads) do
-    if key ~= "S" then bind(key, hl.dsp.workspace.toggle_special(name), "toggle scratchpad " .. name) end
-    bind("ALT + " .. key, hl.dsp.window.move({ workspace = "special:" .. name, follow = true }), "move window to scratchpad " .. name)
+    bind(key,               hl.dsp.workspace.toggle_special(name), "toggle scratchpad " .. name)
+    bind("SHIFT + " .. key, hl.dsp.window.move({ workspace = "special:" .. name, follow = true }), "move window to scratchpad " .. name)
 end
 -- "close to tray": hide the window (keeps running) / pick a hidden one to bring back
 bind("M",          hl.dsp.window.move({ workspace = "special:tray", follow = false }), "hide window to tray")

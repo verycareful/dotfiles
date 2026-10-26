@@ -7,6 +7,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.1.1] - 2026-10-26 11:51 (IST)
+
+### Fixed
+- Alt-Tab lists windows in the scratchpads (SUPER+S, SUPER+D, SUPER+Z), tagged with the scratchpad's name.
+  Picking one opens its scratchpad and focuses it. Windows hidden to the tray (SUPER+M) stay out of the list.
+
+### Changed
+- SUPER+SHIFT+S/D/Z move the focused window into scratchpad 1/2/3. SUPER+ALT+S/D/Z no longer do.
+- SUPER+ALT+D opens Vesktop, freeing SUPER+SHIFT+D for scratchpad 2.
+
+### Results
+32 tests across 1 suite, all passed, Lua syntax and secrets checks clean (0.004s, CachyOS Linux).
+
 ## [1.0.1.0] - 2026-10-21 17:32 (IST)
 
 ### Added

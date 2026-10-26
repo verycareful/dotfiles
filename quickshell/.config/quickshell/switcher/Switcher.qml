@@ -1,6 +1,6 @@
-// Alt-Tab window switcher: every window (all workspaces, not the tray), most-recently-used first,
-// live thumbnails. Alt+Tab / Alt+Shift+Tab move the highlight, releasing Alt focuses that window
-// on its own workspace (nothing is moved). Driven by Hyprland binds via `qs ipc call switcher …`.
+// Alt-Tab window switcher: every window (all workspaces and scratchpads, not the tray), most-recently-used
+// first, live thumbnails. Alt+Tab / Alt+Shift+Tab move the highlight, releasing Alt focuses that window
+// on its own workspace, opening its scratchpad if it is in one (nothing is moved). Driven by Hyprland binds via `qs ipc call switcher …`.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -22,8 +22,10 @@ Scope {
         function onRawEvent(e) { if (["openwindow", "closewindow", "activewindow", "movewindow", "changefloatingmode"].includes(e.name)) Hyprland.refreshToplevels() }
     }
     function hist(t) { return t.lastIpcObject && t.lastIpcObject.focusHistoryID !== undefined ? t.lastIpcObject.focusHistoryID : 1e9 }
+    // regular workspaces plus the scratchpads (special:scratch, scratch2, …); the tray stays hidden
+    function listed(ws) { return ws && (ws.id > 0 || /^special:scratch\d*$/.test(ws.name)) }
     function snapshot() {
-        const all = Hyprland.toplevels.values.filter(t => t.workspace && t.workspace.id > 0)
+        const all = Hyprland.toplevels.values.filter(t => listed(t.workspace))
         all.sort((a, b) => hist(a) - hist(b))
         list = all
     }
@@ -37,7 +39,13 @@ Scope {
         shown = false
         if (t) {
             const addr = "address:0x" + String(t.address).replace(/^0x/, "")
-            Quickshell.execDetached(["hdsp", 'hl.dsp.focus({ window = "' + addr + '" })', "focuswindow", addr])
+            // focusing a window in a hidden scratchpad does not open it, so open it first (unless it is already open)
+            const ws = t.workspace.name
+            const pad = ws.startsWith("special:") ? ws.slice(8) : ""
+            Quickshell.execDetached(["sh", "-c",
+                'if [ -n "$1" ] && [ "$(hyprctl monitors -j | jq -r ".[] | select(.focused) | .specialWorkspace.name")" != "special:$1" ]; then ' +
+                'hdsp "hl.dsp.workspace.toggle_special(\\"$1\\")" togglespecialworkspace "$1"; fi; ' +
+                'hdsp "hl.dsp.focus({ window = \\"$2\\" })" focuswindow "$2"', "sh", pad, addr])
         }
         list = []
         Hyprland.refreshToplevels()
@@ -103,7 +111,7 @@ Scope {
                                     anchors { left: parent.left; top: parent.top; margins: 4 }
                                     width: wsl.implicitWidth + 10; height: 18
                                     color: Qt.rgba(Theme.mantle.r, Theme.mantle.g, Theme.mantle.b, 0.85)
-                                    Text { id: wsl; anchors.centerIn: parent; text: card.modelData.workspace ? card.modelData.workspace.name : ""; color: Theme.subtext; font { family: Theme.fontDisplay; pixelSize: 10; weight: Font.Bold } }
+                                    Text { id: wsl; anchors.centerIn: parent; text: card.modelData.workspace ? card.modelData.workspace.name.replace(/^special:/, "") : ""; color: Theme.subtext; font { family: Theme.fontDisplay; pixelSize: 10; weight: Font.Bold } }
                                 }
                             }
                             Row {
