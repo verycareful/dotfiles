@@ -1,4 +1,4 @@
-// Quick toggles (right-click Wi-Fi for the network picker): Wi-Fi · Bluetooth · DND · Night light · Power profile · Media on bar
+// Quick toggles (right-click Wi-Fi for the network picker): Wi-Fi · Bluetooth · DND · Night light · Power profile · Media on bar · Visualiser
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -21,4 +21,6 @@ RowLayout {
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F0E96}"; label: perf ? "Performance" : "Balanced"; on: perf
                      onClicked: PowerProfiles.profile = perf ? PowerProfile.Balanced : PowerProfile.Performance }
     Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F075A}"; label: "Media on bar"; on: Panel.mediaOnBar;            onClicked: Panel.setMediaOnBar(!Panel.mediaOnBar) }
+    Widgets.Toggle { Layout.fillWidth: true; glyph: "\u{F0EA2}"; label: Panel.vizMode === "off" ? "Visualiser" : "Viz: " + Panel.vizMode
+                     on: Panel.vizMode !== "off"; onClicked: Panel.cycleViz() }
 }

@@ -9,6 +9,10 @@ Singleton {
     property bool open: false
     property bool releaseKeyboard: false   // true while a polkit dialog is up, so it gets the keys
     property bool mediaOnBar: true          // "Media on bar" toggle → waybar state.css
+    // song visualiser: off, compact (custom/viz beside the song), wide (custom/viz#wide in the centre, workspaces
+    // move left) or full (BarViz under the whole bar)
+    property string vizMode: "off"
+    readonly property var vizModes: ["off", "compact", "wide", "full"]
     property int  nightTemp: 6000           // hyprsunset colour temperature, 6000 = off
     readonly property bool nightLight: nightTemp < 6000
 
@@ -30,19 +34,43 @@ Singleton {
         launch(["sh", "-c", 'if command -v perms >/dev/null; then exec perms run "$@"; else exec "$@"; fi', "sh"].concat(cmd))
     }
 
-    // ── media on bar ─────────────────────────────────────────
-    // waybar reloads its CSS when style.css changes; state.css is @imported from it.
-    function setMediaOnBar(on) {
-        mediaOnBar = on
-        stateCss.setText(on ? "/* media group shown (Quickshell panel) */\n"
-                            : "/* media group hidden (Quickshell panel) */\n#media, #media * { font-size: 0px; padding: 0; margin: 0; min-width: 0; border: none; }\n")
+    // ── media on bar, visualiser ─────────────────────────────
+    // waybar reloads its CSS when style.css changes; state.css is @imported from it. It hides the media group
+    // when it is off the bar, and the workspaces copy not in use (the left one, beside the weather, in wide mode).
+    // Its rules are scoped to window#waybar so they outrank style.css, which imports them first.
+    // viz-mode tells ~/.local/bin/viz (custom/viz, custom/viz#wide) which of them runs.
+    function setMediaOnBar(on) { mediaOnBar = on; saveBarState() }
+    function setVizMode(m) { if (vizModes.includes(m)) { vizMode = m; saveBarState() } }
+    function cycleViz() { setVizMode(vizModes[(vizModes.indexOf(vizMode) + 1) % vizModes.length]) }
+
+    function barCss() {
+        const hide = sel => "window#waybar " + sel + ", window#waybar " + sel + " * { font-size: 0px; padding: 0; margin: 0; min-width: 0; border: none; background: none; opacity: 0; }"
+        const rules = ["/* written by the Quickshell panel: media " + (mediaOnBar ? "shown" : "hidden") + ", visualiser " + vizMode + " */"]
+        // full: BarViz draws the glass itself; below the blur rule's ignore_alpha Hyprland leaves the bar unblurred,
+        // so the bars stay sharp behind the modules (window#waybar.top outranks style.css's window#waybar)
+        if (vizMode === "full") rules.push("window#waybar.top { background: transparent; }")
+        if (!mediaOnBar) rules.push(hide("#media"))
+        rules.push(hide(vizMode === "wide" ? "#workspaces:not(.left)" : "#workspaces.left"))
+        return rules.join("\n") + "\n"
+    }
+    function saveBarState() {
+        stateCss.setText(barCss())
+        modeFile.setText(vizMode + "\n")
         Quickshell.execDetached(["touch", Quickshell.env("HOME") + "/.config/waybar/style.css"])
-        settings.setText(JSON.stringify({ mediaOnBar: on }))
+        settings.setText(JSON.stringify({ mediaOnBar: mediaOnBar, vizMode: vizMode }))
     }
     FileView { id: stateCss; path: Quickshell.env("HOME") + "/.config/waybar/state.css"; printErrors: false }
+    FileView { id: modeFile; path: Quickshell.env("HOME") + "/.config/waybar/viz-mode"; printErrors: false }
     FileView {
         id: settings; path: Quickshell.statePath("panel.json"); blockLoading: true; printErrors: false
-        onLoaded: { try { const j = JSON.parse(text()); if (j.mediaOnBar !== undefined) root.mediaOnBar = j.mediaOnBar } catch (e) {} }
+        onLoaded: {
+            try {
+                const j = JSON.parse(text())
+                if (j.mediaOnBar !== undefined) root.mediaOnBar = j.mediaOnBar
+                if (root.vizModes.includes(j.vizMode)) root.vizMode = j.vizMode
+                modeFile.setText(root.vizMode + "\n")
+            } catch (e) {}
+        }
     }
 
     // ── night light (hyprsunset) ─────────────────────────────
@@ -67,5 +95,7 @@ Singleton {
         function close(): void  { root.setOpen(false) }
         function status(): string { return root.status() }
         function mediabar(): void { root.setMediaOnBar(!root.mediaOnBar) }
+        function viz(): void { root.cycleViz() }
+        function vizmode(mode: string): void { root.setVizMode(mode) }
     }
 }

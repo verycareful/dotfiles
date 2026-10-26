@@ -14,7 +14,7 @@ Singleton {
     signal openWindow()
 
     readonly property var rules: status.rules || ({})
-    readonly property var live: status.live || ({ mic: {}, screen: {}, camera: {} })
+    readonly property var live: status.live || ({ mic: {}, audio: {}, screen: {}, camera: {} })
     readonly property var seen: status.seen || ({})
     readonly property var system: status.system || []
 
@@ -38,7 +38,7 @@ Singleton {
     }
     function name(app) {
         if ((status.names || {})[app]) return status.names[app]
-        for (const k of ["mic", "screen", "camera"]) if (seen[k] && seen[k][app] && seen[k][app].name) return seen[k][app].name
+        for (const k of ["mic", "audio", "screen", "camera"]) if (seen[k] && seen[k][app] && seen[k][app].name) return seen[k][app].name
         return app
     }
     // "now", "5 min ago", "2 h ago", "3 days ago"

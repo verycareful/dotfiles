@@ -1,10 +1,10 @@
 # sudo pacman -S --needed --asexplicit - < packages.txt
 # (--asexplicit: everything here is wanted on its own, so `pacman -Rns` of something else never removes it)
 hyprland uwsm hypridle hyprlock hyprsunset hyprpolkitagent hyprpicker xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
-waybar rofi rofimoji rofi-calc quickshell awww wlogout
+rofi rofimoji rofi-calc quickshell awww wlogout
 kitty fish starship fastfetch
 grim slurp satty gpu-screen-recorder wl-clipboard cliphist
-brightnessctl playerctl pamixer
+brightnessctl playerctl pamixer cava
 iwd blueman kdeconnect udiskie gvfs thunar
 tumbler ffmpegthumbnailer thunar-archive-plugin ark
 qt5-wayland qt6-wayland qt5ct qt6ct kvantum nwg-look adw-gtk-theme
@@ -12,4 +12,4 @@ ttf-jetbrains-mono-nerd noto-fonts noto-fonts-emoji
 papirus-icon-theme bibata-cursor-theme
 stow jq imagemagick pacman-contrib
 lact openrgb
-# AUR (yay -S, not pacman): ryzenadj
+# AUR (yay -S, not pacman): ryzenadj waybar-git (the bar is set up against Waybar git master, built with libcava)

@@ -9,8 +9,9 @@
     "reload_style_on_change": true,
 
     // ── layout ────────────────────────────────────────────────
-    "modules-left":   ["custom/panel", "clock#time", "clock#date", "idle_inhibitor", "custom/weather"],
-    "modules-center": ["hyprland/workspaces"],
+    "modules-left":   ["custom/panel", "clock#time", "clock#date", "idle_inhibitor", "custom/weather",
+                       "hyprland/workspaces#left"],
+    "modules-center": ["hyprland/workspaces", "custom/viz#wide"],
     "modules-right":  ["custom/rec", "group/media", "custom/perms", "network", "wireplumber",
                        "group/traybox", "custom/updates", "custom/notifications", "custom/keyhint", "custom/power"],
 
@@ -61,6 +62,8 @@
     },
 
     // ── centre ────────────────────────────────────────────────
+    // The workspaces sit here, or beside the weather (hyprland/workspaces#left) in the wide visualiser mode, which
+    // gives the centre to custom/viz#wide. The Quickshell panel's state.css hides whichever copy is not in use.
     "hyprland/workspaces": {
         "format": "{id}",                       // numbers; only workspaces that exist (active/occupied) are shown
         "on-click": "activate",
@@ -68,11 +71,30 @@
         "on-scroll-down": "~/.local/bin/hdsp 'hl.dsp.focus({ workspace = \"e+1\" })' workspace e+1",
         "sort-by-number": true
     },
+    "hyprland/workspaces#left": {
+        "format": "{id}",
+        "on-click": "activate",
+        "on-scroll-up":   "~/.local/bin/hdsp 'hl.dsp.focus({ workspace = \"e-1\" })' workspace e-1",
+        "on-scroll-down": "~/.local/bin/hdsp 'hl.dsp.focus({ workspace = \"e+1\" })' workspace e+1",
+        "sort-by-number": true
+    },
+    "custom/viz#wide": {
+        // wide song visualiser: fills the centre while the mode is wide and a player is playing, empty otherwise
+        "exec": "~/.local/bin/viz bar wide",
+        "return-type": "json",
+        "tooltip": false
+    },
 
     // ── right ─────────────────────────────────────────────────
     "group/media": {
         "orientation": "inherit",
-        "modules": ["mpris", "custom/media-prev", "custom/media-play", "custom/media-next"]
+        "modules": ["mpris", "custom/viz", "custom/media-prev", "custom/media-play", "custom/media-next"]
+    },
+    "custom/viz": {
+        // compact song visualiser: runs cava while the mode is compact and a player is playing, empty otherwise
+        "exec": "~/.local/bin/viz bar compact",
+        "return-type": "json",
+        "tooltip": false
     },
     "custom/media-prev": { "exec": "~/.local/bin/media-ctl icon prev", "return-type": "json", "hide-empty-text": true, "on-click": "~/.local/bin/media-ctl prev" },
     "custom/media-play": { "exec": "~/.local/bin/media-ctl icon play", "return-type": "json", "hide-empty-text": true, "on-click": "~/.local/bin/media-ctl toggle" },

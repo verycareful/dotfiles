@@ -100,6 +100,9 @@ tooltip label { padding: 4px; }
 #custom-media-next { padding-right: 8px; }
 #custom-media-play { color: @accent; }
 #custom-media-prev:hover, #custom-media-next:hover, #custom-media-play:hover { color: @text; }
+/* text visualisers (compact, wide): a monospace font keeps the bars even */
+#custom-viz { font-family: "JetBrainsMono Nerd Font"; font-size: 13px; padding: 0 6px 0 2px; color: @accent; }
+#custom-viz.wide { padding: 0 12px; }
 
 /* tray arrow: two labels, one collapsed to zero size. Waybar (git) puts the .expanded class on
    the group box (#traybox) while the drawer is open, which swaps them: down → left.

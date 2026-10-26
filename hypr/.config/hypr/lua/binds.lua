@@ -42,6 +42,7 @@ bind("SHIFT + W",      run("~/.local/bin/wifi"),          "Wi-Fi networks (Alt+D
 bind("SHIFT + N",      run("qs ipc call notifs toggle"),  "notification centre")
 bind("A",              run("qs ipc call panel toggle"),   "widget panel")
 bind("SHIFT + T",      run("qs ipc call themes toggle"),  "theme window (pick a theme)")
+bind("SHIFT + V",      run("qs ipc call panel viz"),      "song visualiser: off, compact, wide, full")
 bind("Escape",         run("hyprlock"),                   "lock screen")
 bind("SHIFT + Escape", run("wlogout -b 5 -T 520 -B 520 -L 440 -R 440"), "power menu")
 bind("slash",          run("~/.local/bin/keyhint"),       "this cheatsheet")

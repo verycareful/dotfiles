@@ -226,6 +226,11 @@ class Live(unittest.TestCase):
         use = perms.live_use(perms.pw_graph(dump))
         self.assertEqual(use["mic"], {"discord": "Discord"})
 
+    def test_sink_capture_is_audio_capture_not_mic(self):
+        dump = [client(1, "cava", "cava"), node(10, "Stream/Input/Audio", **{"client.id": 1, "stream.capture.sink": True})]
+        use = perms.live_use(perms.pw_graph(dump))
+        self.assertEqual((use["mic"], use["audio"]), ({}, {"cava": "cava"}))
+
     def test_screen_share_follows_the_link(self):
         dump = [client(1, "Discord", "Discord"),
                 node(20, "Video/Source", **{"node.name": "xdph-streaming-1"}),
@@ -264,6 +269,8 @@ class Live(unittest.TestCase):
         line = perms.bar_line({"mic": {"discord": "Discord"}, "screen": {"obs": "OBS"}, "camera": {}})
         self.assertEqual(line["class"], ["active", "mic", "screen"])
         self.assertEqual(line["tooltip"], "Microphone: Discord\nScreen sharing: OBS")
+        line = perms.bar_line({"mic": {}, "audio": {"cava": "cava"}, "screen": {}, "camera": {}})
+        self.assertEqual((line["class"], line["tooltip"]), (["active", "audio"], "Audio capture: cava"))
 
 
 FOLDER_CASES = {

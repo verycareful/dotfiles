@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+"""viz: the text song visualisers on Waybar (custom/viz beside the song, custom/viz#wide in the centre).
+  viz bar compact|wide    stream JSON lines: one glyph per cava bar, empty (module hidden) when idle
+cava runs only while the visualiser mode is the one named and a player is playing. The mode is written by the Quickshell
+panel (qs ipc call panel viz); style.css colours the bars."""
+import json
+import os
+import signal
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+WAYBAR = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "waybar"
+MODE_FILE = WAYBAR / "viz-mode"
+CAVA_CONF = {"compact": WAYBAR / "viz-cava.conf", "wide": WAYBAR / "viz-cava-wide.conf"}
+GLYPHS = "▁▂▃▄▅▆▇█"      # one per bar height; viz-cava*.conf ascii_max_range is len - 1
+CHECK_EVERY = 1.0        # seconds between mode / playback checks
+STOP_AFTER = 3.0         # seconds without playback before cava stops
+
+
+def mode():
+    try:
+        return MODE_FILE.read_text().strip()
+    except OSError:
+        return "off"
+
+
+def playing():
+    out = subprocess.run(["playerctl", "--all-players", "--ignore-player=playerctld", "status"],
+                         capture_output=True, text=True).stdout
+    return "Playing" in out.split()
+
+
+def emit(text):
+    print(json.dumps({"text": text, "class": "viz" if text else "idle"}), flush=True)
+
+
+def run_cava(want):
+    """Draw cava's frames until the mode leaves `want` or playback has stopped for STOP_AFTER seconds."""
+    top = len(GLYPHS) - 1
+    cava = subprocess.Popen(["cava", "-p", str(CAVA_CONF[want])], stdout=subprocess.PIPE, text=True, bufsize=1)
+    checked = last_play = time.monotonic()
+    try:
+        for line in cava.stdout:
+            levels = [int(x) for x in line.strip().split(";") if x]
+            emit("".join(GLYPHS[min(lv, top)] for lv in levels))
+            now = time.monotonic()
+            if now - checked >= CHECK_EVERY:
+                checked = now
+                if mode() != want:
+                    return
+                if playing():
+                    last_play = now
+                elif now - last_play >= STOP_AFTER:
+                    return
+    finally:
+        cava.terminate()
+        cava.wait()
+        emit("")
+
+
+def bar(want):
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))   # Waybar stops the module: run finally blocks
+    emit("")
+    while True:
+        if mode() == want and playing():
+            run_cava(want)
+        time.sleep(CHECK_EVERY)
+
+
+def main(argv):
+    if len(argv) == 2 and argv[0] == "bar" and argv[1] in CAVA_CONF:
+        bar(argv[1])
+        return 0
+    print(__doc__.strip(), file=sys.stderr)
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

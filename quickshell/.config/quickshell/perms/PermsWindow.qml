@@ -60,7 +60,7 @@ Scope {
     function allApps() {
         let list = keys(s.network).concat(keys((s.files || {}).history), keys((s.files || {}).open))
         for (const c of controlled) list = list.concat(candidates(c.key))
-        list = list.concat(keys(Perms.seen.camera))
+        list = list.concat(keys(Perms.seen.camera), keys(Perms.seen.audio))
         return clean(list).sort((a, b) => Perms.name(a).localeCompare(Perms.name(b)))
     }
     function liveNames(perm) { const l = Perms.live[perm] || {}; return keys(l).map(k => l[k]).join(", ") }
@@ -217,6 +217,26 @@ Scope {
                         }
                     }
 
+                    // audio capture: recording what is playing (visualisers, recorders, screen shares with sound)
+                    Row_ {
+                        glyph: "\u{F147D}"; label: "Audio capture"
+                        live: root.liveNames("audio")
+                        sub: root.keys(Perms.seen.audio).length + " apps have recorded what is playing"
+                        open: root.expanded === "audio"
+                        onToggleOpen: root.expanded = open ? "" : "audio"
+                    }
+                    Sublist {
+                        visible: root.expanded === "audio"
+                        ColumnLayout {
+                            Layout.fillWidth: true; spacing: 0
+                            Repeater {
+                                model: root.clean(root.keys(Perms.seen.audio))
+                                delegate: InfoLine { required property string modelData; app: modelData; info: root.lastUsed("audio", modelData) }
+                            }
+                            Note { visible: root.keys(Perms.seen.audio).length === 0; text: "Nothing has recorded what is playing." }
+                        }
+                    }
+
                     // network
                     Row_ {
                         glyph: "\u{F059F}"; label: "Network"
@@ -336,7 +356,7 @@ Scope {
                                         color: parent.parent.on ? Theme.text : Theme.subtext
                                         font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold }
                                     }
-                                    Dot { visible: ["mic", "screen", "camera"].some(p => (Perms.live[p] || {})[modelData]) }
+                                    Dot { visible: ["mic", "audio", "screen", "camera"].some(p => (Perms.live[p] || {})[modelData]) }
                                 }
                                 MouseArea { id: am; anchors.fill: parent; hoverEnabled: true; onClicked: root.selected = modelData }
                             }
@@ -373,6 +393,7 @@ Scope {
                         }
                         Section { text: "WATCHED"; Layout.topMargin: 10 }
                         InfoLine { glyph: "\u{F0100}"; display: "Camera"; info: root.lastUsed("camera", appPane.app) || "never used" }
+                        InfoLine { glyph: "\u{F147D}"; display: "Audio capture"; info: root.lastUsed("audio", appPane.app) || "never used" }
                         InfoLine {
                             glyph: "\u{F059F}"; display: "Network"
                             readonly property var n: (root.s.network || {})[appPane.app]

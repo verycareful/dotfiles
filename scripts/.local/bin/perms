@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""perms: which apps may use the mic, the screen and the clipboard, and what is using what.
+"""perms: which apps may use the mic, the screen and the clipboard, and what is using what (those three, the
+camera and audio capture, which records what is playing).
 
   perms status                         JSON for the Quickshell permissions window
   perms bar                            Waybar: one JSON line whenever live use changes (runs forever)
@@ -399,17 +400,19 @@ def is_screen_node(props):
 
 
 def live_use(graph):
-    """{mic, screen, camera: {key: display}} for streams that are running now."""
+    """{mic, audio, screen, camera: {key: display}} for streams that are running now. audio is capture of what is
+    playing (a stream recording an output's monitor, e.g. cava), not the mic."""
     clients, nodes, links = graph
-    use = {"mic": {}, "screen": {}, "camera": {}}
+    use = {"mic": {}, "audio": {}, "screen": {}, "camera": {}}
     for node in nodes.values():
         props = node["props"]
         if props.get("media.class") == "Stream/Input/Audio" and node["state"] == "running":
             if "peak detect" in str(props.get("media.name", "")).lower():
                 continue                                    # pavucontrol's level meters
+            kind = "audio" if str(props.get("stream.capture.sink", "")).lower() == "true" else "mic"
             key, name = node_app(node, clients)
             if key and key not in SYSTEM:
-                use["mic"][key] = name
+                use[kind][key] = name
     for out_id, in_id in links:
         src, dst = nodes.get(out_id), nodes.get(in_id)
         if not src or not dst:
@@ -686,14 +689,15 @@ def cmd_status():
 
 # ── Waybar ───────────────────────────────────────────────────────────────────
 
-GLYPH = {"mic": "\U000F036C", "camera": "\U000F0100", "screen": "\U000F0379", "idle": "\U000F0499"}
-LABEL = {"mic": "Microphone", "camera": "Camera", "screen": "Screen sharing"}
+GLYPH = {"mic": "\U000F036C", "audio": "\U000F147D", "camera": "\U000F0100", "screen": "\U000F0379", "idle": "\U000F0499"}
+LABEL = {"mic": "Microphone", "audio": "Audio capture", "camera": "Camera", "screen": "Screen sharing"}
 
 
 def bar_line(use):
-    active = [k for k in ("mic", "camera", "screen") if use[k]]
+    active = [k for k in ("mic", "audio", "camera", "screen") if use.get(k)]
     if not active:
-        return {"text": GLYPH["idle"], "class": "idle", "tooltip": "Permissions: nothing is using the mic, camera or screen"}
+        return {"text": GLYPH["idle"], "class": "idle",
+                "tooltip": "Permissions: nothing is using the mic, camera or screen, or recording audio"}
     tip = [f"{LABEL[k]}: {', '.join(sorted(use[k].values()))}" for k in active]
     return {"text": " ".join(GLYPH[k] for k in active), "class": ["active"] + active, "tooltip": "\n".join(tip)}
 

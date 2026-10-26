@@ -7,6 +7,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.5.0] - 2026-10-26 13:00 (IST)
+
+### Added
+- Song visualiser on the bar, shown only while a player is playing. SUPER+SHIFT+V, the Visualiser toggle in the
+  widget panel or `qs ipc call panel viz` cycles its modes (`vizmode off|compact|wide|full` sets one):
+  - compact: 12 bars beside the song title;
+  - wide: the workspaces move next to the weather and 180 bars fill the centre of the bar;
+  - full: thin bars across the whole bar, drawn by Quickshell beneath the modules.
+  Bars are drawn in the theme's accent colour. cava runs only in the chosen mode while something plays.
+- `viz` (`~/.local/bin`): feeds cava's output to the compact and wide Waybar modules.
+- Audio capture in the permissions window and the bar's permissions pill: an app recording what is playing
+  (such as cava) is shown under its own icon, watched like the camera, instead of counting as microphone use.
+
+### Changed
+- `packages.txt`: `cava` added; Waybar is `waybar-git` from the AUR, which the bar is set up against.
+
+### Tests
+- `perms`: sink-monitor capture is reported as audio capture, not the microphone; the bar line shows it.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.026s, CachyOS Linux).
+
 ## [1.0.4.1] - 2026-10-26 12:32 (IST)
 
 ### Fixed
