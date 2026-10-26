@@ -40,8 +40,9 @@ clamav/fts-shim/*.so
 # built by perms/install-perms.sh: perms-sandbox and its generated protocol files
 perms/sandbox/build/
 
-# personal notes, scratch, changes_version, reference sources: not published
+# personal notes, scratch, reference sources and the working changelog: not published
 /local/
+/changes_version.md
 
 # agent instructions, local only
 CLAUDE.md

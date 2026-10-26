@@ -89,4 +89,18 @@ if [[ " ${pkgs[*]} " == *" thunar "* ]] && command -v xfconf-query >/dev/null; t
     done < thunar/thunar.xfconf
 fi
 
+# default apps, written to ~/.config/mimeapps.list. Only the deliberate choices: apps add their own
+# handlers there (Thunderbird's carry a per-install ID), so the file itself is not tracked.
+# Obsidian claims text/markdown but opens only files inside a vault, so .md goes to micro.
+if command -v xdg-mime >/dev/null; then
+    while read -r app types; do
+        [[ -e "/usr/share/applications/$app" || -e "$HOME/.local/share/applications/$app" ]] || { echo "skip default: $app not installed"; continue; }
+        xdg-mime default "$app" $types
+    done <<'EOF'
+firefox.desktop             x-scheme-handler/http x-scheme-handler/https
+org.kde.dolphin.desktop     inode/directory
+micro.desktop               text/plain text/markdown application/json
+EOF
+fi
+
 echo "done. Log out and back in for Hyprland to pick up the new config."

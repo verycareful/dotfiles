@@ -7,6 +7,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.1.3] - 2026-10-26 12:01 (IST)
+
+### Added
+- `install.sh` sets the default apps: Firefox for web links, Dolphin for folders, micro for plain text, Markdown
+  and JSON. A default whose app is not installed is skipped. Apps keep registering their own handlers, so
+  `mimeapps.list` itself stays untracked.
+
+### Fixed
+- Markdown files open in micro. Obsidian registered itself for them but opens only files inside one of its
+  vaults, so any other `.md` file reopened the last vault instead.
+
+### Results
+32 tests across 1 suite, all passed, Lua syntax and secrets checks clean (0.004s, CachyOS Linux).
+
 ## [1.0.1.2] - 2026-10-26 11:52 (IST)
 
 ### Changed
