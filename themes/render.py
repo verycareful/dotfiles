@@ -29,9 +29,9 @@ OPTIONAL_COLOURS = ('on_accent',)
 # Values that follow from mode, so templates name them instead of branching on it.
 MODES = {
     'dark':  {'gtk_theme': 'adw-gtk3-dark', 'gtk_prefer_dark': '1', 'icon_theme': 'Papirus-Dark',
-              'color_scheme': 'prefer-dark'},
+              'color_scheme': 'prefer-dark', 'vscode_theme': 'Default Dark Modern', 'kitty_text': 'platform'},
     'light': {'gtk_theme': 'adw-gtk3', 'gtk_prefer_dark': '0', 'icon_theme': 'Papirus',
-              'color_scheme': 'prefer-light'},
+              'color_scheme': 'prefer-light', 'vscode_theme': 'Default Light Modern', 'kitty_text': '1.4 20'},
 }
 
 # Colour roles whose meaning flips with mode: each name is set to the value of the named key. ANSI black and white

@@ -7,6 +7,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.4.1] - 2026-10-26 12:32 (IST)
+
+### Fixed
+- Terminal text in light themes is solid instead of thin and grey. kitty's Linux text compositing is tuned for
+  light text on dark; light themes set `text_composition_strategy 1.4 20`, dark themes keep kitty's default, and
+  `theme set` reloads the setting in open terminals.
+- VS Code in a light theme uses Default Light Modern underneath the theme's colours, so syntax highlighting is
+  made for a light background. Dark themes set Default Dark Modern, VS Code's own default.
+
+### Results
+65 tests across 2 suites, all passed, 6 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.026s, CachyOS Linux).
+
 ## [1.0.4.0] - 2026-10-26 12:24 (IST)
 
 ### Added

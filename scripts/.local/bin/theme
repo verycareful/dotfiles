@@ -48,7 +48,8 @@ apps() {  # $1 theme name
     # btop: select the rendered theme (btop.conf is btop's own and holds every other setting)
     local btop="$CFG/btop/btop.conf"
     [[ -f $btop ]] && sed -i 's/^color_theme = .*/color_theme = "dotfiles"/' "$btop"
-    # VS Code: workbench.colorCustomizations is replaced, the rest of settings.json kept. It applies live.
+    # VS Code: workbench.colorTheme (light or dark base, for syntax colours) and workbench.colorCustomizations
+    # are replaced, the rest of settings.json kept. It applies live.
     local code="$CFG/Code/User/settings.json"
     if [[ -f $code ]]; then
         "$0" render "$TPL/vscode/colors.json" "$name" | python3 -c '
@@ -58,7 +59,7 @@ try:
     settings = json.load(open(path))
 except ValueError:
     sys.exit("theme: VS Code settings.json has comments or trailing commas; colours not applied")
-settings["workbench.colorCustomizations"] = json.load(sys.stdin)
+settings.update(json.load(sys.stdin))
 json.dump(settings, open(path, "w"), indent=4)
 ' "$code" || true
     fi
@@ -126,6 +127,7 @@ reload() {
     for s in /tmp/kitty-*; do                                   # recolour open terminals
         [[ -S "$s" ]] && kitty @ --to "unix:$s" set-colors --all --configured "$CFG/kitty/colors.conf" >/dev/null 2>&1 || true
         [[ -S "$s" ]] && kitty @ --to "unix:$s" set-background-opacity --all "$kitty_opacity" >/dev/null 2>&1 || true
+        [[ -S "$s" ]] && kitty @ --to "unix:$s" load-config >/dev/null 2>&1 || true   # text_composition_strategy
     done
     command -v notify-send >/dev/null && notify-send -a theme "Theme: $(current)" "GTK/Qt apps, btop and Firefox pick it up on next launch; Vesktop now" || true
 }
