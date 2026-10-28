@@ -13,3 +13,23 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck lua5.4
       - name: Lint and tests
         run: test/lint.sh
+
+  # a pushed version tag (1.0.8.0) gets its GitHub Release once lint passes on it
+  release:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      # the checkout can leave the tag lightweight; fetch the annotated tag object for its message
+      - name: Tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
+      - name: Release
+        env:
+          TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: .github/release.sh "$TAG"

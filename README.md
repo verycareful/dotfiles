@@ -40,7 +40,7 @@
 [![GNU Stow](https://img.shields.io/badge/GNU%20Stow-A42E2B?style=flat-square&logo=gnu&logoColor=white)](https://www.gnu.org/software/stow/)
 [![C](https://img.shields.io/badge/C-A8B9CC?style=flat-square&logo=c&logoColor=white)](https://en.cppreference.com/w/c)
 <!-- Version -->
-[![Version](https://img.shields.io/badge/Version-1.0.7.0-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.0.8.0-blue?style=flat-square)](CHANGELOG.md)
 <!-- License and status -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 [![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square)](#)
@@ -72,7 +72,7 @@ Hyprland rice: sharp corners, glass, switchable themes, each dark one with a lig
 | `pacman/` | `sudo ./pacman/install-hooks.sh`: a hook that lists the checks to run after Hyprland, Quickshell, hyprlock or hypridle upgrade (both change config syntax often), a hook that rebuilds the clamonacc fts shim whenever glibc or clamav changes, and `paccache.timer` (keeps 3 versions of each package in the cache) |
 | KDE Connect | phone pairing, notifications, shared clipboard and file transfer: `kdeconnect` in packages.txt, its tray indicator (which starts the daemon) from Hyprland's autostart, the phone app from the actions menu (SUPER+X), and its ports (1714-1764, LAN only) opened by `firewall/` |
 | `amd/`     | `sudo ./amd/install-lact.sh`: LACT (GPU clocks/power/fans GUI + daemon) and the `amdgpu.ppfeaturemask` kernel parameter that unlocks overdrive; reboot after. `amd/ryzen.conf` + `sudo ./amd/install-ryzenadj.sh`: CPU thermal/PPT/Curve-Optimizer limits via RyzenAdj (AUR), re-applied at boot and after resume; also installs `cpu-tctl`, which the panel's slider calls through polkit |
-| `test/`    | `nested.sh`: try the config in a window; `lint.sh`: ShellCheck, `luac -p` on the Lua config, the perms tests and `secrets.sh`, the same checks CI runs on every push; `secrets.sh` refuses AdGuard profile IDs and private keys, and runs as the pre-commit hook (`.githooks/`, set by install.sh) |
+| `test/`    | `nested.sh`: try the config in a window; `lint.sh`: ShellCheck, `luac -p` on the Lua config, the perms tests and `secrets.sh`, the same checks CI runs on every push (a pushed version tag then gets its GitHub Release, titled from the tag message, with the CHANGELOG entry as notes: `.github/release.sh`); `secrets.sh` refuses AdGuard profile IDs and private keys, and runs as the pre-commit hook (`.githooks/`, set by install.sh) |
 
 ## Workflow
 1. Edit files in the repo.

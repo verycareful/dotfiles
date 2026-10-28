@@ -7,6 +7,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.8.0] - 2026-10-28 17:38 (IST)
+
+### Added
+- Releases from tag pushes: CI's `release` job runs on a pushed version tag once lint passes and creates its
+  GitHub Release, titled from the annotated tag's message, with the version's CHANGELOG entry as notes.
+- `.github/release.sh`: what the job runs. It refuses a tag that is not a four-part label, not annotated, whose
+  `VERSION` disagrees with it, or whose CHANGELOG has no entry for it; a release that already exists is left as it
+  is. `--dry-run` prints the title and notes without creating anything.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.025s, CachyOS Linux).
+
 ## [1.0.7.0] - 2026-10-28 17:33 (IST)
 
 ### Added
