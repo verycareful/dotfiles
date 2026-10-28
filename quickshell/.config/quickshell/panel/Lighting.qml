@@ -39,6 +39,7 @@ Widgets.Tile {
         }
         Text { visible: tile.profiles.length === 0; text: "no profiles — save some in OpenRGB"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11 } }
         Item { Layout.fillWidth: true }
+        Widgets.Button { label: "Themes"; onClicked: { Quickshell.execDetached(["theme", "window"]); Panel.setOpen(false) } }
         Widgets.Button { label: "Open OpenRGB"; onClicked: { Panel.launch(["openrgb", "--gui", "--client", "localhost:6742", "--noautoconnect"]); Panel.setOpen(false) } }
     }
 }

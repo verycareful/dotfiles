@@ -30,22 +30,11 @@
         "interval": 1,
         "tooltip": false
     },
-    "clock#date": {
+    "clock#date": {                         // click: Quickshell calendar popup
         "format": "{:%a %d %b}",
         "interval": 60,
-        "tooltip-format": "<tt>{calendar}</tt>",
-        "calendar": {
-            "mode": "month",
-            "weeks-pos": "left",
-            "on-scroll": 1,
-            "format": {
-                "months":   "<b>{}</b>",
-                "weeks":    "<i>{:%V}</i>",
-                "weekdays": "{}",
-                "today":    "<b><u>{}</u></b>"
-            }
-        },
-        "actions": { "on-scroll-up": "shift_up", "on-scroll-down": "shift_down" }
+        "tooltip": false,
+        "on-click": "qs ipc call calendar toggle"
     },
     "idle_inhibitor": {
         // "caffeine": while active, hypridle won't lock/suspend the session

@@ -7,6 +7,7 @@
 //   qs ipc call perms open|close|toggle           (permissions window)
 //   qs ipc call themes open|close|toggle          (theme window, SUPER+Shift+T)
 //   qs ipc call tray open|close|toggle            (windows hidden to the tray, SUPER+Shift+M)
+//   qs ipc call calendar open|close|toggle        (calendar popup, the bar's date)
 //   qs ipc call osd caps|brightness               (on-screen display; volume and mic follow PipeWire)
 import Quickshell
 import "notifications"
@@ -16,6 +17,7 @@ import "dns"
 import "perms"
 import "themes"
 import "tray"
+import "calendar"
 import "osd"
 import "viz"
 
@@ -28,6 +30,7 @@ ShellRoot {
     PermsWindow {}
     ThemeWindow {}
     TrayWindow {}
+    CalendarPopup {}
     Osd {}
     BarViz {}
 }

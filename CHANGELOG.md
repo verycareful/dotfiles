@@ -7,6 +7,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.7.0] - 2026-10-28 17:33 (IST)
+
+### Added
+- Calendar popup: clicking the date on the bar drops down a month calendar under it, today highlighted, with
+  ‹ › to browse months (`qs ipc call calendar open|close|toggle`). Clicking the date again, Escape or a click
+  outside closes it.
+- Themes button in the widget panel's Lighting card: opens the theme window.
+
+### Changed
+- The calendar is no longer a card in the widget panel, and the date on the bar has no calendar tooltip; the
+  popup replaces both.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.026s, CachyOS Linux).
+
 ## [1.0.6.0] - 2026-10-28 17:24 (IST)
 
 ### Added
