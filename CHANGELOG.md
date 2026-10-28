@@ -7,6 +7,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.6.0] - 2026-10-28 17:24 (IST)
+
+### Added
+- Tray window on SUPER+SHIFT+M (`qs ipc call tray open|close|toggle`): a Quickshell window listing the windows
+  hidden with SUPER+M, each with its icon, class and title and a close button on the right. A click or Enter
+  brings a window to the current workspace and focuses it. The close button or Delete closes a hidden window
+  where it is, without bringing it forward, and the list stays open. Arrow keys move, Escape closes.
+
+### Removed
+- `untray`: the rofi picker it showed is replaced by the tray window.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.027s, CachyOS Linux).
+
 ## [1.0.5.0] - 2026-10-26 13:00 (IST)
 
 ### Added

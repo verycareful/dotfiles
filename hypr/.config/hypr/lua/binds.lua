@@ -124,9 +124,9 @@ for key, name in pairs(pads) do
     bind(key,               hl.dsp.workspace.toggle_special(name), "toggle scratchpad " .. name)
     bind("SHIFT + " .. key, hl.dsp.window.move({ workspace = "special:" .. name, follow = true }), "move window to scratchpad " .. name)
 end
--- "close to tray": hide the window (keeps running) / pick a hidden one to bring back
+-- "close to tray": hide the window (keeps running) / the tray window brings one back or closes it
 bind("M",          hl.dsp.window.move({ workspace = "special:tray", follow = false }), "hide window to tray")
-bind("SHIFT + M",  run("~/.local/bin/untray"),                                        "restore window from tray")
+bind("SHIFT + M",  run("qs ipc call tray toggle"),                                    "tray window (restore or close hidden windows)")
 
 -- ── Hardware keys ────────────────────────────────────────────
 local held = { repeating = true, locked = true }
