@@ -7,6 +7,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.8.1] - 2026-11-01 11:22 (IST)
+
+### Changed
+- SUPER+ALT+D opens the official Discord client again instead of Vesktop. The Vesktop theme, its ClamAV exclude and
+  its entries in this changelog stay as they were.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.025s, CachyOS Linux).
+
 ## [1.0.8.0] - 2026-10-28 17:38 (IST)
 
 ### Added
