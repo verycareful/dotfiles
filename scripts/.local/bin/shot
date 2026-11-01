@@ -19,5 +19,5 @@ esac
 if [[ -n "$geom" ]]; then grim -g "$geom" "$RAW/$NAME"; else grim "$RAW/$NAME"; fi
 wl-copy --type image/png < "$RAW/$NAME"
 notify-send -a shot -i "$RAW/$NAME" "Screenshot copied" "Annotate in satty: SUPER+SHIFT+M" 2>/dev/null || true
-satty --filename "$RAW/$NAME" --output-filename "$OUT/$NAME" --copy-command wl-copy --early-exit || true
+satty --app-id org.satty.shot --filename "$RAW/$NAME" --output-filename "$OUT/$NAME" --copy-command wl-copy --early-exit || true
 rm -f "$RAW/$NAME"

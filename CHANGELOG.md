@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.8.2] - 2026-11-01 16:25 (IST)
+
+### Fixed
+- satty no longer goes to the tray every time it opens. The tray rule matched satty's default app id, so windows
+  opened from the file manager or the command line were hidden too. `shot` now starts satty with
+  `--app-id org.satty.shot` and the rule matches only that, so a screenshot still waits in the tray and every other
+  satty window opens normally.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.026s, CachyOS Linux).
+
 ## [1.0.8.1] - 2026-11-01 11:22 (IST)
 
 ### Changed
