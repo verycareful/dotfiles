@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────
---  Hyprland — entry point (Lua config, Hyprland ≥ 0.55)
+--  Hyprland — entry point (Lua config, Hyprland ≥ 0.57)
 --  Each concern lives in lua/<name>.lua. Hyprland runs every
 --  require() in its own scope, so an error in one file only
 --  breaks that file. Order matters only where noted.

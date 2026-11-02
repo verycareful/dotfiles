@@ -29,10 +29,10 @@ Scope {
         win.visible = false
         Quickshell.execDetached(["sh", "-c",
             'ws=$(hyprctl activeworkspace -j | jq -r .id); ' +
-            'hdsp "hl.dsp.window.move({ workspace = $ws, window = \\"$1\\", follow = true })" movetoworkspace "$ws,$1" && ' +
-            'hdsp "hl.dsp.focus({ window = \\"$1\\" })" focuswindow "$1"', "sh", addr(t)])
+            'hyprctl dispatch "hl.dsp.window.move({ workspace = $ws, window = \\"$1\\", follow = true })" && ' +
+            'hyprctl dispatch "hl.dsp.focus({ window = \\"$1\\" })"', "sh", addr(t)])
     }
-    function close(t) { Quickshell.execDetached(["hdsp", `hl.dsp.window.close({ window = "${addr(t)}" })`, "closewindow", addr(t)]) }
+    function close(t) { Quickshell.execDetached(["hyprctl", "dispatch", `hl.dsp.window.close({ window = "${addr(t)}" })`]) }
     function show() {
         Hyprland.refreshToplevels()
         cursor = 0
@@ -63,8 +63,7 @@ Scope {
             interval: 50
             onTriggered: {
                 const w = "title:^(Tray)$", x = win.implicitWidth, y = Math.round(win.implicitHeight)
-                Quickshell.execDetached(["hdsp", `hl.dsp.window.resize({ x = ${x}, y = ${y}, window = "${w}" })`,
-                                         "resizewindowpixel", `exact ${x} ${y},${w}`])
+                Quickshell.execDetached(["hyprctl", "dispatch", `hl.dsp.window.resize({ x = ${x}, y = ${y}, window = "${w}" })`])
             }
         }
 

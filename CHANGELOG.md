@@ -7,6 +7,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.0.0] - 2026-11-02 12:27 (IST)
+
+Requires Hyprland 0.57 or later, which no longer reads the hyprlang config.
+
+### Changed
+- `hyprctl dispatch` with a Lua dispatcher is now called directly everywhere: hypridle (display on and off),
+  the Waybar workspace scroll, the power menu's logout, and the Quickshell tray window and Alt-Tab switcher.
+- README: the Fresh machine steps now start from a bare install: git and base-devel, cloning to `~/dotfiles`
+  and checking out the latest release, then yay (from the CachyOS repository, or `yay-bin` from the AUR on Arch)
+  and `waybar-git`.
+
+### Fixed
+- Alt-Tab: the first press never selects the window that is already focused. The switcher could list the
+  previously focused window first, putting the current one where the first press lands; the focused window now
+  always comes first.
+
+### Removed
+- The hyprlang Hyprland config (`hyprland.conf` and `conf.d/`), with its colour and cursor theme templates.
+- `./restore.sh hypr`, which swapped between the Lua and hyprlang configs. `./restore.sh` still restores a backup.
+- `hdsp`, the script that sent a dispatcher in whichever config format was running.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 21 templates, Lua syntax and secrets checks clean
+(0.026s, CachyOS Linux).
+
 ## [1.0.8.4] - 2026-11-02 12:18 (IST)
 
 ### Fixed

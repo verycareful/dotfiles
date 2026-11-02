@@ -27,6 +27,10 @@ Scope {
     function snapshot() {
         const all = Hyprland.toplevels.values.filter(t => listed(t.workspace))
         all.sort((a, b) => hist(a) - hist(b))
+        // The focused window always leads, so the first Alt+Tab never lands on it. focusHistoryID comes from an
+        // async refresh and can still rank the previously focused window first; activeToplevel follows focus events.
+        const cur = all.indexOf(Hyprland.activeToplevel)
+        if (cur > 0) all.unshift(all.splice(cur, 1)[0])
         list = all
     }
     function step(d) {
@@ -44,8 +48,8 @@ Scope {
             const pad = ws.startsWith("special:") ? ws.slice(8) : ""
             Quickshell.execDetached(["sh", "-c",
                 'if [ -n "$1" ] && [ "$(hyprctl monitors -j | jq -r ".[] | select(.focused) | .specialWorkspace.name")" != "special:$1" ]; then ' +
-                'hdsp "hl.dsp.workspace.toggle_special(\\"$1\\")" togglespecialworkspace "$1"; fi; ' +
-                'hdsp "hl.dsp.focus({ window = \\"$2\\" })" focuswindow "$2"', "sh", pad, addr])
+                'hyprctl dispatch "hl.dsp.workspace.toggle_special(\\"$1\\")"; fi; ' +
+                'hyprctl dispatch "hl.dsp.focus({ window = \\"$2\\" })"', "sh", pad, addr])
         }
         list = []
         Hyprland.refreshToplevels()

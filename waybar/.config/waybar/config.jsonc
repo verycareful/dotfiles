@@ -56,15 +56,15 @@
     "hyprland/workspaces": {
         "format": "{id}",                       // numbers; only workspaces that exist (active/occupied) are shown
         "on-click": "activate",
-        "on-scroll-up":   "~/.local/bin/hdsp 'hl.dsp.focus({ workspace = \"e-1\" })' workspace e-1",
-        "on-scroll-down": "~/.local/bin/hdsp 'hl.dsp.focus({ workspace = \"e+1\" })' workspace e+1",
+        "on-scroll-up":   "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e-1\" })'",
+        "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e+1\" })'",
         "sort-by-number": true
     },
     "hyprland/workspaces#left": {
         "format": "{id}",
         "on-click": "activate",
-        "on-scroll-up":   "~/.local/bin/hdsp 'hl.dsp.focus({ workspace = \"e-1\" })' workspace e-1",
-        "on-scroll-down": "~/.local/bin/hdsp 'hl.dsp.focus({ workspace = \"e+1\" })' workspace e+1",
+        "on-scroll-up":   "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e-1\" })'",
+        "on-scroll-down": "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e+1\" })'",
         "sort-by-number": true
     },
     "custom/viz#wide": {

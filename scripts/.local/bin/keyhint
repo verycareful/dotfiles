@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # keyhint — searchable cheatsheet of the live Hyprland keybinds, via rofi.
 # Shows each bind's description (set in lua/binds.lua); falls back to "dispatcher arg"
-# for binds without one (e.g. the hyprlang fallback config).
+# for binds without one.
 set -euo pipefail
 hyprctl binds -j | python3 -c '
 import json,sys

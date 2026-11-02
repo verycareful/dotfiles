@@ -40,7 +40,7 @@
 [![GNU Stow](https://img.shields.io/badge/GNU%20Stow-A42E2B?style=flat-square&logo=gnu&logoColor=white)](https://www.gnu.org/software/stow/)
 [![C](https://img.shields.io/badge/C-A8B9CC?style=flat-square&logo=c&logoColor=white)](https://en.cppreference.com/w/c)
 <!-- Version -->
-[![Version](https://img.shields.io/badge/Version-1.0.8.4-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.1.0.0-blue?style=flat-square)](CHANGELOG.md)
 <!-- License and status -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 [![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square)](#)
@@ -49,7 +49,7 @@ Hyprland rice: sharp corners, glass, switchable themes, each dark one with a lig
 
 | dir        | what                                             |
 |------------|--------------------------------------------------|
-| `hypr/`    | Hyprland (`hyprland.lua` → `lua/*.lua`; the pre-0.55 `hyprland.conf` → `conf.d/*.conf` set is kept as a fallback, `./restore.sh hypr` swaps between them), hyprlock, hypridle, hyprsunset (night light schedule: 4500 K from 19:00, 3500 K from 22:30, off from 06:30; the panel toggle overrides it until the next step) |
+| `hypr/`    | Hyprland 0.57 or later (`hyprland.lua` → `lua/*.lua`), hyprlock, hypridle, hyprsunset (night light schedule: 4500 K from 19:00, 3500 K from 22:30, off from 06:30; the panel toggle overrides it until the next step) |
 | `waybar/`  | status bar (Waybar git master). SUPER+SHIFT+V cycles the song visualiser while music plays: off, compact (bars beside the song), wide (the workspaces move left and the bars fill the centre), full (thin bars under the whole bar, drawn by Quickshell); also a quick toggle in the widget panel (`qs ipc call panel viz`, or `vizmode off|compact|wide|full`). cava runs only while a player is playing |
 | `rofi/`    | launcher / menus: apps (SUPER+Space), emoji (SUPER+., rofimoji, copies), calculator (SUPER+C, rofi-calc, Enter copies), and `actions` (SUPER+X): theme, wallpaper, clipboard, screenshot, recording, snapshot, firewall, Wi-Fi, DNS, permissions, reload and restart, power |
 | `quickshell/` | Quickshell: notification server, popups + centre (`qs ipc call notifs toggle|dnd|clear|status`) and the widget panel, on the anchor button / SUPER+A (`qs ipc call panel toggle|mediabar|status`): app search, quick toggles, CPU thermal-limit slider (`pkexec cpu-tctl`), media, system card (GPU via LACT), lighting (with a Themes button that opens the theme window), ClamAV status. Clicking the date on the bar drops down a month calendar (`qs ipc call calendar open|close|toggle`). Alt-Tab is a Quickshell switcher too: all windows with live thumbnails, release Alt to jump to one on its own workspace (`qs ipc call switcher next|prev|apply|cancel`). An on-screen display at the bottom centre shows volume and mute and microphone mute as PipeWire reports them (keys, panel and pavucontrol alike), plus Caps Lock and brightness from their binds (`qs ipc call osd caps|brightness`). `Theme.qml` is rendered by `theme` and hot-reloads. SUPER+SHIFT+T opens the theme window: a preview card per theme (its wallpaper under a mock desktop in its colours), dark and light halves side by side; a click applies it (`qs ipc call themes open|close|toggle`). SUPER+SHIFT+M opens the tray window over the windows hidden with SUPER+M: a click or Enter brings one back to the current workspace, the close button on its right or Delete closes it without bringing it forward (`qs ipc call tray open|close|toggle`) |
@@ -77,13 +77,18 @@ Hyprland rice: sharp corners, glass, switchable themes, each dark one with a lig
 ## Workflow
 1. Edit files in the repo.
 2. `./test/nested.sh` to try them in a nested Hyprland window.
-3. `./install.sh` (stow) to deploy for real (re-run `./install.sh scripts` after adding a new script, since `~/.local/bin` is linked per file). Existing configs are moved to `~/.local/state/dotfiles-backup/` first; `./restore.sh` reverses it (only useful right after a first install; once you live on these dotfiles, fix a broken login with `./install.sh`, not `restore.sh`). Hyprland reloads its Lua config on save (`hyprctl reload` forces it). `hyprctl dispatch` takes Lua now (`hyprctl dispatch 'hl.dsp.exit()'`); scripts use `~/.local/bin/hdsp 'LUA' LEGACY…` so they also work on the fallback config. `hyprctl repl` is a live Lua prompt; SUPER+/ lists every bind with its description.
+3. `./install.sh` (stow) to deploy for real (re-run `./install.sh scripts` after adding a new script, since `~/.local/bin` is linked per file). Existing configs are moved to `~/.local/state/dotfiles-backup/` first; `./restore.sh` reverses it (only useful right after a first install; once you live on these dotfiles, fix a broken login with `./install.sh`, not `restore.sh`). Hyprland reloads its Lua config on save (`hyprctl reload` forces it). `hyprctl dispatch` takes Lua (`hyprctl dispatch 'hl.dsp.exit()'`). `hyprctl repl` is a live Lua prompt; SUPER+/ lists every bind with its description.
 4. `doctor` checks the result: links, packages, theme files, session units, Hyprland config errors, Quickshell IPC, the pre-commit hook and each optional system part, with the fix for anything wrong.
 5. Commit.
 
 ## Fresh machine
 ```sh
+sudo pacman -S --needed git base-devel
+git clone https://github.com/verycareful/dotfiles ~/dotfiles && cd ~/dotfiles
+git checkout "$(git tag --sort=-v:refname | head -1)"   # the latest release; `git switch main` for the newest commit
 sudo pacman -S --needed --asexplicit - < packages.txt
+sudo pacman -S --needed yay       # CachyOS; on Arch: git clone https://aur.archlinux.org/yay-bin.git && (cd yay-bin && makepkg -si)
+yay -S --needed waybar-git        # the bar is set up against Waybar git master; add ryzenadj for ./amd/install-ryzenadj.sh
 sudo ./snapper/install-snapper.sh # optional; snapshots of / around every update
 sudo ./firewall/install-firewall.sh # optional; inbound default-deny
 sudo ./pacman/install-hooks.sh    # optional; post-upgrade checks, shim rebuild, cache cleaning

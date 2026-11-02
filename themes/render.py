@@ -46,8 +46,6 @@ MODE_ROLES = {
 TARGETS = {  # template -> destination(s) under $XDG_CONFIG_HOME
     'hypr/colors.lua':    ['hypr/lua/colors.lua'],
     'hypr/cursor.lua':    ['hypr/lua/cursor.lua'],
-    'hypr/colors.conf':   ['hypr/conf.d/colors.conf'],   # hyprlang set, kept for `restore.sh hypr`
-    'hypr/cursor.conf':   ['hypr/conf.d/cursor.conf'],
     'hypr/hyprlock.conf': ['hypr/hyprlock.conf'],
     'hypr/hyprtoolkit.conf': ['hypr/hyprtoolkit.conf'],
     'waybar/colors.css':  ['waybar/colors.css'],
