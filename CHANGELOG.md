@@ -7,6 +7,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.8.4] - 2026-11-02 12:18 (IST)
+
+### Fixed
+- Restarting or stopping hypridle while the screen is locked no longer kills the lock screen. hypridle starts
+  `lockscreen` as part of its own systemd unit, so stopping the unit took hyprlock and its restart loop down
+  with it and left the session on Hyprland's red "lockscreen app died" screen. `lockscreen` now runs itself in
+  a systemd scope of its own (`systemd-run --user --scope`), whichever of hypridle, SUPER+Esc or the power menu
+  starts it. If the scope cannot be created, the lock goes ahead without one.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.026s, CachyOS Linux).
+
 ## [1.0.8.3] - 2026-11-02 11:28 (IST)
 
 ### Added

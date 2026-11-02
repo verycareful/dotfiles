@@ -9,8 +9,12 @@
 # restarted hyprlock gets a copy of the config with the wallpaper in place of the screenshot.
 # Every lock entry point (hypridle, SUPER+Esc, wlogout) goes through this; the flock keeps it to one
 # loop when two fire together. From a tty, `unlock-crashed` (fish) is the manual way out.
+# The lock runs in a systemd scope of its own. Started from hypridle it is part of hypridle.service, and
+# stopping or restarting that service kills the whole unit, hyprlock included, which leaves the session
+# on the crash screen with nothing to restart it.
 set -u
 
+readonly EXIT_GAVE_UP=3         # never 1: an exit of 1 from systemd-run means the scope was not created
 readonly MAX_RESTARTS=10        # a hyprlock that cannot start at all stops here, not in an endless loop
 readonly RESTART_DELAY=1        # seconds; gives a reconnecting monitor time to settle
 readonly RUNDIR="${XDG_RUNTIME_DIR:-$HOME/.cache}"
@@ -34,6 +38,15 @@ relock() {
     if write_restart_config; then hyprlock -c "$RESTART_CONFIG"; else hyprlock; fi
 }
 
+# Re-run inside the scope. systemd-run --scope execs this script, so its exit status is the script's;
+# 1 is left only for systemd-run failing before that, and then the lock goes ahead unscoped.
+if [[ -z ${LOCKSCREEN_SCOPED:-} ]] && command -v systemd-run >/dev/null; then
+    LOCKSCREEN_SCOPED=1 systemd-run --user --scope --quiet --collect --unit="lockscreen-$$" "$0" "$@"
+    status=$?
+    (( status != 1 )) && exit "$status"
+    logger -t lockscreen "could not start a systemd scope, locking without one"
+fi
+
 exec 9>"$RUNDIR/lockscreen.lock"
 flock -n 9 || exit 0
 pidof -q hyprlock && exit 0
@@ -47,4 +60,4 @@ for (( restarts = 1; restarts <= MAX_RESTARTS; restarts++ )); do
     status=$?
 done
 logger -t lockscreen "hyprlock keeps failing (exit $status), giving up"
-exit 1
+exit "$EXIT_GAVE_UP"
