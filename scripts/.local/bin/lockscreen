@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# lockscreen: lock the session with hyprlock, and start hyprlock again if it dies before an unlock.
+#   lockscreen
+# hyprlock exits 0 only after a successful unlock. Any other exit is a crash (it aborts when a monitor
+# disconnects under it, e.g. switched off while locked), which leaves Hyprland on its red "lockscreen
+# app died" screen. misc.allow_session_lock_restore (lua/look.lua) lets a new hyprlock take that lock
+# over, so restarting it here brings the password prompt back.
+# hyprlock.conf blurs a screenshot, and after a crash the screen holds Hyprland's crash notice, so a
+# restarted hyprlock gets a copy of the config with the wallpaper in place of the screenshot.
+# Every lock entry point (hypridle, SUPER+Esc, wlogout) goes through this; the flock keeps it to one
+# loop when two fire together. From a tty, `unlock-crashed` (fish) is the manual way out.
+set -u
+
+readonly MAX_RESTARTS=10        # a hyprlock that cannot start at all stops here, not in an endless loop
+readonly RESTART_DELAY=1        # seconds; gives a reconnecting monitor time to settle
+readonly RUNDIR="${XDG_RUNTIME_DIR:-$HOME/.cache}"
+readonly CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprlock.conf"
+readonly RESTART_CONFIG="$RUNDIR/hyprlock-restart.conf"
+readonly WALL_STATE="${XDG_STATE_HOME:-$HOME/.local/state}/wall/current"   # written by `wall`
+
+# hyprlock.conf with every `path = screenshot` pointed at the current wallpaper (empty when there is
+# none, which hyprlock draws as its plain background colour)
+write_restart_config() {
+    local wall=""
+    [[ -s $WALL_STATE && -f $(<"$WALL_STATE") ]] && wall=$(<"$WALL_STATE")
+    W="$wall" awk '
+        match($0, /^[[:space:]]*path[[:space:]]*=[[:space:]]*/) && substr($0, RLENGTH + 1) ~ /^screenshot[[:space:]]*$/ {
+            print substr($0, 1, RLENGTH) ENVIRON["W"]; next
+        }
+        { print }' "$CONFIG" > "$RESTART_CONFIG"
+}
+
+relock() {
+    if write_restart_config; then hyprlock -c "$RESTART_CONFIG"; else hyprlock; fi
+}
+
+exec 9>"$RUNDIR/lockscreen.lock"
+flock -n 9 || exit 0
+pidof -q hyprlock && exit 0
+
+hyprlock && exit 0
+status=$?
+for (( restarts = 1; restarts <= MAX_RESTARTS; restarts++ )); do
+    logger -t lockscreen "hyprlock exited with $status before an unlock, restarting ($restarts/$MAX_RESTARTS)"
+    sleep "$RESTART_DELAY"
+    relock && exit 0
+    status=$?
+done
+logger -t lockscreen "hyprlock keeps failing (exit $status), giving up"
+exit 1

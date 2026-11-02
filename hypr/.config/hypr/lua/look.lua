@@ -61,6 +61,7 @@ hl.config({
         focus_on_activate        = true,
         animate_manual_resizes   = false,
         vrr                      = 0,   -- 0 off, 1 on, 2 fullscreen-only
+        allow_session_lock_restore = true,  -- a new hyprlock may take over the lock after one crashes (see bin/lockscreen)
     },
     xwayland = {
         force_zero_scaling = true,

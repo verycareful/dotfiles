@@ -1,4 +1,4 @@
-{ "label": "lock",     "action": "hyprlock",                 "text": "lock",     "keybind": "l" }
+{ "label": "lock",     "action": "~/.local/bin/lockscreen",   "text": "lock",     "keybind": "l" }
 { "label": "logout",   "action": "~/.local/bin/hdsp 'hl.dsp.exit()' exit",    "text": "logout",   "keybind": "e" }
 { "label": "suspend",  "action": "systemctl suspend",        "text": "suspend",  "keybind": "u" }
 { "label": "reboot",   "action": "systemctl reboot",         "text": "reboot",   "keybind": "r" }

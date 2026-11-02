@@ -7,6 +7,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.0.8.3] - 2026-11-02 11:28 (IST)
+
+### Added
+- `lockscreen` (in `scripts/`): every lock now goes through it (SUPER+Esc, hypridle and the power menu). It runs
+  hyprlock and, if hyprlock exits without an unlock, starts it again (up to 10 times, a second apart, each logged
+  to the journal under `lockscreen`). The restarted lock blurs the current wallpaper rather than a screenshot,
+  since the screen then shows Hyprland's crash notice.
+- `unlock-crashed` (fish function): run from a tty to clear a crashed lock screen. It stops `lockscreen`, kills
+  hyprlock and runs `hyprctl --instance 0 eval 'hl.clear_crashed_lockscreen()'`.
+
+### Fixed
+- A hyprlock crash no longer leaves the session stuck on Hyprland's red "lockscreen app died" screen. hyprlock
+  aborts when a monitor is switched off while locked, and Hyprland refused any new lock client after that, so
+  hypridle's next lock attempt failed too. `misc.allow_session_lock_restore` is now on, which lets the restarted
+  hyprlock take the lock over.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 23 templates, Lua syntax and secrets checks clean
+(0.027s, CachyOS Linux).
+
 ## [1.0.8.2] - 2026-11-01 16:25 (IST)
 
 ### Fixed
