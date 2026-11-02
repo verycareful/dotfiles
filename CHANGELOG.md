@@ -7,6 +7,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.1.0] - 2026-11-02 12:35 (IST)
+
+### Added
+- `bootstrap.sh`: installs the dotfiles on a fresh Arch or CachyOS install with nothing but curl:
+  `curl -fsSL https://github.com/verycareful/dotfiles/releases/latest/download/bootstrap.sh | bash`. It upgrades
+  the system with git and base-devel, clones the repo to `~/dotfiles` at the release, installs `packages.txt`, yay
+  and `waybar-git`, and runs `./install.sh`. Optional parts are asked about first, so the rest runs unattended:
+  ClamAV, the SDDM login screen, the permissions window's root side, snapper (btrfs with GRUB only), the firewall,
+  the pacman hooks, LACT (AMD GPU only) and the networkd/iwd networking. `--minimal`, `--all`, `--no-<part>` and
+  `--dry-run` change that; `DOTFILES_DIR` picks another folder.
+- Every release has `bootstrap.sh` attached, set to install that release.
+
+### Changed
+- README: Fresh machine leads with the bootstrap command and its options, with the manual steps below it.
+
+### Fixed
+- The package install command in the README and at the top of `packages.txt` failed: pacman's `-` reads one name
+  per line and took the comment lines as package names. It is now
+  `grep -v '^#' packages.txt | xargs -o sudo pacman -S --needed --asexplicit`.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 21 templates, Lua syntax and secrets checks clean
+(0.026s, CachyOS Linux).
+
 ## [1.1.0.0] - 2026-11-02 12:27 (IST)
 
 Requires Hyprland 0.57 or later, which no longer reads the hyprlang config.

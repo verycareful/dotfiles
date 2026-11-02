@@ -1,4 +1,4 @@
-# sudo pacman -S --needed --asexplicit - < packages.txt
+# grep -v '^#' packages.txt | xargs -o sudo pacman -S --needed --asexplicit
 # (--asexplicit: everything here is wanted on its own, so `pacman -Rns` of something else never removes it)
 hyprland uwsm hypridle hyprlock hyprsunset hyprpolkitagent hyprpicker xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
 rofi rofimoji rofi-calc quickshell awww wlogout
