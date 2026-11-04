@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.1.1] - 2026-11-04 19:30 (IST)
+
+### Fixed
+- The display ran at 120 Hz instead of 165 Hz whenever it came up on a port other than DP-3: the 165 Hz rule
+  matched the port name, so any other port fell through to the catch-all rule and the monitor's preferred 120 Hz
+  mode. The rule now matches the LG UltraGear by its description and applies on any port.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 21 templates, Lua syntax and secrets checks clean
+(0.026s, CachyOS Linux).
+
 ## [1.1.1.0] - 2026-11-02 12:35 (IST)
 
 ### Added
