@@ -6,9 +6,9 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Tools
         run: sudo apt-get update && sudo apt-get install -y shellcheck lua5.4
       - name: Lint and tests
@@ -18,11 +18,11 @@ jobs:
   release:
     if: github.event_name == 'push' && github.ref_type == 'tag'
     needs: lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # the checkout can leave the tag lightweight; fetch the annotated tag object for its message
       - name: Tag
         env:

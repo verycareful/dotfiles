@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.1.2] - 2026-11-04 19:33 (IST)
+
+### Changed
+- CI checks out with `actions/checkout@v7`, which runs on Node.js 24; v4 ran on the deprecated Node.js 20.
+- CI runs on `ubuntu-24.04` instead of `ubuntu-latest`, so ShellCheck and Lua stay at known versions when
+  `ubuntu-latest` moves to Ubuntu 26.
+
+### Results
+66 tests across 2 suites, all passed, 6 themes checked against 21 templates, Lua syntax and secrets checks clean
+(0.026s, CachyOS Linux).
+
 ## [1.1.1.1] - 2026-11-04 19:30 (IST)
 
 ### Fixed
