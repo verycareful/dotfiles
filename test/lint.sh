@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # lint.sh: every check CI runs (.github/workflows/ci.yml), runnable locally before a push.
 #   ShellCheck (warning level) on every tracked shell script, luac -p on the Hyprland Lua config,
-#   the perms and theme unit tests, theme check on every theme, and secrets.sh. A missing tool is reported and skipped locally, fatal in CI.
+#   the perms, share-audio and theme tests, theme check on every theme, and secrets.sh. A missing tool is reported and skipped locally, fatal in CI.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 fail=0
@@ -30,6 +30,9 @@ fi
 
 step "perms tests"
 need python3 && { python3 -B -m unittest discover -s perms/test || fail=1; }
+
+step "share-audio tests"
+need jq && { test/share-audio.sh || fail=1; }
 
 step "theme tests"
 need python3 && { python3 -B -m unittest discover -s themes/test || fail=1; }

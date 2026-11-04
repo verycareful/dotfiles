@@ -8,6 +8,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("wl-paste --type text  --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
     hl.exec_cmd("easyeffects --gapplication-service")
+    hl.exec_cmd("~/.local/bin/share-audio watch")  -- Discord window shares carry only the shared app's audio
     -- KDE Connect: the tray indicator also starts kdeconnectd (phone pairing, notifications, clipboard, files)
     hl.exec_cmd("command -v kdeconnect-indicator >/dev/null && exec kdeconnect-indicator")
 end)

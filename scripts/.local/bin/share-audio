@@ -1,0 +1,208 @@
+#!/usr/bin/env bash
+# share-audio: keep a Discord window share to the shared app's audio.
+#   share-audio watch                                  run in the background (started by Hyprland)
+#   share-audio decide ALLOW.json < pw-dump.json       print the ids of the links to delete
+#   share-audio resolve SELECTION WINDOWS CLIENTS      print the ALLOW.json for a recorded selection
+#
+# The official Discord client opens one `discord_capture` stream per playing application, whichever window
+# was picked, so a window share carries every app's audio. A capture stream is a Stream/Input/Audio node
+# whose target.object is the object.serial of the application stream it records. Deleting the links of every
+# capture that records a different application leaves only the shared one.
+#
+# ALLOW.json says which application streams may stay:
+#   {"mode": "none"}                                   no choice known: change nothing
+#   {"mode": "all"}                                    keep everything (a whole screen or region is shared)
+#   {"mode": "window", "pids": [123], "names": ["spotify"]}
+# In window mode a stream stays when its application.process.id is in pids, or its lower-cased
+# application.name or application.process.binary is in names. A window whose app matches no playing stream
+# keeps nothing, so a share never carries audio it was not meant to.
+#
+# share-picker records the choice: SELECTION is xdph's `[SELECTION]<flags>/window:<handle>` line, WINDOWS the
+# list `<handle>[HC>]<class>[HT>]<title>[HE>]<address>[HA>]...` it was chosen from (address in decimal),
+# and CLIENTS the output of `hyprctl clients -j`, which gives the window's pid.
+# ~/.config/share-audio/overrides maps a window class to an extra stream name, one `class = name` per line,
+# for apps whose audio stream is not named after their window (Wine and Proton games).
+set -u
+
+readonly CAPTURE_APP="discord_capture"
+readonly STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/share-audio"
+readonly OVERRIDES="${SHARE_AUDIO_OVERRIDES:-${XDG_CONFIG_HOME:-$HOME/.config}/share-audio/overrides}"
+readonly TICK_SECONDS=5            # how often links are re-checked when no graph event arrives
+readonly DEBOUNCE_SECONDS=0.3      # a share creates several nodes at once; wait for them
+readonly SELECTION_MAX_AGE=30      # seconds a recorded choice counts as the current share's
+readonly RESTART_DELAY=2           # seconds before reconnecting after PipeWire goes away
+
+# stdin: pw-dump JSON. --argjson allow: the ALLOW.json object.
+# stdout: {"links": [ids to delete], "captures": N, "kept": N}
+readonly DECIDE_JQ='
+  def props: .info.props;
+  def lc: if . == null then null else ascii_downcase end;
+  def stays($p):
+      $allow.mode != "window"
+      or (($allow.pids // []) | any(. == ($p | props["application.process.id"])))
+      or ([$p | props["application.name"], props["application.process.binary"]] | map(lc)
+          | any(. as $n | $n != null and (($allow.names // []) | index($n)) != null));
+  . as $all
+  | [.[] | select(.type == "PipeWire:Interface:Node")] as $nodes
+  | [$nodes[] | select(props["media.class"] == "Stream/Output/Audio")] as $players
+  | [$nodes[] | select(props["application.name"] == $capture and props["media.class"] == "Stream/Input/Audio")] as $caps
+  | [ $caps[]
+      | . as $cap
+      | ($players | map(select((props["object.serial"] | tostring) == ($cap | props["target.object"] | tostring))) | first) as $target
+      | select($target != null)
+      | {id: $cap.id, keep: stays($target)} ] as $judged
+  | ($judged | map(select(.keep | not) | .id)) as $blocked
+  | {links: [ $all[] | select(.type == "PipeWire:Interface:Link" and (.info["input-node-id"] as $i | $blocked | index($i) != null)) | .id ],
+     captures: ($caps | length),
+     kept: ($judged | map(select(.keep)) | length)}
+'
+
+json_array() { # lines on stdin -> JSON array of strings
+    jq -Rn '[inputs | select(length > 0)]'
+}
+
+descendants() { # pid -> its child processes, recursively
+    local child
+    for child in $(pgrep -P "$1" 2>/dev/null); do
+        echo "$child"
+        descendants "$child"
+    done
+}
+
+override_names() { # class -> extra stream names from the overrides file
+    local class=${1,,} key value
+    [[ -r $OVERRIDES ]] || return 0
+    while IFS='=' read -r key value; do
+        key=${key//[[:space:]]/}
+        [[ -z $key || $key == \#* ]] && continue
+        value=${value#"${value%%[![:space:]]*}"}; value=${value%"${value##*[![:space:]]}"}
+        [[ ${key,,} == "$class" && -n $value ]] && echo "$value"
+    done < "$OVERRIDES"
+}
+
+# Prints the window's `class<TAB>address` from the recorded list, or nothing for an unknown handle.
+window_entry() { # handle windows-file
+    jq -Rrs --arg h "$1" '
+        split("[HA>]")[] | select(length > 0)
+        | capture("^(?<handle>[0-9]+)\\[HC>\\](?<class>.*?)\\[HT>\\](?<title>.*?)\\[HE>\\](?<addr>[0-9]+)$")
+        | select(.handle == $h) | "\(.class)\t\(.addr)"' "$2" | head -1
+}
+
+resolve() { # selection-file windows-file clients-json
+    local selection_file=$1 windows_file=$2 clients_file=$3 selection kind handle entry class address hex pid="" initial=""
+    local -a names=() pids=()
+    [[ -s $selection_file ]] || { echo '{"mode":"none"}'; return; }
+    selection=$(<"$selection_file")
+    [[ $selection =~ ^\[SELECTION\][a-z]*/([a-z]+):(.*)$ ]] || { echo '{"mode":"none"}'; return; }
+    kind=${BASH_REMATCH[1]} handle=${BASH_REMATCH[2]}
+    [[ $kind == window ]] || { echo '{"mode":"all"}'; return; }
+
+    entry=$(window_entry "$handle" "$windows_file")
+    [[ -n $entry ]] || { echo '{"mode":"none"}'; return; }
+    class=${entry%%$'\t'*} address=${entry##*$'\t'}
+    printf -v hex '0x%x' "$address"
+    read -r pid initial < <(jq -r --arg a "$hex" '.[] | select(.address == $a) | "\(.pid) \(.initialClass)"' "$clients_file" 2>/dev/null | head -1)
+
+    names=("$class" "$initial" "$(override_names "$class")")
+    if [[ -n $pid ]]; then
+        mapfile -t pids < <(echo "$pid"; descendants "$pid")
+        [[ -r /proc/$pid/comm ]] && names+=("$(</proc/$pid/comm)")
+        names+=("$(basename "$(readlink "/proc/$pid/exe" 2>/dev/null)" 2>/dev/null)")
+    fi
+    jq -n --argjson pids "$(printf '%s\n' "${pids[@]}" | json_array)" \
+          --argjson names "$(printf '%s\n' "${names[@]}" | json_array)" \
+        '{mode: "window", pids: ($pids | map(tonumber)), names: ($names | map(ascii_downcase) | unique)}'
+}
+
+judge() { # ALLOW-json on arg 1, pw-dump on stdin
+    jq -c --argjson allow "$1" --arg capture "$CAPTURE_APP" "$DECIDE_JQ"
+}
+
+decide() { # allow-file, pw-dump on stdin: ids of the links to delete
+    local allow_file=${1:?usage: share-audio decide ALLOW.json < pw-dump.json}
+    jq -r --argjson allow "$(<"$allow_file")" --arg capture "$CAPTURE_APP" "$DECIDE_JQ | .links[]"
+}
+
+notify() { # summary body
+    logger -t share-audio "$1: $2"
+    command -v notify-send >/dev/null && notify-send -a share-audio -i audio-volume-muted "$1" "$2"
+}
+
+# One pass: when a share is on and Discord has capture streams, delete the links of the unwanted ones.
+# session_ok and notified live across passes: the choice is read when a share starts and the user is told
+# about a problem once per share.
+session=0 session_ok=0 notified=0 announced=0
+evaluate() {
+    local dump share allow verdict link file_age
+    dump=$(pw-dump 2>/dev/null) || return 0
+    share=$(jq -r '[.[] | select(.type == "PipeWire:Interface:Node" and ((.info.props["media.name"] // "") | startswith("xdph-streaming")))
+                    | .info.props["object.serial"]] | first // empty' <<< "$dump")
+    if [[ -z $share ]]; then session=0 notified=0 announced=0; rm -f "$STATE_DIR/session"; return 0; fi
+
+    if (( session == 0 )); then
+        session=1 notified=0 announced=0 session_ok=0
+        if [[ -s $STATE_DIR/selection ]]; then
+            file_age=$(( $(date +%s) - $(stat -c %Y "$STATE_DIR/selection") ))
+            (( file_age <= SELECTION_MAX_AGE )) && session_ok=1
+        fi
+        # a restart in the middle of a share carries on with the choice it was already using
+        [[ -r $STATE_DIR/session && $(<"$STATE_DIR/session") == "$share" ]] && session_ok=1
+        (( session_ok )) && printf '%s\n' "$share" > "$STATE_DIR/session"
+        if (( ! session_ok )); then
+            notify "Share audio not filtered" "This share skipped the picker (Remember this choice?), so every app is audible to viewers."
+        fi
+    fi
+    (( session_ok )) || return 0
+
+    hyprctl clients -j > "$STATE_DIR/.clients.json" 2>/dev/null || return 0
+    allow=$(resolve "$STATE_DIR/selection" "$STATE_DIR/windows" "$STATE_DIR/.clients.json")
+    verdict=$(judge "$allow" <<< "$dump") || return 0
+
+    if (( announced == 0 )); then
+        announced=1
+        case $(jq -r .mode <<< "$allow") in
+            window) notify "Share audio: shared window only" "Viewers hear: $(jq -r '.names | join(", ")' <<< "$allow")" ;;
+            all)    notify "Share audio: everything" "A screen or region is shared, so all audio is included." ;;
+        esac
+    fi
+
+    for link in $(jq -r '.links[]' <<< "$verdict"); do
+        pw-link -d "$link" 2>/dev/null && logger -t share-audio "removed link $link"
+    done
+    if [[ $(jq -r .mode <<< "$allow") == window ]] && (( notified == 0 )) &&
+       [[ $(jq -r '.captures > 0 and .kept == 0' <<< "$verdict") == true ]]; then
+        notified=1
+        notify "No audio from the shared window" "Nothing from that window is playing, so viewers hear nothing."
+    fi
+}
+
+watch() {
+    mkdir -p "$STATE_DIR"
+    exec 9> "$STATE_DIR/watch.lock"
+    flock -n 9 || exit 0
+    local status
+    # pactl is a child of this process and must not outlive it: it would keep the lock and stop a restart
+    trap 'pkill -P $$ 2>/dev/null' EXIT
+    trap 'exit 0' TERM INT
+    while true; do
+        exec 3< <(exec pactl subscribe 2>/dev/null 9>&-)
+        while true; do
+            evaluate
+            read -r -t "$TICK_SECONDS" -u 3 _
+            status=$?
+            (( status > 128 )) && continue            # tick: look again
+            (( status != 0 )) && break                # PipeWire went away: reconnect
+            sleep "$DEBOUNCE_SECONDS"
+            while read -r -t 0.05 -u 3 _; do :; done
+        done
+        exec 3<&-
+        sleep "$RESTART_DELAY"
+    done
+}
+
+case ${1:-} in
+    watch)   watch ;;
+    decide)  shift; decide "$@" ;;
+    resolve) shift; resolve "$@" ;;
+    *) echo "usage: share-audio watch | decide ALLOW.json < pw-dump.json | resolve SELECTION WINDOWS CLIENTS" >&2; exit 2 ;;
+esac

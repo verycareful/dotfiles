@@ -7,6 +7,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.0.0] - 2026-11-04 20:17 (IST)
+
+### Added
+- `share-audio`: a window share from the official Discord client carried the audio of every playing app, whichever
+  window was picked. `share-audio watch`, started by Hyprland, now removes Discord's capture links for every app
+  except the one that owns the shared window, so viewers hear only that app. Sharing a whole screen or region keeps
+  all audio, and a window whose app is not playing gives silence. The app is found by process (including its child
+  processes), then by window class, executable and stream name; `~/.config/share-audio/overrides` (`window class =
+  stream name`, one per line) adds a stream name for apps whose audio is not named after their window, such as Wine
+  and Proton games. A notification names the window whose audio viewers hear.
+- `share-picker`: wraps the share picker of xdg-desktop-portal-hyprland (`hypr/.config/hypr/xdph.conf`) and records
+  which window was chosen, passing the picker's output through unchanged. When the picker is skipped (Remember this
+  choice), the share is left unfiltered and a notification says so.
+
+### Changed
+- `test/lint.sh` runs the share-audio tests.
+- README: `share-audio` and `share-picker` in the scripts row, a PipeWire badge, and the lint row.
+
+### Tests
+- `test/share-audio.sh`: 19 cases on hand-built fixtures. Link decisions: all mode, unset mode, a match by pid, by
+  name (including an app with no pid) and by executable, the app's own playback, several allowed apps, no match, an
+  empty window mode, and a capture of a device left alone. Choice resolution: a window, a window with picker flags,
+  a window missing from the window list of Hyprland, a screen, a region, an unknown window, an unreadable
+  selection, no selection, and an override.
+
+### Results
+85 tests across 3 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax
+and secrets checks clean (0.248s, CachyOS Linux).
+
 ## [1.1.1.2] - 2026-11-04 19:33 (IST)
 
 ### Changed

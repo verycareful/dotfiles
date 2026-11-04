@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# share-picker: the xdph screen share picker, with the choice kept for share-audio.
+#   Set as screencopy:custom_picker_binary in ~/.config/hypr/xdph.conf.
+# xdph runs this with the shareable windows in XDPH_WINDOW_SHARING_LIST, reads the chosen source from
+# stdout, and treats a non-zero exit as a cancelled share. This wrapper runs the stock picker, saves its
+# output and the window list under the state directory, and passes the output through byte for byte.
+# share-audio reads those two files to learn which window was shared.
+set -u
+umask 077
+
+readonly PICKER=/usr/bin/hyprland-share-picker
+readonly STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/share-audio"
+
+mkdir -p "$STATE_DIR"
+out=$(mktemp "$STATE_DIR/.picker.XXXXXX") || exec "$PICKER" "$@"
+
+"$PICKER" "$@" > "$out"
+status=$?
+
+if (( status == 0 )) && [[ -s $out ]]; then
+    printf '%s' "${XDPH_WINDOW_SHARING_LIST:-}" > "$STATE_DIR/.windows.tmp" &&
+        mv -f "$STATE_DIR/.windows.tmp" "$STATE_DIR/windows"
+    cp -f "$out" "$STATE_DIR/.selection.tmp" && mv -f "$STATE_DIR/.selection.tmp" "$STATE_DIR/selection"
+fi
+
+cat "$out"
+rm -f "$out"
+exit "$status"
