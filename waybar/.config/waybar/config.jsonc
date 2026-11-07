@@ -185,7 +185,7 @@
         "return-type": "json",
         "interval": "once",
         "signal": 9,
-        "format": "{icon} {text}",
+        "format": "{icon} <span size='small' rise='1024'>{text}</span>",
         "format-icons": {
             "none":       "󰂚",
             "unread":     "󰂜",
@@ -202,7 +202,7 @@
         "on-click": "~/.local/bin/keyhint"
     },
     "custom/power": {
-        "format": "⏻",
+        "format": "󰐥",
         "tooltip-format": "power menu",
         "on-click": "wlogout -b 5 -T 520 -B 520 -L 440 -R 440"
     }

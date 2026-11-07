@@ -7,6 +7,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1.1] - 2026-11-07 12:11 (IST)
+
+### Fixed
+- Waybar bar styling after the 0.16 builds of `waybar-git`. A custom module (a box around a label) now carries its
+  `#custom-<name>` id and classes on the label, not on the box. `style.css` assumed the box, so both tray arrows
+  showed, every custom module's padding stacked on the box's own padding, and the green permissions pill covered only
+  the narrow label. The box no longer pads (groups keep their spacing by id), and the tray-arrow, pill and hover rules
+  target the label directly.
+- Icons sit centred. Icon-only modules use `JetBrainsMono Nerd Font Propo`, falling back to `JetBrainsMono Nerd Font`:
+  the monospace-cell font let wide glyphs overflow their cell to the right, which put the permissions icon 1.5px off
+  centre. The bell, notification count, keyboard and power icons now share one vertical centre.
+- The notification count is small, level with the bell, instead of the bell's size.
+
+### Changed
+- The power button uses the Material power glyph (U+F0425) at 18px in place of U+23FB, the only icon outside the
+  Material set, which sat low and read as a different size.
+
+### Results
+85 tests across 3 suites, all passed, ShellCheck on 56 scripts, 6 themes checked against 21 templates, Lua syntax
+and secrets checks clean (CachyOS Linux). By hand, on Waybar 0.16.0.r2: one tray arrow, the permissions pill spans its
+module with the icon centred, and the right-hand icons share one centre line (measured from screenshots).
+
 ## [1.2.1.0] - 2026-11-07 11:30 (IST)
 
 ### Changed

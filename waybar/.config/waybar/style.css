@@ -38,15 +38,30 @@ tooltip label { padding: 4px; }
 .modules-left  > widget:first-child > * { margin-left: 8px; }
 .modules-right > widget:last-child  > * { margin-right: 8px; }
 
+/* A custom module is a box around a label, and the label carries the #custom-<name> id and the
+   module's classes. The box takes no padding or margin of its own, so the label's spacing is the
+   module's spacing and an id rule (padding, hover, pill background) covers all of it. Groups are
+   boxes too and keep the module spacing, as do the end margins above. */
+.modules-left  > widget > box,
+.modules-right > widget > box { padding: 0; margin: 0; }
+.modules-left  > widget > box > label,
+.modules-right > widget > box > label {
+    padding: 0 11px;
+    margin: 5px 0;
+    color: @subtext;
+    background: transparent;
+}
+#traybox, #media { padding: 0 11px; margin: 5px 0; }
+
 /* Icon-only modules: Pango does not fall back to other fonts for Private Use
    Area glyphs, so anything that is purely a Nerd Font icon must name it. */
 #idle-inhibitor, #network, #tray, #custom-notifications,
 #custom-keyhint, #custom-power, #custom-perms {
-    font-family: "JetBrainsMono Nerd Font";
+    font-family: "JetBrainsMono Nerd Font Propo", "JetBrainsMono Nerd Font";
 }
 
 /* ── left ─────────────────────────────────────────────────── */
-#custom-panel { font-family: "JetBrainsMono Nerd Font"; font-size: 17px; color: @subtext; padding: 0 12px 0 10px; }
+#custom-panel { font-family: "JetBrainsMono Nerd Font Propo", "JetBrainsMono Nerd Font"; font-size: 17px; color: @subtext; padding: 0 12px 0 10px; }
 #custom-panel.open, #custom-panel:hover { color: @accent; }
 
 #clock.time {
@@ -93,7 +108,7 @@ tooltip label { padding: 4px; }
 #mpris { color: @text; font-style: normal; padding-right: 4px; }
 #mpris.paused { color: @muted; }
 #custom-media-prev, #custom-media-play, #custom-media-next {
-    font-family: "JetBrainsMono Nerd Font";
+    font-family: "JetBrainsMono Nerd Font Propo", "JetBrainsMono Nerd Font";
     font-size: 15px;
     padding: 0 5px;
 }
@@ -104,19 +119,14 @@ tooltip label { padding: 4px; }
 #custom-viz { font-family: "JetBrainsMono Nerd Font"; font-size: 13px; padding: 0 6px 0 2px; color: @accent; }
 #custom-viz.wide { padding: 0 12px; }
 
-/* tray arrow: two labels, one collapsed to zero size. Waybar (git) puts the .expanded class on
-   the group box (#traybox) while the drawer is open, which swaps them: down → left.
-   The id sits on a box around the label: font-size must be set on the label itself (the global
-   `*` rule would otherwise win), and the box gets NO vertical margin — #traybox already has it,
-   and stacked margins made the bar grow while the drawer was open. */
-#custom-tray-down, #custom-tray-left             { padding: 0 8px; margin: 0; }
-#custom-tray-down label, #custom-tray-left label { font-family: "JetBrainsMono Nerd Font"; font-size: 15px; }
-#custom-tray-left                                { padding: 0; min-width: 0; }
-#custom-tray-left label                          { font-size: 0px; }
-#traybox.expanded #custom-tray-left              { padding: 0 8px; }
-#traybox.expanded #custom-tray-left label        { font-size: 15px; color: @accent; }
-#traybox.expanded #custom-tray-down              { padding: 0; min-width: 0; }
-#traybox.expanded #custom-tray-down label        { font-size: 0px; }
+/* tray arrow: two labels, one collapsed to zero size. Waybar puts the .expanded class on the
+   group box (#traybox) while the drawer is open, which swaps them: down -> left. The arrows get
+   NO vertical margin: #traybox already has it, and stacked margins made the bar grow while the
+   drawer was open. */
+#custom-tray-down, #custom-tray-left      { font-family: "JetBrainsMono Nerd Font Propo", "JetBrainsMono Nerd Font"; font-size: 15px; padding: 0 8px; margin: 0; }
+#custom-tray-left                         { padding: 0; min-width: 0; font-size: 0px; }
+#traybox.expanded #custom-tray-left       { padding: 0 8px; font-size: 15px; color: @accent; }
+#traybox.expanded #custom-tray-down       { padding: 0; min-width: 0; font-size: 0px; }
 #tray.tray-drawer { padding: 0 6px; }
 
 #cpu, #memory, #custom-gpu { color: @subtext; }
@@ -142,7 +152,7 @@ tooltip label { padding: 4px; }
 #tray > .passive { -gtk-icon-effect: dim; }
 #tray > .needs-attention { -gtk-icon-effect: highlight; }
 
-#custom-rec { color: @red; font-family: "JetBrainsMono Nerd Font"; }
+#custom-rec { color: @red; font-family: "JetBrainsMono Nerd Font Propo", "JetBrainsMono Nerd Font"; }
 #custom-rec.replay { color: @yellow; }
 
 #custom-updates { color: @subtext; }
@@ -150,14 +160,13 @@ tooltip label { padding: 4px; }
 #custom-updates:hover { color: @accent; }
 
 #custom-notifications { font-size: 15px; }
-#custom-notifications label { font-family: "JetBrainsMono Nerd Font"; }   /* count digits in the icon font too */
 #custom-notifications.unread { color: @accent; }
 #custom-notifications.dnd, #custom-notifications.dnd-unread { color: @muted; }
 #custom-keyhint { font-size: 15px; }
 
 #custom-power {
     color: @accent;
-    font-size: 14px;
+    font-size: 18px;
     padding: 0 12px 0 12px;
 }
 #custom-power:hover { color: @onAccent; background: @accent; }
