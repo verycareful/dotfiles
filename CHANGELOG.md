@@ -7,6 +7,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1.4] - 2026-11-07 13:33 (IST)
+
+### Fixed
+- Copying lines from a full-screen app such as Claude Code pasted the app's left margin as blank space. The app
+  indents its output with real space characters and kitty copies the grid as it is, so the padding came along (kitty's
+  own `window_padding_width` is outside the grid and was never the cause). `ctrl+shift+c` now pipes the selection
+  through `kitty-copy`, which removes the whitespace shared by every line after the first and hands the result to
+  `wl-copy`. Relative indentation, such as a code block, is kept. A selection that starts mid-line or inside the margin
+  is handled, a single line is copied unchanged, and an empty selection leaves the clipboard alone. Middle-click paste
+  still uses kitty's primary selection, which holds the raw text.
+
+### Changed
+- `copy_on_select` is off. Selecting text no longer writes it to the clipboard: the raw selection landed there on mouse
+  release, before any filter could run, and a stray highlight replaced whatever was on the clipboard.
+
+### Tests
+- `test/test_kitty_copy.py`: 15 tests for the margin logic (margin on every line, selection starting mid-line or inside
+  the margin, a first line deeper than the margin, relative indentation, no margin, a single line, blank and
+  whitespace-only lines, tabs, a trailing newline, mixed margins) and for the `wl-copy` hand-off, with an empty
+  selection leaving the clipboard untouched. `test/lint.sh` runs them.
+
+### Results
+103 tests across 4 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax and
+secrets checks clean (CachyOS Linux). By hand in kitty: lines selected in Claude Code paste flush left with
+`ctrl+shift+c`, and selecting without copying leaves the clipboard alone.
+
 ## [1.2.1.3] - 2026-11-07 13:13 (IST)
 
 ### Fixed

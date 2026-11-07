@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""kitty-copy: put the terminal selection on the clipboard without a TUI's left margin.
+
+Bound to ctrl+shift+c in kitty.conf, which hands the selection over on stdin. Full-screen apps such as Claude Code
+indent their output with real space characters, and kitty copies exactly what is on its grid, so a plain copy carries
+that margin into the paste. The margin is the leading whitespace shared by every line after the first, so relative
+indentation (code blocks) survives. The first line is judged separately: a selection that starts mid-line has no margin
+on it, and one that starts inside the margin has a part of it.
+
+A single line has nothing to compare against and is copied as it is. An empty selection leaves the clipboard alone."""
+import os
+import subprocess
+import sys
+
+
+def leading_ws(line):
+    return line[: len(line) - len(line.lstrip(" \t"))]
+
+
+def strip_margin(text):
+    """Return text without the left margin shared by its lines."""
+    lines = text.split("\n")
+    rest = lines[1:]
+    inked = [ln for ln in rest if ln.strip()]
+    if not inked:
+        return text
+    margin = os.path.commonprefix([leading_ws(ln) for ln in inked])
+    if not margin:
+        return text
+    first = lines[0]
+    first = first[len(os.path.commonprefix([leading_ws(first), margin])):]
+    # Whitespace-only lines carry no content, so they come out empty whatever width they had.
+    body = [ln[len(margin):] if ln.strip() else "" for ln in rest]
+    return "\n".join([first] + body)
+
+
+def main():
+    text = sys.stdin.read()
+    if not text:
+        return 0
+    return subprocess.run(["wl-copy"], input=strip_margin(text).encode(), check=False).returncode
+
+
+if __name__ == "__main__":
+    sys.exit(main())
