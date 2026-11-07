@@ -25,7 +25,9 @@ tooltip {
     border: 1px solid @overlay;
     color: @text;
 }
-tooltip label { padding: 4px; }
+/* The GTK theme colours every tooltip descendant (`tooltip * { color: white }`), so the label sets its own
+   colour: a colour on `tooltip` alone never reaches the text. */
+tooltip label { padding: 4px; color: @text; text-shadow: none; }
 
 /* every module: even padding, no dividers between modules */
 .modules-left  > widget > *,

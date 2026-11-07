@@ -210,6 +210,19 @@ class RealThemes(unittest.TestCase):
                 with self.subTest(theme=p.stem, pair=f'{fg} on {bg}'):
                     self.assertGreaterEqual(render.contrast(v[fg], v[bg]), floor)
 
+    def test_light_dim_text_is_readable(self):
+        """Muted text and the terminal's bright black (dim text in most CLIs) clear AA on a light base."""
+        for p in sorted(render.THEMES.glob('*-light.theme')):
+            v = render.values(render.load(p))
+            for fg in ('muted', 'ansi_black_bright'):
+                with self.subTest(theme=p.stem, colour=fg):
+                    self.assertGreaterEqual(render.contrast(v[fg], v['base']), 4.5)
+
+    def test_light_mode_uses_greyscale_antialiasing(self):
+        """Subpixel antialiasing fringes dark-on-light text with colour; dark mode keeps it."""
+        self.assertEqual(render.MODES['light']['gtk_rgba'], 'none')
+        self.assertEqual(render.MODES['dark']['gtk_rgba'], 'rgb')
+
     def test_qml_properties_are_not_signal_handlers(self):
         """QML reads a property named onX as a handler for signal x and refuses to load the file."""
         text = (render.TEMPLATES / 'quickshell' / 'Theme.qml').read_text()

@@ -7,6 +7,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1.2] - 2026-11-07 12:48 (IST)
+
+### Fixed
+- Waybar tooltips were white on white in the light themes. `adw-gtk3` colours every tooltip descendant white
+  (`tooltip * { color: white }`), so the colour set on `tooltip` never reached the text. `tooltip label` now sets its own
+  colour and clears the theme's text shadow.
+- Dim terminal text (the grey in "+12 lines", status lines and other CLI hints) was hard to read on the light themes.
+  The light ANSI bright black is the theme's `muted`, which was 2.97:1 on the base. `muted` is darkened in `dusk-light`
+  (`6a7078`), `harbour-light` (`666f86`) and `mono-light` (`757575`) to about 4.6:1, so it clears the 4.5:1 AA floor
+  wherever it is used. The dark themes are unchanged.
+- GTK text on the light themes looked grainy, with orange and blue fringes on every glyph. Subpixel antialiasing
+  (`gtk-xft-rgba=rgb`) fringes dark text on a light background. The GTK settings now take the value per mode: light
+  themes use greyscale (`none`), dark themes keep `rgb`. It applies to apps started after the theme is set.
+
+### Tests
+- `themes/test/test_render.py`: `test_light_dim_text_is_readable` holds `muted` and the terminal's bright black to 4.5:1
+  on every light theme's base, and `test_light_mode_uses_greyscale_antialiasing` pins the per-mode antialiasing value.
+
+### Results
+87 tests across 3 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax and
+secrets checks clean (CachyOS Linux). By hand on `dusk-light`: Waybar tooltips show dark text, and a GTK window with
+`rgb` against `none` shows colour fringes only with `rgb`.
+
 ## [1.2.1.1] - 2026-11-07 12:11 (IST)
 
 ### Fixed
