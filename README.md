@@ -6,7 +6,7 @@
 [![Hyprland](https://img.shields.io/badge/Hyprland-58E1FF?style=flat-square&logo=hyprland&logoColor=white)](https://hyprland.org/)
 [![Lua](https://img.shields.io/badge/Lua-2C2D72?style=flat-square&logo=lua&logoColor=white)](https://www.lua.org/)
 [![Qt 6 QML](https://img.shields.io/badge/Qt%206%20QML-41CD52?style=flat-square&logo=qt&logoColor=white)](https://doc.qt.io/qt-6/qmlapplications.html)
-<!-- Quickshell, Waybar, cava, rofi, wlogout, SDDM, kitty, fastfetch, Kvantum, systemd-networkd, iwd, OpenRGB, ClamAV, snapper, restic, ufw, gpu-screen-recorder, PipeWire and WirePlumber have no shields.io logos. Swap these plain badges for logo badges if logos become available. -->
+<!-- Quickshell, Kern, Waybar, cava, rofi, wlogout, SDDM, kitty, fastfetch, Kvantum, systemd-networkd, iwd, OpenRGB, ClamAV, snapper, restic, ufw, gpu-screen-recorder, PipeWire and WirePlumber have no shields.io logos. Swap these plain badges for logo badges if logos become available. -->
 [![Quickshell](https://img.shields.io/badge/Quickshell-3B4252?style=flat-square)](https://quickshell.org/)
 [![Waybar](https://img.shields.io/badge/Waybar-3B4252?style=flat-square)](https://github.com/Alexays/Waybar)
 [![cava](https://img.shields.io/badge/cava-3B4252?style=flat-square)](https://github.com/karlstav/cava)
@@ -14,6 +14,7 @@
 [![wlogout](https://img.shields.io/badge/wlogout-3B4252?style=flat-square)](https://github.com/ArtsyMacaw/wlogout)
 [![SDDM](https://img.shields.io/badge/SDDM-3B4252?style=flat-square)](https://github.com/sddm/sddm)
 [![Thunar](https://img.shields.io/badge/Thunar-2284F2?style=flat-square&logo=xfce&logoColor=white)](https://docs.xfce.org/xfce/thunar/start)
+[![Kern](https://img.shields.io/badge/Kern-3B4252?style=flat-square)](https://github.com/verycareful/kern-desktop)
 <!-- Terminal and shell -->
 [![kitty](https://img.shields.io/badge/kitty-3B4252?style=flat-square)](https://sw.kovidgoyal.net/kitty/)
 [![fish](https://img.shields.io/badge/fish-34C534?style=flat-square&logo=fishshell&logoColor=white)](https://fishshell.com/)
@@ -41,7 +42,7 @@
 [![GNU Stow](https://img.shields.io/badge/GNU%20Stow-A42E2B?style=flat-square&logo=gnu&logoColor=white)](https://www.gnu.org/software/stow/)
 [![C](https://img.shields.io/badge/C-A8B9CC?style=flat-square&logo=c&logoColor=white)](https://en.cppreference.com/w/c)
 <!-- Version -->
-[![Version](https://img.shields.io/badge/Version-1.2.0.0-blue?style=flat-square)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/Version-1.2.1.0-blue?style=flat-square)](CHANGELOG.md)
 <!-- License and status -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 [![Status: Active](https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square)](#)
@@ -57,7 +58,8 @@ Hyprland rice: sharp corners, glass, switchable themes, each dark one with a lig
 | `wlogout/` | power menu                                       |
 | `kitty/`   | terminal                                         |
 | `fish/`    | shell + starship prompt                          |
-| `thunar/`  | file manager: right-click actions (Open Terminal Here in kitty, Open in VS Code, Copy Path, Set as Wallpaper via `wall`) and the preferences in `thunar.xfconf`, which install.sh writes with `xfconf-query` (xfconf also stores window state, so the file itself is not linked). It is the default for folders and answers 'show in folder' from other apps (a user D-Bus service for `org.freedesktop.FileManager1`). Thumbnails come from tumbler, Extract/Compress from thunar-archive-plugin with ark. Styling follows the GTK theme |
+| `thunar/`  | file manager: right-click actions (Open Terminal Here in kitty, Open in VS Code, Copy Path, Set as Wallpaper via `wall`) and the preferences in `thunar.xfconf`, which install.sh writes with `xfconf-query` (xfconf also stores window state, so the file itself is not linked). It stays installed as the fallback file manager. Thumbnails come from tumbler, Extract/Compress from thunar-archive-plugin with ark. Styling follows the GTK theme |
+| `kern/`    | makes Kern the file manager for 'show in folder' from other apps: a user D-Bus service for `org.freedesktop.FileManager1` that starts Kern when nothing owns the name (Kern owns it while it runs). install.sh also sets Kern as the default for folders, and `SUPER+E` opens it |
 | `scripts/` | helpers in `~/.local/bin` (`clip`: clipboard history on SUPER+V with image thumbnails; `screenrec`: gpu-screen-recorder on ALT+Print (area), ALT+SHIFT+Print (screen), SUPER+ALT+Print (window), CTRL+ALT+Print (area with mic), the same key again stops, saved to `~/Videos/Recordings` with a red timer on the bar; SUPER+SHIFT+R keeps a 60 s instant replay, SUPER+ALT+R saves it; `lockscreen`: every lock (SUPER+Esc, idle, the power menu) goes through it, and if hyprlock crashes while locked (it can when a monitor is switched off) it starts hyprlock again over the blurred wallpaper; from a tty, the fish function `unlock-crashed` clears a crashed lock; `share-audio` and `share-picker`: the official Discord client sends every playing app's audio with a window share, whichever window you pick; the picker wrapper (set in `hypr/.config/hypr/xdph.conf`) records which window you chose, and `share-audio watch` (started by Hyprland) removes Discord's capture links for every other app, so viewers hear only that window's app; sharing a whole screen or region keeps all audio, a window whose app is not playing gives silence, and `~/.config/share-audio/overrides` (`window class = stream name`, one per line) covers apps whose audio stream is not named after their window, such as Wine games; ticking Remember this choice skips the picker, and the share is then left unfiltered with a notification; `theme`, `wall`, `shot` (Print area, SHIFT+Print screen, SUPER+Print window: copied to the clipboard straight away, satty waits in the tray for annotating, SUPER+SHIFT+M), `gpu-status`, `weather`, `keyhint`, `wifi`, `net`, `perms`, `snap`, `fw`, `doctor`, `backup`) |
 | `themes/`  | `*.theme` colour files + `templates/` rendered by `theme`. Besides the desktop it colours btop (selects its `dotfiles` theme), VS Code (`workbench.colorCustomizations` in settings.json, applied live; the rest of the file is kept) and Firefox (`userChrome.css` in each profile plus the user.js pref that enables it; a userChrome.css that is not ours is left alone) and Vesktop (`dotfiles.theme.css` in its themes folder, enabled once in its settings: colours, small corner radii and the theme fonts, applied live). btop and Firefox take it on next start |
 | `fonts/`   | Oxanium (UI), Quantico (display), Share Tech Mono (terminal), all OFL; JetBrainsMono Nerd Font supplies icons |

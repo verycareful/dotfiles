@@ -5,7 +5,7 @@
 local mod      = "SUPER"
 local term     = "kitty"
 local browser  = "firefox"
-local files    = "thunar"
+local files    = "kern"
 local launcher = "rofi -show drun"
 local editor   = "code"
 

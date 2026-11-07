@@ -1,0 +1,7 @@
+# Dolphin and Thunar both provide org.freedesktop.FileManager1 (apps call it for "show in folder").
+# A user service file wins over the system ones, so this pins the name to Kern when nothing owns it yet.
+# While Kern runs it already owns the name, so this file only starts it for the first call.
+# D-Bus does not expand $HOME, hence the shell.
+[D-BUS Service]
+Name=org.freedesktop.FileManager1
+Exec=/usr/bin/bash -c 'exec "$HOME/.local/bin/kern"'

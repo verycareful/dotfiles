@@ -7,6 +7,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1.0] - 2026-11-07 11:30 (IST)
+
+### Changed
+- Kern is the default file manager. `install.sh` sets `io.github.verycareful.kern.desktop` as the default for
+  `inode/directory` (it was `thunar.desktop`), and `SUPER+E` opens Kern (`hypr/.config/hypr/lua/binds.lua`).
+- "Show in folder" from other apps goes to Kern. The user D-Bus service for `org.freedesktop.FileManager1` moved from
+  the `thunar` package to a new `kern` package (added to `install.sh`) and now starts Kern. While Kern runs it owns
+  the name itself; the service file only starts it when nothing does. The `Exec` goes through `bash -c` because
+  D-Bus does not expand `$HOME`.
+- Thunar stays installed, with its right-click actions and preferences, as the fallback.
+- README: Kern badge, a `kern/` row, and the Thunar row no longer claims the default.
+
+### Results
+85 tests across 3 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax
+and secrets checks clean (CachyOS Linux). By hand: with neither Kern nor Thunar running, a `ShowItems` call on
+`org.freedesktop.FileManager1` started Kern, which then owned the name.
+
 ## [1.2.0.0] - 2026-11-04 20:17 (IST)
 
 ### Added

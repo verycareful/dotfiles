@@ -9,7 +9,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 REPO="$PWD"
-ALL=(hypr waybar rofi kitty fish quickshell wlogout gtk qt fastfetch thunar scripts)
+ALL=(hypr waybar rofi kitty fish quickshell wlogout gtk qt fastfetch thunar kern scripts)
 op=""
 [[ "${1:-}" == "-D" ]] && { op="-D"; shift; }
 pkgs=("${@:-${ALL[@]}}")
@@ -100,7 +100,7 @@ if command -v xdg-mime >/dev/null; then
         xdg-mime default "$app" $types
     done <<'EOF'
 firefox.desktop             x-scheme-handler/http x-scheme-handler/https
-thunar.desktop              inode/directory
+io.github.verycareful.kern.desktop inode/directory
 micro.desktop               text/plain text/markdown application/json
 EOF
 fi
