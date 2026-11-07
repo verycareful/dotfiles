@@ -36,6 +36,10 @@ MODES = {
               'gtk_rgba': 'none'},
 }
 
+# A light theme's terminal is opaque: the blur behind a glass terminal greys the paper and lowers the contrast of
+# dark text. A dark theme's terminal takes the theme's glass.
+LIGHT_TERMINAL_GLASS = '1.0'
+
 # Colour roles whose meaning flips with mode: each name is set to the value of the named key. ANSI black and white
 # stay dark and light on either background; Qt's bevel shades keep Light lighter than Dark.
 MODE_ROLES = {
@@ -116,6 +120,10 @@ def values(raw):
     if 'glass' in raw:
         v['glass_hex'] = '%02x' % round(float(raw['glass']) * 255)
     v.update(MODES.get(raw.get('mode'), {}))
+    if raw.get('mode') == 'light':
+        v['kitty_glass'] = LIGHT_TERMINAL_GLASS
+    elif 'glass' in raw:
+        v['kitty_glass'] = raw['glass']
     return v
 
 

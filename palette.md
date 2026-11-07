@@ -66,7 +66,7 @@ Blue-white `#f5f7fc` with royal-blue links `#1f3fbf` and orange `#e0670f`; white
 dusk-light use the black Bibata-Modern-Classic cursor.
 
 Glass: surfaces use mantle/base at 55–78 % alpha with Hyprland blur behind.
-A theme may set `glass=0.95` (opacity of the mantle-based surfaces: panels, cards, Waybar, rofi, wlogout, hyprlock input, kitty);
+A theme may set `glass=0.95` (opacity of the mantle-based surfaces: panels, cards, Waybar, rofi, wlogout, hyprlock input, and kitty on dark themes: a light theme's kitty is always opaque);
 without it each template falls back to its own value via `{{glass|0.74}}`. `{{glass_hex}}` is the same value as an alpha byte for `rgba(hexAA)`.
 Selection tints and inset fields (primary/base glass) keep their own alpha.
 To add a theme: copy a `.theme` file, change the values, add a wallpaper to `wallpapers/`, run `theme check`.

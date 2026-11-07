@@ -8,6 +8,9 @@ ConditionEnvironment=WAYLAND_DISPLAY
 [Service]
 Type=dbus
 BusName=org.freedesktop.Notifications
+# Qt Quick text is drawn with subpixel (LCD) antialiasing by default and fontconfig does not change that. On a
+# translucent glass surface it shows as orange and blue fringes on dark text, so the text is drawn in greyscale.
+Environment=QSG_DISTANCEFIELD_ANTIALIASING=gray
 ExecStart=/usr/bin/qs
 Restart=on-failure
 RestartSec=1

@@ -123,7 +123,8 @@ reload() {
     if systemctl --user is-active -q waybar; then systemctl --user restart waybar; else pkill -x waybar; (setsid waybar >/dev/null 2>&1 &); fi
     # hyprtoolkit reads its colours once at start: restart the polkit agent (the password prompt)
     systemctl --user try-restart hyprpolkitagent 2>/dev/null || true
-    local kitty_opacity; kitty_opacity=$(sed -n 's/^glass=//p' "$REPO/themes/$(current).theme"); kitty_opacity=${kitty_opacity:-0.78}
+    # the rendered colors.conf holds the terminal's opacity (a light theme's is 1.0), so open terminals get the same value
+    local kitty_opacity; kitty_opacity=$(sed -n 's/^background_opacity[[:space:]]*//p' "$CFG/kitty/colors.conf"); kitty_opacity=${kitty_opacity:-0.78}
     for s in /tmp/kitty-*; do                                   # recolour open terminals
         [[ -S "$s" ]] && kitty @ --to "unix:$s" set-colors --all --configured "$CFG/kitty/colors.conf" >/dev/null 2>&1 || true
         [[ -S "$s" ]] && kitty @ --to "unix:$s" set-background-opacity --all "$kitty_opacity" >/dev/null 2>&1 || true

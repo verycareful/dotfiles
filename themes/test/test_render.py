@@ -218,6 +218,13 @@ class RealThemes(unittest.TestCase):
                 with self.subTest(theme=p.stem, colour=fg):
                     self.assertGreaterEqual(render.contrast(v[fg], v['base']), 4.5)
 
+    def test_light_terminal_is_opaque(self):
+        """A light theme's kitty ignores the theme's glass; a dark one takes it, or falls back when it has none."""
+        self.assertEqual(render.values({'mode': 'light', 'glass': '0.95'})['kitty_glass'], '1.0')
+        self.assertEqual(render.values({'mode': 'light'})['kitty_glass'], '1.0')
+        self.assertEqual(render.values({'mode': 'dark', 'glass': '0.95'})['kitty_glass'], '0.95')
+        self.assertNotIn('kitty_glass', render.values({'mode': 'dark'}))
+
     def test_light_mode_uses_greyscale_antialiasing(self):
         """Subpixel antialiasing fringes dark-on-light text with colour; dark mode keeps it."""
         self.assertEqual(render.MODES['light']['gtk_rgba'], 'none')

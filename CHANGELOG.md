@@ -7,6 +7,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1.3] - 2026-11-07 13:13 (IST)
+
+### Fixed
+- Text in the Quickshell surfaces (widget panel, notification centre, OSD, calendar and the other windows) was drawn
+  with orange and blue fringes on dark text, most visible on the light themes. Qt Quick draws text with subpixel
+  antialiasing by default, and neither the GTK setting nor fontconfig changes that. The service now sets
+  `QSG_DISTANCEFIELD_ANTIALIASING=gray`, so text is greyscale in every mode. All of these surfaces are translucent glass,
+  where subpixel text is wrong in both modes, and Qt reads the variable once at start, so it cannot follow a live theme
+  switch.
+- Switching theme live gave open terminals the theme's `glass` value whatever the mode. `theme` now applies the opacity
+  from the rendered kitty config, so open terminals match new ones.
+
+### Changed
+- The terminal is opaque on the light themes. The blur behind a glass terminal greyed the paper (about 236 against 247 on
+  `dusk-light`) and lowered the contrast of dark text. Dark themes keep their glass, unchanged (`dusk` 0.95, `harbour` and
+  `mono` 0.78). `palette.md` notes the exception.
+
+### Tests
+- `themes/test/test_render.py`: `test_light_terminal_is_opaque` holds a light theme's terminal at 1.0, whatever its
+  `glass`, and a dark theme's at its own glass, or to the template fallback when it sets none.
+
+### Results
+88 tests across 3 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax and
+secrets checks clean (CachyOS Linux). By hand on `dusk-light`: the Snapshots row of the widget panel is fringed before
+the service restart and greyscale after, and a throwaway terminal at 1.0 shows a uniform background where 0.95 shows the
+blurred wallpaper.
+
 ## [1.2.1.2] - 2026-11-07 12:48 (IST)
 
 ### Fixed
