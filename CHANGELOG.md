@@ -7,6 +7,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1.5] - 2026-11-14 18:41 (IST)
+
+### Changed
+- The terminal is translucent on every theme. Kitty's `background_opacity` is 0.78 for `dusk`, `harbour`, `mono` and
+  the light themes alike (`dusk` was 0.95, the light themes were opaque). The light themes were made opaque because the
+  blur behind a glass terminal greyed the paper and lowered the contrast of dark text; with greyscale text in place
+  that no longer shows. The kitty-only opacity key is gone, so `glass` now sets only the panels, Waybar, rofi, wlogout
+  and hyprlock.
+
+### Removed
+- `test_light_terminal_is_opaque`, which held a light theme's terminal at 1.0.
+
+### Results
+102 tests across 4 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax and
+secrets checks clean (CachyOS Linux). By hand in kitty: the dark and light themes both read well at 0.78.
+
 ## [1.2.1.4] - 2026-11-07 13:33 (IST)
 
 ### Fixed
