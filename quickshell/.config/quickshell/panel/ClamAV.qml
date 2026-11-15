@@ -72,7 +72,7 @@ Widgets.Tile {
                 spacing: 2
                 RowLayout {
                     spacing: 8
-                    Text { text: "ClamAV"; color: Theme.text; font { family: Theme.fontUi; pixelSize: 13; weight: Font.Bold } }
+                    Text { text: "ClamAV"; color: Theme.text; font { family: Theme.fontUi; pixelSize: 13; weight: Font.DemiBold } }
                     Widgets.Switch { on: tile.allOn; enabled: tile.busyUnit === ""; onClicked: tile.setAll(!tile.allOn) }
                     Text { text: "\u{F0341}"; color: Theme.muted; font { family: Theme.fontIcon; pixelSize: 11 } }   // lock: needs auth
                 }

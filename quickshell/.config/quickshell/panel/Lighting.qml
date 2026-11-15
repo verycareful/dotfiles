@@ -23,7 +23,7 @@ Widgets.Tile {
         anchors { fill: parent; leftMargin: 12; rightMargin: 10 }
         spacing: 8
         Text { text: "\u{F0335}"; color: tile.current !== "" && tile.current !== "Off all" ? Theme.accent : Theme.muted; font { family: Theme.fontIcon; pixelSize: 16 } }   // lightbulb
-        Text { text: "Lighting"; color: Theme.text; font { family: Theme.fontUi; pixelSize: 12; weight: Font.Bold } }
+        Text { text: "Lighting"; color: Theme.text; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
         Repeater {
             model: tile.profiles
             Rectangle {

@@ -7,6 +7,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1.6] - 2026-11-15 12:21 (IST)
+
+### Fixed
+- Bold text in the Quickshell surfaces read heavy and ragged next to the text around it, on dark and light themes
+  alike. The widget panel's headings and row titles (Snapshots, Firewall, Backup, ClamAV, Lighting, Thermal limit and
+  the section labels), the song title, the notification card and group text, and the tab labels of the DNS and
+  Permissions windows are DemiBold now. The section labels are set in Quantico, which has no weight between Regular
+  and Bold, so they keep its Bold face.
+- The hint under the DNS window's encryption options was 10px Regular and broke up on screen. It is 11px Medium.
+
+### Changed
+- The widget panel's numeric readouts (system footer, per-core load, the large CPU and GPU figures, power cap and
+  thermal limit) use the interface font at DemiBold instead of Quantico Bold, whose blocky letterforms broke up at
+  small sizes.
+
+### Results
+102 tests across 4 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax and
+secrets checks clean (CachyOS Linux). By hand: the panel, a notification card and the DNS window on a dark and a
+light theme.
+
 ## [1.2.1.5] - 2026-11-14 18:41 (IST)
 
 ### Changed

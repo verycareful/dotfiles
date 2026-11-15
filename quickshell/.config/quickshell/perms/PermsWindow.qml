@@ -436,7 +436,7 @@ Scope {
         RowLayout {
             id: tr; anchors.centerIn: parent; spacing: 8
             Text { text: tabItem.glyph; color: tabItem.active ? Theme.accent : Theme.muted; font { family: Theme.fontIcon; pixelSize: 16 } }
-            Text { text: tabItem.label; color: tabItem.active ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 12; weight: Font.Bold } }
+            Text { text: tabItem.label; color: tabItem.active ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
         }
         MouseArea { anchors.fill: parent; onClicked: root.tab = tabItem.type }
     }

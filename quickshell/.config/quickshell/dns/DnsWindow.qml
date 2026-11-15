@@ -79,7 +79,7 @@ Scope {
         RowLayout {
             id: tr; anchors.centerIn: parent; spacing: 8
             Text { text: tabItem.glyph; color: tabItem.active ? Theme.accent : Theme.muted; font { family: Theme.fontIcon; pixelSize: 16 } }
-            Text { text: tabItem.label; color: tabItem.active ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 12; weight: Font.Bold } }
+            Text { text: tabItem.label; color: tabItem.active ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
             Text { text: tabItem.sub; visible: text !== ""; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 } }
         }
         MouseArea { anchors.fill: parent; onClicked: root.tab = tabItem.type }
@@ -131,7 +131,7 @@ Scope {
                 Layout.leftMargin: 8; Layout.fillWidth: true; wrapMode: Text.Wrap
                 text: form.tls === "yes" ? "Only encrypted; lookups fail if the servers can't do TLS"
                     : form.tls === "opportunistic" ? "Encrypted when the servers support it, plain otherwise" : "Plain DNS"
-                color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 }
+                color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.Medium }
             }
         }
         Text {

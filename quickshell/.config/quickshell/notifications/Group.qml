@@ -27,7 +27,7 @@ ColumnLayout {
             Text {
                 text: group.g.app
                 color: Theme.text
-                font { family: Theme.fontDisplay; pixelSize: 14; weight: Font.Bold }
+                font { family: Theme.fontUi; pixelSize: 14; weight: Font.DemiBold }
                 elide: Text.ElideRight
                 Layout.fillWidth: true
             }
@@ -39,7 +39,7 @@ ColumnLayout {
                     anchors.centerIn: parent
                     text: group.g.count
                     color: group.g.unreadCount > 0 ? Theme.textOnAccent : Theme.subtext
-                    font { family: Theme.fontUi; pixelSize: 11; weight: Font.Bold }
+                    font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
                 }
             }
             HeaderButton { glyph: group.g.collapsed ? "\u{F0142}" : "\u{F0140}"; onClicked: Notifs.toggleGroup(group.g) }   // chevron right / down

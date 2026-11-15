@@ -68,7 +68,7 @@ Rectangle {
                     Layout.fillWidth: true
                     text: card.n.summary
                     color: Theme.text
-                    font { family: Theme.fontUi; pixelSize: Theme.fontSize; weight: Font.Bold }
+                    font { family: Theme.fontUi; pixelSize: Theme.fontSize; weight: Font.DemiBold }
                     elide: Text.ElideRight
                 }
                 Text {

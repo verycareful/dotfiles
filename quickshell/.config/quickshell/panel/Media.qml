@@ -30,7 +30,7 @@ Widgets.Tile {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 4
-            Text { Layout.fillWidth: true; text: tile.player ? tile.player.trackTitle : ""; color: Theme.text; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 13; weight: Font.Bold } }
+            Text { Layout.fillWidth: true; text: tile.player ? tile.player.trackTitle : ""; color: Theme.text; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 13; weight: Font.DemiBold } }
             Text { Layout.fillWidth: true; text: tile.player ? (tile.player.trackArtist + (tile.player.identity ? "  ·  " + tile.player.identity : "")) : ""; color: Theme.subtext; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 11 } }
             RowLayout {                                   // seek
                 Layout.fillWidth: true

@@ -6,7 +6,7 @@ QtObject {
     // section title
     component Heading: Text {
         color: Theme.muted
-        font { family: Theme.fontDisplay; pixelSize: 11; weight: Font.Bold; letterSpacing: 1.5 }
+        font { family: Theme.fontDisplay; pixelSize: 11; weight: Font.DemiBold; letterSpacing: 1.5 }
         text: ""
     }
     // flat glass tile

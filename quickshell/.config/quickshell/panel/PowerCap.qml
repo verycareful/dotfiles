@@ -18,10 +18,10 @@ ColumnLayout {
     RowLayout {
         Layout.fillWidth: true
         spacing: 6
-        Text { text: Math.round(Gpu.power) + " W"; color: Theme.text; font { family: Theme.fontDisplay; pixelSize: 13; weight: Font.Bold } }
+        Text { text: Math.round(Gpu.power) + " W"; color: Theme.text; font { family: Theme.fontUi; pixelSize: 13; weight: Font.DemiBold } }
         Text { text: "draw"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 } }
         Item { Layout.fillWidth: true }
-        Text { text: (Gpu.busy ? "… " : "") + Math.round(pc.shown) + " W"; color: pc.dragging ? Theme.accent : Theme.subtext; font { family: Theme.fontDisplay; pixelSize: 12; weight: Font.Bold } }
+        Text { text: (Gpu.busy ? "… " : "") + Math.round(pc.shown) + " W"; color: pc.dragging ? Theme.accent : Theme.subtext; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
         Text { text: "cap"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 } }
     }
     Item {
