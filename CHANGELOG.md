@@ -7,6 +7,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1.7] - 2026-11-15 12:29 (IST)
+
+### Fixed
+- The rest of the Quickshell text that broke up on screen, on dark and light themes alike. Small Oxanium text (10 and
+  11px detail lines, hints, labels and values in the widget panel, the DNS, Permissions, Themes and Tray windows, and
+  the notification time stamps) is DemiBold instead of Regular, the weight Waybar uses. Sizes are unchanged, so the
+  windows keep their layout.
+- Bold Oxanium text in the calendar, the on-screen display, the Permissions rows and the Tray application names is
+  DemiBold. In the calendar the current day, and in the window switcher the selected card, are told apart by colour
+  alone.
+- The small Quantico text (the calendar month title, the switcher workspace tags and the theme list initials) uses
+  Oxanium DemiBold, for the same reason the widget panel's readouts did in 1.2.1.6. The large Quantico titles of the
+  notification centre and the Permissions, Themes and Tray windows keep their Bold face.
+
+### Results
+102 tests across 4 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax and
+secrets checks clean (CachyOS Linux). By hand: the widget panel, a notification card, the on-screen display, the
+window switcher and the DNS, Permissions, Themes, Tray and calendar windows, with nothing clipped.
+
 ## [1.2.1.6] - 2026-11-15 12:21 (IST)
 
 ### Fixed

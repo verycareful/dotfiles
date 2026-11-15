@@ -115,7 +115,7 @@ Scope {
                                     anchors { left: parent.left; top: parent.top; margins: 4 }
                                     width: wsl.implicitWidth + 10; height: 18
                                     color: Qt.rgba(Theme.mantle.r, Theme.mantle.g, Theme.mantle.b, 0.85)
-                                    Text { id: wsl; anchors.centerIn: parent; text: card.modelData.workspace ? card.modelData.workspace.name.replace(/^special:/, "") : ""; color: Theme.subtext; font { family: Theme.fontDisplay; pixelSize: 10; weight: Font.Bold } }
+                                    Text { id: wsl; anchors.centerIn: parent; text: card.modelData.workspace ? card.modelData.workspace.name.replace(/^special:/, "") : ""; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
                                 }
                             }
                             Row {
@@ -130,7 +130,7 @@ Scope {
                                     text: card.modelData.title
                                     color: card.selected ? Theme.text : Theme.subtext
                                     elide: Text.ElideRight
-                                    font { family: Theme.fontUi; pixelSize: 12; weight: card.selected ? Font.Bold : Font.DemiBold }
+                                    font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold }
                                 }
                             }
                         }

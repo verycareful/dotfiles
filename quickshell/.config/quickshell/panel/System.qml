@@ -81,13 +81,13 @@ ColumnLayout {
                 readonly property var c: cores[tid]
                 Layout.fillWidth: true
                 spacing: 6
-                Text { text: "t" + tid; color: Theme.muted; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 22; font { family: Theme.fontUi; pixelSize: 10 } }
+                Text { text: "t" + tid; color: Theme.muted; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 22; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
                 Rectangle {
                     Layout.fillWidth: true; implicitHeight: 6; color: Theme.overlay
                     Rectangle { width: (c ? c.load : 0) / 100 * parent.width; height: parent.height; color: c && c.load >= 90 ? Theme.red : Theme.primaryBright; Behavior on width { NumberAnimation { duration: 250 } } }
                 }
                 Text { text: (c ? c.load : 0) + "%"; color: Theme.subtext; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 30; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
-                Text { text: c ? (c.mhz / 1000).toFixed(1) + " GHz" : ""; color: c && c.mhz >= 5000 ? Theme.accent : Theme.muted; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 46; font { family: Theme.fontUi; pixelSize: 10 } }
+                Text { text: c ? (c.mhz / 1000).toFixed(1) + " GHz" : ""; color: c && c.mhz >= 5000 ? Theme.accent : Theme.muted; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 46; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
             }
         }
     }
@@ -102,7 +102,7 @@ ColumnLayout {
         spacing: 8
         Text { text: parent.glyph; color: Theme.accent; font { family: Theme.fontIcon; pixelSize: 15 } }
         Text { text: parent.label; color: Theme.muted; font { family: Theme.fontDisplay; pixelSize: 11; weight: Font.DemiBold; letterSpacing: 1.5 } }
-        Text { Layout.fillWidth: true; text: parent.name; color: Theme.subtext; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 11 } }
+        Text { Layout.fillWidth: true; text: parent.name; color: Theme.subtext; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
         Loader { sourceComponent: parent.action }
     }
     component Meter: ColumnLayout {          // big number + right text over a bar
@@ -116,7 +116,7 @@ ColumnLayout {
         RowLayout {
             Layout.fillWidth: true
             Text { text: parent.parent.big; color: parent.parent.hot ? Theme.red : Theme.text; font { family: Theme.fontUi; pixelSize: parent.parent.small ? 13 : 20; weight: Font.DemiBold } }
-            Text { Layout.fillWidth: true; horizontalAlignment: Text.AlignRight; text: parent.parent.note; color: Theme.subtext; elide: Text.ElideLeft; font { family: Theme.fontUi; pixelSize: 11 } }
+            Text { Layout.fillWidth: true; horizontalAlignment: Text.AlignRight; text: parent.parent.note; color: Theme.subtext; elide: Text.ElideLeft; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
         }
         Rectangle {
             Layout.fillWidth: true; implicitHeight: 4; color: Theme.overlay
@@ -133,7 +133,7 @@ ColumnLayout {
                 required property var modelData
                 spacing: 4
                 Text { text: parent.modelData[0]; color: parent.modelData[2] ? Theme.red : (accent ? Theme.accent : Theme.text); font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
-                Text { visible: text !== ""; text: parent.modelData[1]; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 } }
+                Text { visible: text !== ""; text: parent.modelData[1]; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
             }
         }
     }

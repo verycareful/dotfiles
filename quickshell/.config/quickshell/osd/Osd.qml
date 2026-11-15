@@ -113,7 +113,7 @@ Scope {
                     horizontalAlignment: root.level < 0 ? Text.AlignLeft : Text.AlignRight
                     Layout.minimumWidth: root.level < 0 ? 0 : 52
                     text: root.label; color: Theme.text
-                    font { family: Theme.fontUi; pixelSize: 14; weight: Font.Bold }
+                    font { family: Theme.fontUi; pixelSize: 14; weight: Font.DemiBold }
                 }
             }
         }

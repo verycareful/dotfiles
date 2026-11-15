@@ -80,7 +80,7 @@ Scope {
             id: tr; anchors.centerIn: parent; spacing: 8
             Text { text: tabItem.glyph; color: tabItem.active ? Theme.accent : Theme.muted; font { family: Theme.fontIcon; pixelSize: 16 } }
             Text { text: tabItem.label; color: tabItem.active ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
-            Text { text: tabItem.sub; visible: text !== ""; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 } }
+            Text { text: tabItem.sub; visible: text !== ""; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
         }
         MouseArea { anchors.fill: parent; onClicked: root.tab = tabItem.type }
     }
@@ -109,13 +109,13 @@ Scope {
         Text {
             Layout.fillWidth: true
             text: "In use now: " + (form.cfg.live !== "" ? form.cfg.live : "none")
-            color: Theme.subtext; wrapMode: Text.WrapAnywhere; font { family: Theme.fontUi; pixelSize: 10 }
+            color: Theme.subtext; wrapMode: Text.WrapAnywhere; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold }
         }
         Text {
             visible: form.cfg.override === true
             Layout.fillWidth: true; wrapMode: Text.Wrap
             text: "Temporary servers set with resolvectl are in use. Apply replaces them with the settings below."
-            color: Theme.yellow; font { family: Theme.fontUi; pixelSize: 11 }
+            color: Theme.yellow; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
         }
         Family { id: v4; title: "IPv4" }
         Family { id: v6; title: "IPv6"; canDisable: true }
@@ -131,7 +131,7 @@ Scope {
                 Layout.leftMargin: 8; Layout.fillWidth: true; wrapMode: Text.Wrap
                 text: form.tls === "yes" ? "Only encrypted; lookups fail if the servers can't do TLS"
                     : form.tls === "opportunistic" ? "Encrypted when the servers support it, plain otherwise" : "Plain DNS"
-                color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.Medium }
+                color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
             }
         }
         Text {
@@ -142,7 +142,7 @@ Scope {
               : ""
             visible: warn !== ""; text: warn
             Layout.fillWidth: true; wrapMode: Text.Wrap
-            color: Theme.yellow; font { family: Theme.fontUi; pixelSize: 11 }
+            color: Theme.yellow; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
         }
     }
 
@@ -160,15 +160,15 @@ Scope {
         spacing: 6
         RowLayout {
             Widgets.Heading { text: fam.title; Layout.fillWidth: true }
-            Text { visible: fam.canDisable; text: "Enabled"; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 11 } }
+            Text { visible: fam.canDisable; text: "Enabled"; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
             Switch { visible: fam.canDisable; on: fam.on; onToggled: fam.on = !fam.on }
-            Text { visible: fam.on; Layout.leftMargin: 10; text: "Automatic"; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 11 } }
+            Text { visible: fam.on; Layout.leftMargin: 10; text: "Automatic"; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
             Switch { visible: fam.on; on: fam.auto; onToggled: fam.auto = !fam.auto }
         }
         Text {
             visible: !fam.on; Layout.fillWidth: true
             text: "IPv6 is off on this connection: no address, no IPv6 DNS"
-            color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11 }
+            color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
         }
         RowLayout {
             visible: fam.on

@@ -83,7 +83,7 @@ Widgets.Tile {
                     text: (c.found > 0 ? c.found + " detection(s) since boot" : "No detections since boot")
                         + "  ·  " + (c.lastScan !== "" ? "Weekly scan " + c.lastScan + ": " + tile.scanResult : "No weekly scan yet")
                         + (c.sigs !== "" ? "  ·  Signatures " + c.sigs : "")
-                    font { family: Theme.fontUi; pixelSize: 11 }
+                    font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
                 }
             }
             ColumnLayout {
@@ -113,7 +113,7 @@ Widgets.Tile {
                         Rectangle { width: 8; height: 8; color: row.busy ? Theme.yellow : (row.held && !row.modelData.active ? Theme.muted : (row.modelData.active ? Theme.green : Theme.red)) }
                         Text { text: row.modelData.label; color: row.held ? Theme.muted : Theme.text; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
                         Text {
-                            Layout.fillWidth: true; color: Theme.muted; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 10 }
+                            Layout.fillWidth: true; color: Theme.muted; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold }
                             text: !row.held ? row.modelData.desc : (row.modelData.unit === tile.notifyTier ? "Paused for the weekly scan" : "Locked while the weekly scan runs")
                         }
                         Text { visible: row.modelData.scope === "system"; text: "\u{F0341}"; color: Theme.muted; font { family: Theme.fontIcon; pixelSize: 11 } }   // lock: needs auth

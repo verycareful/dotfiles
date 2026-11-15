@@ -42,7 +42,7 @@ Item {
             spacing: 4
             RowLayout {
                 Text { text: "Thermal limit"; color: Theme.muted; Layout.fillWidth: true; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
-                Text { text: tile.error; visible: tile.error !== ""; color: Theme.red; font { family: Theme.fontUi; pixelSize: 11 } }
+                Text { text: tile.error; visible: tile.error !== ""; color: Theme.red; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
                 Text { text: tile.busy ? "…" : tile.pending + " °C"; color: tile.pending !== tile.current ? Theme.accent : Theme.subtext; font { family: Theme.fontUi; pixelSize: 13; weight: Font.DemiBold } }
             }
             // slider

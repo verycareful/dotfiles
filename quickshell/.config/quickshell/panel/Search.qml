@@ -82,7 +82,7 @@ ColumnLayout {
                     spacing: 10
                     IconImage { implicitSize: 20; source: Quickshell.iconPath(row.modelData.icon, "application-x-executable") }
                     Text { text: row.modelData.name; color: Theme.text; font { family: Theme.fontUi; pixelSize: 13; weight: Font.DemiBold } }
-                    Text { Layout.fillWidth: true; text: row.modelData.genericName || row.modelData.comment || ""; color: Theme.muted; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 11 } }
+                    Text { Layout.fillWidth: true; text: row.modelData.genericName || row.modelData.comment || ""; color: Theme.muted; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
                 }
                 MouseArea { id: rm; anchors.fill: parent; hoverEnabled: true; onClicked: search.launch(row.modelData) }
             }

@@ -17,7 +17,7 @@ RowLayout {
         Layout.fillWidth: true
         spacing: 2
         Text { text: r.title; color: Theme.text; font { family: Theme.fontUi; pixelSize: 13; weight: Font.DemiBold } }
-        Text { Layout.fillWidth: true; wrapMode: Text.Wrap; text: r.detail; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 11 } }
+        Text { Layout.fillWidth: true; wrapMode: Text.Wrap; text: r.detail; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
     }
     RowLayout { id: box; spacing: 4 }
 }

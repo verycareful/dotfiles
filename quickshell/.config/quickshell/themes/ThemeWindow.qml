@@ -110,7 +110,7 @@ Scope {
                         Layout.preferredWidth: 72
                         text: row.modelData.name.charAt(0).toUpperCase() + row.modelData.name.slice(1)
                         color: Theme.subtext
-                        font { family: Theme.fontDisplay; pixelSize: 13; weight: Font.Bold }
+                        font { family: Theme.fontUi; pixelSize: 13; weight: Font.DemiBold }
                     }
                     Repeater {
                         model: row.modelData.pair
@@ -121,7 +121,7 @@ Scope {
             Text {
                 text: "Click or Enter applies · arrows move · GTK and Qt apps change on their next start"
                 color: Theme.muted
-                font { family: Theme.fontUi; pixelSize: 11 }
+                font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
             }
         }
     }
@@ -139,7 +139,7 @@ Scope {
             anchors.fill: parent
             color: "transparent"
             border.width: 1; border.color: Theme.overlay
-            Text { anchors.centerIn: parent; text: "none"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11 } }
+            Text { anchors.centerIn: parent; text: "none"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
         }
 
         Column {

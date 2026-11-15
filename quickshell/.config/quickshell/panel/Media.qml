@@ -31,11 +31,11 @@ Widgets.Tile {
             Layout.fillWidth: true
             spacing: 4
             Text { Layout.fillWidth: true; text: tile.player ? tile.player.trackTitle : ""; color: Theme.text; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 13; weight: Font.DemiBold } }
-            Text { Layout.fillWidth: true; text: tile.player ? (tile.player.trackArtist + (tile.player.identity ? "  ·  " + tile.player.identity : "")) : ""; color: Theme.subtext; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 11 } }
+            Text { Layout.fillWidth: true; text: tile.player ? (tile.player.trackArtist + (tile.player.identity ? "  ·  " + tile.player.identity : "")) : ""; color: Theme.subtext; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
             RowLayout {                                   // seek
                 Layout.fillWidth: true
                 spacing: 8
-                Text { text: tile.player ? tile.fmt(tile.player.position) : ""; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 } }
+                Text { text: tile.player ? tile.fmt(tile.player.position) : ""; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
                 Item {
                     id: seek
                     Layout.fillWidth: true; implicitHeight: 12
@@ -44,7 +44,7 @@ Widgets.Tile {
                     Rectangle { anchors.verticalCenter: parent.verticalCenter; width: seek.frac * parent.width; height: 3; color: Theme.accent }
                     MouseArea { anchors.fill: parent; enabled: tile.player && tile.player.canSeek; onClicked: mouse => tile.player.position = mouse.x / width * tile.player.length }
                 }
-                Text { text: tile.player && tile.player.lengthSupported ? tile.fmt(tile.player.length) : ""; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 } }
+                Text { text: tile.player && tile.player.lengthSupported ? tile.fmt(tile.player.length) : ""; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
             }
             RowLayout {                                   // controls + volume
                 Layout.fillWidth: true

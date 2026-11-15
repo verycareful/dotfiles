@@ -108,7 +108,7 @@ Scope {
                 Layout.topMargin: 4
                 text: "Click or Enter restores · Delete or \u{F0156} closes · arrows move"
                 color: Theme.muted
-                font { family: Theme.fontUi; pixelSize: 11 }
+                font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
             }
         }
     }
@@ -142,7 +142,7 @@ Scope {
             Text {
                 text: root.className(row.toplevel)
                 color: row.selected ? Theme.text : Theme.subtext
-                font { family: Theme.fontUi; pixelSize: 12; weight: Font.Bold }
+                font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold }
             }
             Text {
                 Layout.fillWidth: true

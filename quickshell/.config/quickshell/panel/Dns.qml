@@ -38,7 +38,7 @@ Widgets.Tile {
         Text {
             Layout.fillWidth: true; elide: Text.ElideRight
             text: line.cfg.live !== "" ? line.cfg.live.split(" ").map(s => s.split("#")[0]).join("  ") : "no DNS in use"
-            color: line.cfg.live !== "" ? Theme.text : Theme.muted; font { family: Theme.fontUi; pixelSize: 11 }
+            color: line.cfg.live !== "" ? Theme.text : Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
         }
     }
 }

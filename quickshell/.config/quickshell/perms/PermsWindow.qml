@@ -378,7 +378,7 @@ Scope {
                         Text {
                             visible: Perms.name(appPane.app) !== appPane.app
                             text: appPane.app; color: Theme.muted
-                            font { family: Theme.fontUi; pixelSize: 11 }
+                            font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
                         }
                         Section { text: "CONTROLLED"; Layout.topMargin: 6 }
                         Repeater {
@@ -448,7 +448,7 @@ Scope {
         Layout.topMargin: 2
         spacing: 8
         Widgets.Heading { id: h }
-        Text { visible: parent.sub !== ""; text: parent.sub; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 } }
+        Text { visible: parent.sub !== ""; text: parent.sub; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
     }
 
     component Heading_: Widgets.Heading { Layout.topMargin: 8; Layout.bottomMargin: 2 }
@@ -483,7 +483,7 @@ Scope {
                 spacing: 2
                 RowLayout {
                     spacing: 8
-                    Text { text: row.label; color: Theme.text; font { family: Theme.fontUi; pixelSize: 13; weight: Font.Bold } }
+                    Text { text: row.label; color: Theme.text; font { family: Theme.fontUi; pixelSize: 13; weight: Font.DemiBold } }
                     Dot { visible: row.live !== "" }
                     Text { visible: row.live !== ""; text: row.live; color: Theme.green; elide: Text.ElideRight; Layout.fillWidth: true
                            font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
@@ -491,7 +491,7 @@ Scope {
                 Text {
                     Layout.fillWidth: true; wrapMode: Text.Wrap
                     text: row.sub; color: row.subWarn ? Theme.yellow : Theme.subtext
-                    font { family: Theme.fontUi; pixelSize: 11 }
+                    font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
                 }
             }
             Rectangle {
@@ -532,7 +532,7 @@ Scope {
         Layout.bottomMargin: 4
         wrapMode: Text.Wrap
         color: Theme.muted
-        font { family: Theme.fontUi; pixelSize: 11 }
+        font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
     }
 
     // an app under a controlled permission, with Allow / Block
@@ -568,10 +568,10 @@ Scope {
                     visible: line.info !== ""
                     Layout.fillWidth: true; wrapMode: Text.Wrap
                     text: line.info; color: line.clip.warn ? Theme.yellow : Theme.muted
-                    font { family: Theme.fontUi; pixelSize: 10 }
+                    font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold }
                 }
             }
-            Text { visible: line.busyHere; text: "applying"; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 10 } }
+            Text { visible: line.busyHere; text: "applying"; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
             RowLayout {
                 spacing: 0
                 Choice { label: "Allow"; active: line.mode === "allow"; onClicked: Perms.setApp(line.perm, line.app, "allow") }
@@ -599,7 +599,7 @@ Scope {
             Text { text: il.display; color: Theme.text; Layout.preferredWidth: 120; Layout.maximumWidth: 120; Layout.alignment: Qt.AlignTop
                    elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
             Text { text: il.info; color: Theme.subtext; Layout.fillWidth: true; Layout.preferredWidth: 1; wrapMode: Text.WordWrap
-                   font { family: Theme.fontUi; pixelSize: 11 } }
+                   font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
         }
     }
 

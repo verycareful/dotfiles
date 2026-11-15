@@ -74,7 +74,7 @@ Rectangle {
                 Text {
                     text: Notifs.relTime(card.entry.time)
                     color: Theme.muted
-                    font { family: Theme.fontUi; pixelSize: 11 }
+                    font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
                 }
             }
             Text {

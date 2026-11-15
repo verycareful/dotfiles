@@ -19,10 +19,10 @@ ColumnLayout {
         Layout.fillWidth: true
         spacing: 6
         Text { text: Math.round(Gpu.power) + " W"; color: Theme.text; font { family: Theme.fontUi; pixelSize: 13; weight: Font.DemiBold } }
-        Text { text: "draw"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 } }
+        Text { text: "draw"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
         Item { Layout.fillWidth: true }
         Text { text: (Gpu.busy ? "… " : "") + Math.round(pc.shown) + " W"; color: pc.dragging ? Theme.accent : Theme.subtext; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
-        Text { text: "cap"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 } }
+        Text { text: "cap"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
     }
     Item {
         id: track
@@ -48,7 +48,7 @@ ColumnLayout {
         Preset { label: "Stock"; watts: Gpu.capDefault }
         Preset { label: "Max";   watts: Gpu.capMax }
         Item { Layout.fillWidth: true }
-        Text { text: Math.round(pc.lo) + "–" + Math.round(pc.hi) + " W"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10 } }
+        Text { text: Math.round(pc.lo) + "–" + Math.round(pc.hi) + " W"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
     }
     component Preset: Rectangle {
         property string label
