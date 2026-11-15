@@ -7,6 +7,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1.8] - 2026-11-15 12:41 (IST)
+
+### Fixed
+- The Caps Lock on-screen display never appeared when the key was pressed. Hyprland 0.57 runs no key bind and sends
+  no event for Caps Lock (the bind never fired, whether it named the key or its key code), so the display now watches
+  the keyboard's Caps Lock LED, which follows the real state and can be read without special permissions. It shows
+  "Caps Lock on" or "Caps Lock off" within a tenth of a second of a change, from any keyboard.
+
+### Removed
+- The Caps Lock key bind in the Hyprland config, which could not fire. `qs ipc call osd caps` still shows the current
+  state on demand.
+
+### Results
+102 tests across 4 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax and
+secrets checks clean (CachyOS Linux). By hand: the display appears on turning Caps Lock on and off, and nothing shows
+at startup.
+
 ## [1.2.1.7] - 2026-11-15 12:29 (IST)
 
 ### Fixed

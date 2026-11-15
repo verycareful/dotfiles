@@ -1,6 +1,7 @@
 // On-screen display, bottom centre: volume and output mute, microphone mute, caps lock, brightness.
 // Volume and the mutes follow PipeWire directly, so keys, the panel slider and pavucontrol all show it.
-//   qs ipc call osd caps         (Caps Lock bind: reads the state from Hyprland)
+// Caps Lock follows the keyboard's own LED (see capsLed below), so the key shows it on any keyboard.
+//   qs ipc call osd caps         (shows the current Caps Lock state, read from Hyprland)
 //   qs ipc call osd brightness   (brightness binds: reads brightnessctl)
 import QtQuick
 import QtQuick.Layouts
@@ -55,6 +56,27 @@ Scope {
                     const kb = JSON.parse(text).keyboards.find(k => k.main)
                     if (kb) root.show("\u{F0632}", kb.capsLock ? "Caps Lock on" : "Caps Lock off", -1, kb.capsLock)
                 } catch (e) {}
+            }
+        }
+    }
+    // Hyprland runs no bind and sends no event for the Caps Lock key, but the keyboard's Caps Lock LED follows the real
+    // state and sysfs lets anyone read it. The loop prints one line per change, a 1 or 0 for each LED. The first line
+    // is the state at startup. Waiting with read -t on an open pipe costs no process per tick, and the loop ends when
+    // Quickshell does.
+    property bool capsKnown: false
+    property bool capsOn: false
+    Process {
+        id: capsLed
+        running: true
+        command: ["bash", "-c", "prev=; while kill -0 $PPID 2>/dev/null; do cur=; "
+            + "for f in /sys/class/leds/*::capslock/brightness; do [[ -r $f ]] && { read -r v < $f; cur+=$v; }; done; "
+            + "[[ $cur != $prev ]] && echo $cur; prev=$cur; read -t 0.1 <> <(:); done"]
+        stdout: SplitParser {
+            onRead: line => {
+                const on = line.indexOf("1") >= 0
+                if (root.capsKnown && on !== root.capsOn) root.show("\u{F0632}", on ? "Caps Lock on" : "Caps Lock off", -1, on)
+                root.capsKnown = true
+                root.capsOn = on
             }
         }
     }

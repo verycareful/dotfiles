@@ -137,8 +137,6 @@ gbind("XF86AudioMute",         run("pamixer -t"),                  "mute",      
 gbind("XF86AudioMicMute",      run("pamixer --default-source -t"), "mute microphone",  lock)
 gbind("XF86MonBrightnessUp",   run("brightnessctl set +5% && qs ipc call osd brightness"), "brightness up",   held)
 gbind("XF86MonBrightnessDown", run("brightnessctl set 5%- && qs ipc call osd brightness"), "brightness down", held)
--- non-consuming: the key still toggles Caps Lock, the bind only shows the new state (on key-up, once it has changed)
-gbind("Caps_Lock",             run("qs ipc call osd caps"),        "Caps Lock (shows the state)", { release = true, non_consuming = true })
 gbind("XF86AudioPlay",         run("playerctl play-pause"),        "media play/pause", lock)
 gbind("XF86AudioNext",         run("playerctl next"),              "media next",       lock)
 gbind("XF86AudioPrev",         run("playerctl previous"),          "media previous",   lock)
