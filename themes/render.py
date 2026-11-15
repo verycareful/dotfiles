@@ -62,7 +62,7 @@ TARGETS = {  # template -> destination(s) under $XDG_CONFIG_HOME
     'starship.toml':      ['starship.toml'],
     'fastfetch/config.jsonc': ['fastfetch/config.jsonc'],
     'btop/dotfiles.theme': ['btop/themes/dotfiles.theme'],
-    'vesktop/dotfiles.theme.css': ['vesktop/themes/dotfiles.theme.css'],
+    'vencord/dotfiles.theme.css': ['Vencord/themes/dotfiles.theme.css'],
 }
 
 HEX = re.compile(r'[0-9a-fA-F]{6}')

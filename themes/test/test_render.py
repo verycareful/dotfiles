@@ -185,6 +185,9 @@ class RealThemes(unittest.TestCase):
         for src in render.TARGETS:
             self.assertTrue((render.TEMPLATES / src).is_file(), src)
 
+    def test_discord_theme_goes_to_the_vencord_themes_folder(self):
+        self.assertEqual(render.TARGETS['vencord/dotfiles.theme.css'], ['Vencord/themes/dotfiles.theme.css'])
+
     def test_every_theme_is_clean(self):
         themes = sorted(render.THEMES.glob('*.theme'))
         self.assertTrue(themes)

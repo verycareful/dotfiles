@@ -7,6 +7,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1.9] - 2026-11-15 20:40 (IST)
+
+### Fixed
+- The dotfiles theme did not apply in the official Discord client. `theme set` still rendered it into Vesktop's
+  folder and enabled it in Vesktop's settings, while Discord runs Vencord, which reads `~/.config/Vencord`. It now
+  renders `dotfiles.theme.css` into `~/.config/Vencord/themes` and enables it once in Vencord's settings, keeping every
+  other setting. A theme switch applies while Discord is running.
+
+### Changed
+- `themes/templates/vesktop` is now `themes/templates/vencord`, and the README names Vencord.
+
+### Tests
+- The Discord theme target points at the Vencord themes folder.
+
+### Results
+103 tests across 4 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax and
+secrets checks clean (CachyOS Linux). By hand: the theme shows in Discord, and light themes follow once Discord's
+Appearance setting is Sync with computer.
+
 ## [1.2.1.8] - 2026-11-15 12:41 (IST)
 
 ### Fixed
