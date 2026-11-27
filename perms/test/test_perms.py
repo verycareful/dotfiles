@@ -86,8 +86,15 @@ class WirePlumber(unittest.TestCase):
     def test_app_blocked_for_both_gets_combined_manager(self):
         text = perms.render_wireplumber(rules(mic={"apps": {"discord": "block"}}, screen={"apps": {"discord": "block"}}))
         self.assertIn('name = "perms-block-mic-screen"', text)
-        self.assertIn('node.name = "~xdph-streaming-.*"', text)
+        self.assertIn('media.name = "~xdph-streaming-.*"', text)
+        self.assertNotIn('node.name', text)
         self.assertIn('pipewire.access.portal.app_id = "~^[dD][iI][sS][cC][oO][rR][dD]$"', text)
+
+    def test_global_off_catch_all_matches_portal_connections(self):
+        text = perms.render_wireplumber(rules(screen={"on": False}))
+        catch_all = text[text.index("access.rules"):]
+        self.assertIn('pipewire.access = "portal"', catch_all)
+        self.assertIn('permission_manager_name = "perms-block-screen"', catch_all)
 
     def test_global_off_catch_all_comes_first(self):
         text = perms.render_wireplumber(rules(mic={"on": False}, screen={"apps": {"obs": "block"}}))
@@ -100,23 +107,19 @@ class WirePlumber(unittest.TestCase):
 
 
 class Hyprland(unittest.TestCase):
-    def test_enforcement_and_portal_allowed_by_default(self):
-        text = perms.render_hyprland(rules())
+    def test_enforcement_and_portal_allowed(self):
+        text = perms.render_hyprland()
         self.assertIn("enforce_permissions = true", text)
         self.assertIn('binary = "/usr/(lib|libexec|lib64)/xdg-desktop-portal-hyprland", type = "screencopy", mode = "allow"', text)
         self.assertIn('binary = ".*/[gG][rR][iI][mM]", type = "screencopy", mode = "allow"', text)
 
-    def test_global_off_denies_portal_and_tools_but_not_the_session(self):
-        text = perms.render_hyprland(rules(screen={"on": False}))
-        self.assertIn('xdg-desktop-portal-hyprland", type = "screencopy", mode = "deny"', text)
-        self.assertIn('[gG][rR][iI][mM]", type = "screencopy", mode = "deny"', text)
+    def test_session_binaries_allowed(self):
+        text = perms.render_hyprland()
         for binary in ("/usr/bin/quickshell", "/usr/bin/hyprlock", "/usr/bin/hyprland-share-picker"):
             self.assertIn(f'binary = "{binary}", type = "screencopy", mode = "allow"', text)
 
-    def test_per_app_rule(self):
-        text = perms.render_hyprland(rules(screen={"apps": {"obs": "block", "kooha": "allow"}}))
-        self.assertIn('[oO][bB][sS]", type = "screencopy", mode = "deny"', text)
-        self.assertIn('[kK][oO][oO][hH][aA]", type = "screencopy", mode = "allow"', text)
+    def test_nothing_is_denied(self):
+        self.assertNotIn('mode = "deny"', perms.render_hyprland())
 
 
 DESKTOP = """[Desktop Entry]
@@ -216,6 +219,9 @@ def link(out, inp):
     return {"id": 900 + out, "type": "PipeWire:Interface:Link", "info": {"output-node-id": out, "input-node-id": inp}}
 
 
+XDPH_STREAM = {"node.name": "xdg-desktop-portal-hyprland", "media.name": "xdph-streaming-1"}
+
+
 class Live(unittest.TestCase):
     def test_mic_streams(self):
         dump = [client(1, "Discord", "Discord"), client(2, "pavucontrol", "pavucontrol"), client(3, "spotify", "Spotify"),
@@ -233,7 +239,7 @@ class Live(unittest.TestCase):
 
     def test_screen_share_follows_the_link(self):
         dump = [client(1, "Discord", "Discord"),
-                node(20, "Video/Source", **{"node.name": "xdph-streaming-1"}),
+                node(20, "Video/Source", **XDPH_STREAM),
                 node(21, "Stream/Input/Video", **{"client.id": 1}),
                 node(30, "Video/Source", **{"node.name": "v4l2_input.cam"}),
                 node(31, "Stream/Input/Video", **{"application.process.binary": "obs", "application.name": "OBS"}),
@@ -242,8 +248,13 @@ class Live(unittest.TestCase):
         self.assertEqual(use["screen"], {"discord": "Discord"})
         self.assertEqual(use["camera"], {"obs": "OBS"})
 
+    def test_share_node_is_told_apart_by_media_name(self):
+        self.assertTrue(perms.is_screen_node({"media.class": "Video/Source", **XDPH_STREAM}))
+        self.assertFalse(perms.is_screen_node({"media.class": "Video/Source", "node.name": "xdph-streaming-1"}))
+        self.assertFalse(perms.is_screen_node({"media.class": "Video/Source", "node.name": "v4l2_input.cam"}))
+
     def test_unlinked_portal_stream_still_shows(self):
-        use = perms.live_use(perms.pw_graph([node(20, "Video/Source", **{"node.name": "xdph-streaming-1"})]))
+        use = perms.live_use(perms.pw_graph([node(20, "Video/Source", **XDPH_STREAM)]))
         self.assertEqual(list(use["screen"]), ["?"])
 
     def test_record_seen_throttles_and_prunes(self):

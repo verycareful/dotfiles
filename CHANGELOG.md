@@ -7,6 +7,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.1.10] - 2026-11-27 17:44 (IST)
+
+### Fixed
+- Blocking or allowing screen sharing in the permissions window only took effect after a restart or a new login.
+  Both the global switch and a per-app block now apply to the next screen share at once, in either direction. A
+  share already running when it is blocked freezes; start a new one after unblocking.
+- The block never matched a share's PipeWire stream, which is named after the portal and identified by its
+  `media.name`, not by its `node.name`. It also missed the share's connection, which the portal opens and hands to
+  the app before the app's name is known, so the global switch now matches portal connections by type.
+- The live view counted a screen share as a camera in use and never showed it as a screen share.
+
+### Changed
+- Hyprland reads its permission rules only at startup, so they are now fixed: the portal, the session and the
+  known capture tools (`grim`, `hyprpicker`, `wf-recorder`, `wl-screenrec`, `obs`) are allowed, and any other
+  program that captures the screen gets Hyprland's prompt. Capture tools such as `grim` can no longer be blocked
+  from the permissions window, and its screen row says so. `perms apply` no longer reloads Hyprland or restarts
+  Waybar.
+
+### Tests
+- The WirePlumber rules match the stream by `media.name` and the portal connection by access type, and the share
+  node is built with the property layout PipeWire reports.
+- The Hyprland rules file is fixed whatever the stored rules say, and never denies.
+
+### Results
+105 tests across 4 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax
+and secrets checks clean (CachyOS Linux). By hand with Discord on Hyprland 0.57: with screen sharing switched off, a
+new share shows nothing; switched on, it works; blocking only Discord blocks only Discord; none of it needed a
+restart or a new login.
+
 ## [1.2.1.9] - 2026-11-15 20:40 (IST)
 
 ### Fixed

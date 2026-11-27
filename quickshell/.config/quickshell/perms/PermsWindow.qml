@@ -85,7 +85,7 @@ Scope {
         if (!r.on) return "Off for every app"
         const n = blockedCount(perm)
         let t = n === 0 ? "Allowed for every app" : n + (n === 1 ? " app blocked" : " apps blocked")
-        if (perm === "screen") t += " · other capture tools get Hyprland's prompt"
+        if (perm === "screen") t += " · portal shares only, grim and recorders are always allowed"
         if (perm === "clipboard" && s.sandbox_installed === false) t = "Blocking needs perms-sandbox: sudo perms/install-perms.sh"
         return t
     }
