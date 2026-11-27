@@ -118,7 +118,7 @@ Scope {
             RowLayout {
                 anchors { fill: parent; leftMargin: 16; rightMargin: 16 }
                 spacing: 14
-                Text { text: root.glyph; color: root.warn ? Theme.red : Theme.accent; font { family: Theme.fontIcon; pixelSize: 24 } }
+                Glyph { text: root.glyph; color: root.warn ? Theme.red : Theme.accent; size: 24 }
                 Rectangle {
                     visible: root.level >= 0
                     Layout.fillWidth: true

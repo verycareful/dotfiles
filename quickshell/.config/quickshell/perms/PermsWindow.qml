@@ -19,6 +19,8 @@ Scope {
     property string selected: ""        // the app shown on the "By app" tab
     function show() { if (!win.backingWindowVisible) win.visible = false; win.visible = true }
     Connections { target: Perms; function onOpenWindow() { root.show() } }
+    property bool fromSettings: false   // opened from Settings: closing goes back there
+    Connections { target: Panel; function onWindowRequested(name, back) { if (name === "perms") { root.fromSettings = back; root.show() } } }
 
     IpcHandler {
         target: "perms"
@@ -108,7 +110,10 @@ Scope {
         id: win
         visible: false          // set, not bound: the compositor can close it too
         onClosed: visible = false
-        onVisibleChanged: Perms.windowOpen = visible
+        onVisibleChanged: {
+            Perms.windowOpen = visible
+            if (!visible && root.fromSettings) { root.fromSettings = false; Panel.backToSettings() }
+        }
         title: "Permissions"
         implicitWidth: 660
         implicitHeight: 760
@@ -126,6 +131,7 @@ Scope {
                 Tab { type: "perm"; label: "By permission"; glyph: "\u{F099D}" }
                 Tab { type: "app";  label: "By app";        glyph: "\u{F003B}" }
                 Item { Layout.fillWidth: true }
+                Widgets.Button { visible: root.fromSettings; label: "‹ Settings"; onClicked: win.visible = false }   // back to Settings
                 Text {
                     text: Perms.busy !== "" ? "Applying" : Perms.error
                     color: Perms.busy !== "" ? Theme.subtext : Theme.red
@@ -435,7 +441,7 @@ Scope {
         border.width: 1; border.color: active ? Theme.primaryBright : Theme.overlay
         RowLayout {
             id: tr; anchors.centerIn: parent; spacing: 8
-            Text { text: tabItem.glyph; color: tabItem.active ? Theme.accent : Theme.muted; font { family: Theme.fontIcon; pixelSize: 16 } }
+            Glyph { text: tabItem.glyph; color: tabItem.active ? Theme.accent : Theme.muted; size: 16 }
             Text { text: tabItem.label; color: tabItem.active ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
         }
         MouseArea { anchors.fill: parent; onClicked: root.tab = tabItem.type }
@@ -477,7 +483,7 @@ Scope {
             id: rr
             anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 12; rightMargin: 12 }
             spacing: 12
-            Text { text: row.glyph; color: row.live !== "" ? Theme.green : Theme.accent; font { family: Theme.fontIcon; pixelSize: 20 } }
+            Glyph { text: row.glyph; color: row.live !== "" ? Theme.green : Theme.accent; size: 20 }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 2
@@ -554,7 +560,7 @@ Scope {
             id: lr
             anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
             spacing: 10
-            Text { visible: line.glyph !== ""; text: line.glyph; color: Theme.subtext; font { family: Theme.fontIcon; pixelSize: 15 } }
+            Glyph { visible: line.glyph !== ""; text: line.glyph; color: Theme.subtext; size: 15 }
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.preferredWidth: 1
@@ -595,7 +601,7 @@ Scope {
             id: ir
             anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
             spacing: 10
-            Text { visible: il.glyph !== ""; text: il.glyph; color: Theme.subtext; Layout.alignment: Qt.AlignTop; font { family: Theme.fontIcon; pixelSize: 15 } }
+            Glyph { visible: il.glyph !== ""; text: il.glyph; color: Theme.subtext; Layout.alignment: Qt.AlignTop; size: 15 }
             Text { text: il.display; color: Theme.text; Layout.preferredWidth: 120; Layout.maximumWidth: 120; Layout.alignment: Qt.AlignTop
                    elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
             Text { text: il.info; color: Theme.subtext; Layout.fillWidth: true; Layout.preferredWidth: 1; wrapMode: Text.WordWrap

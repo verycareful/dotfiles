@@ -14,7 +14,6 @@ Singleton {
     property string dnsFor: ""          // the type the last result is about
     property string dnsDone: ""         // dns-set's own line: "Applied to DEV" or "Saved. ..."
     property string dnsError: ""
-    signal openDnsWindow()              // dns/DnsWindow.qml listens
 
     function refresh() { if (!links.running) links.running = true; if (!dnsStatus.running) dnsStatus.running = true }
     function setEthernet(on) { act.command = ["net", "ethernet", on ? "on" : "off"]; act.running = true }
@@ -52,5 +51,5 @@ Singleton {
             root.refresh()
         }
     }
-    Timer { interval: 3000; repeat: true; running: Panel.open; triggeredOnStart: true; onTriggered: root.refresh() }
+    Timer { interval: 3000; repeat: true; running: Panel.watched; triggeredOnStart: true; onTriggered: root.refresh() }
 }

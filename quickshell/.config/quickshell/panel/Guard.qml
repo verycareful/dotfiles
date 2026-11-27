@@ -12,7 +12,7 @@ RowLayout {
     default property alias actions: box.data
     Layout.fillWidth: true
     spacing: 12
-    Text { text: r.glyph; color: r.tint; font { family: Theme.fontIcon; pixelSize: 24 } }
+    Glyph { Layout.alignment: Qt.AlignVCenter; text: r.glyph; color: r.tint; size: 28 }
     ColumnLayout {
         Layout.fillWidth: true
         spacing: 2

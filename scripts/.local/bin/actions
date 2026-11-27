@@ -6,6 +6,7 @@ set -uo pipefail
 B="$HOME/.local/bin"
 
 labels=(
+    "󰒓  Settings"
     "󰏘  Theme…"
     "󰸉  Wallpaper…"
     "󰅍  Clipboard history"
@@ -26,6 +27,7 @@ labels=(
     "󰐥  Power menu"
 )
 cmds=(
+    "qs ipc call settings open"
     "$B/theme window"
     "$B/wall pick"
     "$B/clip"

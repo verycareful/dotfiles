@@ -26,7 +26,7 @@ QtObject {
         border.width: 1; border.color: on ? Theme.primaryBright : (tm.containsMouse ? Theme.muted : Theme.overlay)
         Column {
             anchors.centerIn: parent; spacing: 4
-            Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.parent.glyph; color: parent.parent.on ? Theme.accent : Theme.subtext; font { family: Theme.fontIcon; pixelSize: 20 } }
+            Glyph { anchors.horizontalCenter: parent.horizontalCenter; text: parent.parent.glyph; color: parent.parent.on ? Theme.accent : Theme.subtext; size: 20 }
             Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.parent.label; color: parent.parent.on ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
         }
         MouseArea { id: tm; anchors.fill: parent; hoverEnabled: true; acceptedButtons: Qt.LeftButton | Qt.RightButton

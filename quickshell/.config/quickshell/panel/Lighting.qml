@@ -15,14 +15,14 @@ Widgets.Tile {
 
     Process { id: status; command: ["rgb", "status"]; stdout: StdioCollector { onStreamFinished: { try { const j = JSON.parse(text); tile.profiles = j.profiles; tile.current = j.current } catch (e) {} } } }
     Process { id: setter; onExited: { tile.pending = ""; status.running = true } }
-    Connections { target: Panel; function onOpenChanged() { if (Panel.open) status.running = true } }
+    Connections { target: Panel; function onWatchedChanged() { if (Panel.watched) status.running = true } }
     Component.onCompleted: status.running = true
     function apply(name) { if (pending !== "") return; pending = name; setter.command = ["rgb", "set", name]; setter.running = true }
 
     RowLayout {
         anchors { fill: parent; leftMargin: 12; rightMargin: 10 }
         spacing: 8
-        Text { text: "\u{F0335}"; color: tile.current !== "" && tile.current !== "Off all" ? Theme.accent : Theme.muted; font { family: Theme.fontIcon; pixelSize: 16 } }   // lightbulb
+        Glyph { text: "\u{F0335}"; color: tile.current !== "" && tile.current !== "Off all" ? Theme.accent : Theme.muted; size: 16 }   // lightbulb
         Text { text: "Lighting"; color: Theme.text; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
         Repeater {
             model: tile.profiles
@@ -39,7 +39,7 @@ Widgets.Tile {
         }
         Text { visible: tile.profiles.length === 0; text: "no profiles — save some in OpenRGB"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
         Item { Layout.fillWidth: true }
-        Widgets.Button { label: "Themes"; onClicked: { Quickshell.execDetached(["theme", "window"]); Panel.setOpen(false) } }
+        Widgets.Button { label: "Themes"; onClicked: { Panel.openWindow("themes"); Panel.setOpen(false) } }
         Widgets.Button { label: "Open OpenRGB"; onClicked: { Panel.launch(["openrgb", "--gui", "--client", "localhost:6742", "--noautoconnect"]); Panel.setOpen(false) } }
     }
 }

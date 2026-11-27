@@ -6,6 +6,7 @@
 //   qs ipc call dns open|close|toggle             (DNS settings window)
 //   qs ipc call perms open|close|toggle           (permissions window)
 //   qs ipc call themes open|close|toggle          (theme window, SUPER+Shift+T)
+//   qs ipc call settings open [PAGE]|close|toggle  (settings window, SUPER+comma, the bar's gear)
 //   ThemeAuto runs `theme auto tick` every 5 min (follow the sun while `theme auto` is on)
 //   qs ipc call tray open|close|toggle            (windows hidden to the tray, SUPER+Shift+M)
 //   qs ipc call calendar open|close|toggle        (calendar popup, the bar's date)
@@ -21,6 +22,7 @@ import "tray"
 import "calendar"
 import "osd"
 import "viz"
+import "settings"
 
 ShellRoot {
     Popups {}
@@ -31,6 +33,7 @@ ShellRoot {
     PermsWindow {}
     ThemeWindow {}
     ThemeAuto {}
+    SettingsWindow {}
     TrayWindow {}
     CalendarPopup {}
     Osd {}

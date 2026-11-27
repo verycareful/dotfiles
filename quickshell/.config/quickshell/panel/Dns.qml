@@ -19,7 +19,7 @@ Widgets.Tile {
             Line { type: "ethernet"; glyph: "\u{F0200}" }
             Line { type: "wifi";     glyph: "\u{F05A9}" }
         }
-        Widgets.Button { label: "DNS settings"; Layout.alignment: Qt.AlignVCenter; onClicked: { Net.openDnsWindow(); Panel.setOpen(false) } }
+        Widgets.Button { label: "DNS settings"; Layout.alignment: Qt.AlignVCenter; onClicked: { Panel.openWindow("dns"); Panel.setOpen(false) } }
     }
 
     component Line: RowLayout {
@@ -30,7 +30,7 @@ Widgets.Tile {
         readonly property bool manual: cfg.v4 !== "auto" || (cfg.ipv6 !== "off" && cfg.v6 !== "auto")
         Layout.fillWidth: true
         spacing: 8
-        Text { text: line.glyph; color: line.manual ? Theme.accent : Theme.muted; font { family: Theme.fontIcon; pixelSize: 14 } }
+        Glyph { text: line.glyph; color: line.manual ? Theme.accent : Theme.muted; size: 14 }
         Text {
             text: (line.cfg.override ? "Temporary  " : line.manual ? "" : "Automatic  ") + (line.cfg.ipv6 === "off" ? "no IPv6  " : "") + (line.cfg.tls === "yes" ? "󰌾 " : "")
             visible: text !== ""; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold }

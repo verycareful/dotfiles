@@ -65,11 +65,11 @@ ColumnLayout {
         signal clicked
         implicitWidth: 26; implicitHeight: 26
         color: hb.containsMouse ? Qt.rgba(Theme.overlay.r, Theme.overlay.g, Theme.overlay.b, 0.9) : "transparent"
-        Text {
+        Glyph {
             anchors.centerIn: parent
             text: parent.glyph
             color: hb.containsMouse ? (parent.hot ? Theme.red : Theme.accent) : Theme.subtext
-            font { family: Theme.fontIcon; pixelSize: 15 }
+            size: 15
         }
         MouseArea { id: hb; anchors.fill: parent; hoverEnabled: true; onClicked: parent.clicked() }
     }

@@ -66,7 +66,7 @@ Widgets.Tile {
         RowLayout {
             Layout.fillWidth: true
             spacing: 12
-            Text { text: allOn ? "\u{F0483}" : "\u{F0498}"; color: allOn ? (c.found > 0 ? Theme.yellow : Theme.green) : Theme.red; font { family: Theme.fontIcon; pixelSize: 28 } }
+            Glyph { text: allOn ? "\u{F0483}" : "\u{F0498}"; color: allOn ? (c.found > 0 ? Theme.yellow : Theme.green) : Theme.red; size: 28 }
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 2

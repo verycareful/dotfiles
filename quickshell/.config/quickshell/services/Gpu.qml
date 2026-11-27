@@ -32,7 +32,7 @@ Singleton {
     Socket {
         id: sock
         path: "/run/lactd.sock"
-        connected: Panel.open
+        connected: Panel.watched
         onConnectedChanged: if (connected) { root.available = true; if (root.id === "") write('{"command":"list_devices"}\n'); else poll.triggered() }
         onError: root.available = false
         parser: SplitParser {
@@ -51,7 +51,7 @@ Singleton {
     Timer {
         id: poll
         interval: 3000; repeat: true
-        running: Panel.open && sock.connected && root.id !== ""
+        running: Panel.watched && sock.connected && root.id !== ""
         onTriggered: sock.write('{"command":"device_stats","args":{"id":"' + root.id + '"}}\n')
     }
 

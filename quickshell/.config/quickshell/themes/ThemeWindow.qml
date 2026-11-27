@@ -8,6 +8,7 @@ import Quickshell
 import Quickshell.Io
 import ".."
 import "../panel"
+import "../services"
 
 Scope {
     id: root
@@ -45,6 +46,8 @@ Scope {
         stdout: StdioCollector { onStreamFinished: { try { root.themes = JSON.parse(text) } catch (e) {} root.map() } }
     }
 
+    Connections { target: Panel; function onWindowRequested(name, back) { if (name === "themes") { keep.fromSettings = back; root.show() } } }
+
     IpcHandler {
         target: "themes"
         function open(): void   { root.show() }
@@ -57,6 +60,7 @@ Scope {
         id: keep
         reloadableId: "themeWindow"
         property bool open: false
+        property bool fromSettings: false   // opened from Settings: closing goes back there
         onLoaded: if (open) root.show()
     }
 
@@ -64,7 +68,10 @@ Scope {
         id: win
         visible: false          // set, not bound: the compositor can close it too
         onClosed: visible = false
-        onVisibleChanged: keep.open = visible
+        onVisibleChanged: {
+            keep.open = visible
+            if (!visible && keep.fromSettings) { keep.fromSettings = false; Panel.backToSettings() }
+        }
         title: "Themes"
         implicitWidth: body.implicitWidth + 36
         implicitHeight: body.implicitHeight + 36
@@ -88,6 +95,7 @@ Scope {
                 Layout.fillWidth: true
                 Text { text: "Themes"; color: Theme.text; font { family: Theme.fontDisplay; pixelSize: 18; weight: Font.Bold; letterSpacing: 1 } }
                 Item { Layout.fillWidth: true }
+                Widgets.Button { visible: keep.fromSettings; label: "‹ Settings"; onClicked: win.visible = false }   // back to Settings
                 Text {
                     text: root.applying !== "" ? "Applying " + root.applying + "…" : "Current: " + Theme.name
                     color: root.applying !== "" ? Theme.accent : Theme.subtext

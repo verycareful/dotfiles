@@ -25,7 +25,7 @@ Widgets.Tile {
             implicitWidth: 76; implicitHeight: 76
             color: Theme.surface
             Image { anchors.fill: parent; source: tile.player ? tile.player.trackArtUrl : ""; fillMode: Image.PreserveAspectCrop; asynchronous: true }
-            Text { anchors.centerIn: parent; visible: !tile.player || tile.player.trackArtUrl === ""; text: "\u{F075A}"; color: Theme.muted; font { family: Theme.fontIcon; pixelSize: 28 } }
+            Glyph { anchors.centerIn: parent; visible: !tile.player || tile.player.trackArtUrl === ""; text: "\u{F075A}"; color: Theme.muted; size: 28 }
         }
         ColumnLayout {
             Layout.fillWidth: true
@@ -69,7 +69,7 @@ Widgets.Tile {
         signal clicked
         implicitWidth: 28; implicitHeight: 24
         color: mm.containsMouse && enabled ? Qt.rgba(Theme.overlay.r, Theme.overlay.g, Theme.overlay.b, 0.9) : "transparent"
-        Text { anchors.centerIn: parent; text: parent.glyph; color: parent.enabled ? (mm.containsMouse ? Theme.accent : Theme.text) : Theme.muted; font { family: Theme.fontIcon; pixelSize: 16 } }
+        Glyph { anchors.centerIn: parent; text: parent.glyph; color: parent.enabled ? (mm.containsMouse ? Theme.accent : Theme.text) : Theme.muted; size: 16 }
         MouseArea { id: mm; anchors.fill: parent; hoverEnabled: true; onClicked: if (parent.enabled) parent.clicked() }
     }
 }

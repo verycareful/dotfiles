@@ -13,7 +13,7 @@
                        "hyprland/workspaces#left"],
     "modules-center": ["hyprland/workspaces", "custom/viz#wide"],
     "modules-right":  ["custom/rec", "group/media", "custom/perms", "network", "wireplumber",
-                       "group/traybox", "custom/updates", "custom/notifications", "custom/keyhint", "custom/power"],
+                       "group/traybox", "custom/updates", "custom/notifications", "custom/settings", "custom/keyhint", "custom/power"],
 
     // ── left ──────────────────────────────────────────────────
     "custom/panel": {                       // anchor: opens the Quickshell widget panel (also SUPER+A)
@@ -200,6 +200,11 @@
         "format": "󰌌",
         "tooltip-format": "keybinds",
         "on-click": "~/.local/bin/keyhint"
+    },
+    "custom/settings": {                    // sliders: the Quickshell settings window (also SUPER+comma)
+        "format": "󰘮",
+        "tooltip-format": "Settings (SUPER+,)",
+        "on-click": "qs ipc call settings toggle"
     },
     "custom/power": {
         "format": "󰐥",

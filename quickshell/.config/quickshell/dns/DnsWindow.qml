@@ -16,7 +16,8 @@ Scope {
     // Closing it from Hyprland (SUPER+Q) destroys the real window but leaves `visible` true, so a
     // plain `visible = true` would do nothing: recreate it whenever nothing is on screen.
     function show() { if (!win.backingWindowVisible) win.visible = false; win.visible = true }
-    Connections { target: Net; function onOpenDnsWindow() { root.show() } }
+    property bool fromSettings: false   // opened from Settings: closing goes back there
+    Connections { target: Panel; function onWindowRequested(name, back) { if (name === "dns") { root.fromSettings = back; root.show() } } }
 
     IpcHandler {
         target: "dns"
@@ -34,7 +35,8 @@ Scope {
         implicitHeight: body.implicitHeight + 36
         color: Theme.base
         // show what is installed; reload once more when the fresh status arrives
-        onVisibleChanged: if (visible) { eth.load(); wifi.load(); eth.reloadOnce = wifi.reloadOnce = true; Net.clearDnsResult(); Net.refresh() }
+        onVisibleChanged: if (!visible && root.fromSettings) { root.fromSettings = false; Panel.backToSettings() }
+                          else if (visible) { eth.load(); wifi.load(); eth.reloadOnce = wifi.reloadOnce = true; Net.clearDnsResult(); Net.refresh() }
 
         ColumnLayout {
             id: body
@@ -48,6 +50,7 @@ Scope {
                 Tab { type: "ethernet"; label: "Ethernet"; glyph: "\u{F0200}"; sub: Net.eth.dev }
                 Tab { type: "wifi";     label: "Wi-Fi";    glyph: "\u{F05A9}"; sub: Net.wifi.ssid !== "" ? Net.wifi.ssid : Net.wifi.dev }
                 Item { Layout.fillWidth: true }
+                Widgets.Button { visible: root.fromSettings; label: "‹ Settings"; onClicked: win.visible = false }   // back to Settings
             }
             Form { id: eth;  type: "ethernet"; visible: root.tab === "ethernet" }
             Form { id: wifi; type: "wifi";     visible: root.tab === "wifi" }
@@ -78,7 +81,7 @@ Scope {
         border.width: 1; border.color: active ? Theme.primaryBright : Theme.overlay
         RowLayout {
             id: tr; anchors.centerIn: parent; spacing: 8
-            Text { text: tabItem.glyph; color: tabItem.active ? Theme.accent : Theme.muted; font { family: Theme.fontIcon; pixelSize: 16 } }
+            Glyph { text: tabItem.glyph; color: tabItem.active ? Theme.accent : Theme.muted; size: 16 }
             Text { text: tabItem.label; color: tabItem.active ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 12; weight: Font.DemiBold } }
             Text { text: tabItem.sub; visible: text !== ""; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
         }

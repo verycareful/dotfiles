@@ -61,7 +61,7 @@ ColumnLayout {
         RowLayout {
             anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
             spacing: 18
-            Text { text: "\u{F035B}"; color: Theme.muted; font { family: Theme.fontIcon; pixelSize: 14 } }
+            Glyph { text: "\u{F035B}"; color: Theme.muted; size: 14 }
             Meter { Layout.fillWidth: true; value: s.memTotal > 0 ? s.memUsed / s.memTotal * 100 : 0; big: s.memUsed + " GiB"; note: "of " + s.memTotal + " GiB RAM"; small: true; hot: s.memUsed / Math.max(1, s.memTotal) > 0.85 }
             Line  { items: [[s.uptime, "uptime"]] }
             Line  { items: [[s.updates === "" || s.updates === "0" ? "Up to date" : s.updates + " updates", ""]]; accent: s.updates !== "" && s.updates !== "0" }
@@ -100,7 +100,7 @@ ColumnLayout {
         property Component action: null
         Layout.fillWidth: true
         spacing: 8
-        Text { text: parent.glyph; color: Theme.accent; font { family: Theme.fontIcon; pixelSize: 15 } }
+        Glyph { text: parent.glyph; color: Theme.accent; size: 15 }
         Text { text: parent.label; color: Theme.muted; font { family: Theme.fontDisplay; pixelSize: 11; weight: Font.DemiBold; letterSpacing: 1.5 } }
         Text { Layout.fillWidth: true; text: parent.name; color: Theme.subtext; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
         Loader { sourceComponent: parent.action }

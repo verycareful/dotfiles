@@ -7,6 +7,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.3.0] - 2026-11-27 18:57 (IST)
+
+### Added
+- A settings window: SUPER+comma, the new sliders icon on the bar, or SUPER+X › Settings
+  (`qs ipc call settings open [PAGE]|close|toggle`). It is a glass window centred on the screen with a page list
+  on the left; the rest of the screen stays clear, and a click there or Esc closes it. Pages:
+  - Appearance: a tile per theme (each dark half beside its light half), a button to the large previews in the
+    theme window, Follow the sun with today's sunrise and sunset, Light or Dark right now, night light, and the
+    wallpaper with a picker.
+  - Bar & visualiser: the visualiser's mode (off, compact, wide, full) and whether media sits on the bar.
+  - Notifications: Do not disturb.
+  - Network & DNS: Ethernet, Wi-Fi (with the network picker) and Bluetooth, and the DNS summary.
+  - Performance: the power profile, then the CPU and GPU card with the thermal limit and power cap.
+  - Lighting: the OpenRGB presets.
+  - Security & backup: ClamAV and its services, snapshots, the firewall and the backup.
+  - Permissions: opens the permissions window.
+
+  The pages use the widget panel's own widgets, so a change in either shows in both.
+- Windows opened from Settings (the theme window, DNS settings, permissions) show a `‹ Settings` button, and closing
+  them by any route brings Settings back on the page it was on, also after a theme switch reloads the shell. The
+  Wi-Fi and wallpaper pickers bring it back when they close.
+
+### Fixed
+- Icons beside text did not line up: icon-font glyphs fill and sit in their cell differently, so icons of one size
+  looked different sizes and stood off-centre. Every icon in a row or column (the Snapshots, Firewall and Backup
+  rows, the panel's toggles, search, DNS, system, lighting, media and ClamAV, the DNS and permissions windows,
+  notification buttons, the tray window and the on-screen display) is now drawn at a common size, centred on its
+  shape.
+- While Settings is open, a password prompt it starts (a ClamAV service, the CPU thermal limit, the firewall) is no
+  longer hidden behind it: Settings steps aside until the prompt closes.
+
+### Changed
+- The CPU, GPU, network and lighting readings refresh while Settings is open, not only while the panel is.
+
+### Results
+119 tests across 4 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax
+and secrets checks clean (CachyOS Linux). By hand on Hyprland: every page opened with live readings; SUPER+comma,
+the bar icon, SUPER+X and a click outside each work; each window and picker opened from Settings returned to it;
+the safeguard icons' shapes are centred within a pixel of each other and the same size.
+
 ## [1.2.2.0] - 2026-11-27 18:25 (IST)
 
 ### Added

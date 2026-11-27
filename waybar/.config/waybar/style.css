@@ -58,7 +58,7 @@ tooltip label { padding: 4px; color: @text; text-shadow: none; }
 /* Icon-only modules: Pango does not fall back to other fonts for Private Use
    Area glyphs, so anything that is purely a Nerd Font icon must name it. */
 #idle-inhibitor, #network, #tray, #custom-notifications,
-#custom-keyhint, #custom-power, #custom-perms {
+#custom-keyhint, #custom-power, #custom-perms, #custom-settings {
     font-family: "JetBrainsMono Nerd Font Propo", "JetBrainsMono Nerd Font";
 }
 

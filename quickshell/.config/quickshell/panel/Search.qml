@@ -47,7 +47,7 @@ ColumnLayout {
         RowLayout {
             anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
             spacing: 8
-            Text { text: "\u{F0349}"; color: Theme.muted; font { family: Theme.fontIcon; pixelSize: 16 } }   // magnify
+            Glyph { text: "\u{F0349}"; color: Theme.muted; size: 16 }   // magnify
             TextInput {
                 id: input
                 Layout.fillWidth: true

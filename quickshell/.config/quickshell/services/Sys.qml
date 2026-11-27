@@ -14,7 +14,7 @@ Singleton {
 
     Process { id: sysP;  command: ["panel-sys"];  stdout: StdioCollector { onStreamFinished: { try { root.sys  = JSON.parse(text) } catch (e) {} } } }
     Process { id: clamP; command: ["panel-clam"]; stdout: StdioCollector { onStreamFinished: { try { root.clam = JSON.parse(text) } catch (e) {} } } }
-    Timer { interval: 3000;  running: Panel.open; repeat: true; triggeredOnStart: true; onTriggered: sysP.running = true }
+    Timer { interval: 3000;  running: Panel.watched; repeat: true; triggeredOnStart: true; onTriggered: sysP.running = true }
     Process { id: safeP; command: ["panel-safe"]; stdout: StdioCollector { onStreamFinished: { try { root.safe = JSON.parse(text) } catch (e) {} } } }
-    Timer { interval: 15000; running: Panel.open; repeat: true; triggeredOnStart: true; onTriggered: { clamP.running = true; safeP.running = true } }
+    Timer { interval: 15000; running: Panel.watched; repeat: true; triggeredOnStart: true; onTriggered: { clamP.running = true; safeP.running = true } }
 }

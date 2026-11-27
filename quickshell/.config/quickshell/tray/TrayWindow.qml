@@ -155,11 +155,11 @@ Scope {
                 Layout.preferredWidth: 32; Layout.preferredHeight: 32
                 color: closeHover.containsMouse ? Qt.alpha(Theme.red, 0.25) : "transparent"
                 border.width: closeHover.containsMouse ? 1 : 0; border.color: Theme.red
-                Text {
+                Glyph {
                     anchors.centerIn: parent
                     text: "\u{F0156}"
                     color: closeHover.containsMouse ? Theme.red : (row.selected ? Theme.text : Theme.muted)
-                    font { family: Theme.fontIcon; pixelSize: 16 }
+                    size: 16
                 }
                 MouseArea {
                     id: closeHover
