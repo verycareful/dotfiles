@@ -58,12 +58,17 @@ done
 # pre-commit hook: refuses AdGuard profile IDs and private keys (test/secrets.sh)
 git -C "$REPO" config core.hooksPath .githooks
 
-# render the colour files for the active theme (harbour on a fresh machine)
-"$REPO/scripts/.local/bin/theme" set "$(cat "$HOME/.local/state/theme/current" 2>/dev/null || echo harbour)" --no-reload
+# render the colour files for the active theme: dusk following the sun on a fresh machine (`theme auto`).
+# `theme set` turns auto off, so the auto setting is read first and written back.
+theme_state="$HOME/.local/state/theme"
+auto=$(cat "$theme_state/auto" 2>/dev/null || echo on)
+"$REPO/scripts/.local/bin/theme" set "$(cat "$theme_state/current" 2>/dev/null || echo dusk)" --no-reload
+echo "$auto" > "$theme_state/auto"
 
-# wallpapers: link the repo's into ~/Pictures/Wallpapers (add your own there too)
+# wallpapers: link the repo's into ~/Pictures/Wallpapers (add your own there too). wallpapers/local/ holds
+# per-machine images that `theme` finds by theme name, so it is not linked.
 mkdir -p "$HOME/Pictures/Wallpapers"
-for w in wallpapers/*; do ln -sfn "$PWD/$w" "$HOME/Pictures/Wallpapers/$(basename "$w")"; done
+for w in wallpapers/*; do [[ -f $w ]] && ln -sfn "$PWD/$w" "$HOME/Pictures/Wallpapers/$(basename "$w")"; done
 
 # fonts: Oxanium + Quantico + Share Tech Mono (OFL) from fonts/ into the user font dir
 mkdir -p "$HOME/.local/share/fonts/dotfiles"

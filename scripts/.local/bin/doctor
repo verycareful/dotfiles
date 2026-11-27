@@ -32,7 +32,7 @@ for f in hypr/lua/colors.lua waybar/colors.css quickshell/Theme.qml kitty/colors
     [[ -e $CFG/$f ]] || gen_missing+=("$f")
 done
 if [[ -n $theme && ${#gen_missing[@]} -eq 0 ]]; then ok "$theme rendered"
-else bad "theme files missing: ${gen_missing[*]:-no current theme}" "theme set ${theme:-harbour}"; fi
+else bad "theme files missing: ${gen_missing[*]:-no current theme}" "theme set ${theme:-dusk}"; fi
 
 section "Session"
 for u in waybar quickshell hypridle hyprsunset hyprpolkitagent; do

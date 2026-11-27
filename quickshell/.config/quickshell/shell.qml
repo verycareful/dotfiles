@@ -6,6 +6,7 @@
 //   qs ipc call dns open|close|toggle             (DNS settings window)
 //   qs ipc call perms open|close|toggle           (permissions window)
 //   qs ipc call themes open|close|toggle          (theme window, SUPER+Shift+T)
+//   ThemeAuto runs `theme auto tick` every 5 min (follow the sun while `theme auto` is on)
 //   qs ipc call tray open|close|toggle            (windows hidden to the tray, SUPER+Shift+M)
 //   qs ipc call calendar open|close|toggle        (calendar popup, the bar's date)
 //   qs ipc call osd caps|brightness               (on-screen display; volume and mic follow PipeWire)
@@ -29,6 +30,7 @@ ShellRoot {
     DnsWindow {}
     PermsWindow {}
     ThemeWindow {}
+    ThemeAuto {}
     TrayWindow {}
     CalendarPopup {}
     Osd {}

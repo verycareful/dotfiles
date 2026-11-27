@@ -161,21 +161,58 @@ class RenderAll(Tmp):
 
 
 class Catalogue(Tmp):
+    """The real themes, against a temp repo wallpapers dir (self.repo_wall) so this machine's
+    wallpapers/local/ does not leak in."""
+    def setUp(self):
+        super().setUp()
+        self.repo_wall = self.dir / 'repo-wallpapers'
+        self.repo_wall.mkdir()
+
     def test_wallpaper_prefers_the_copy_in_wall_dir(self):
         real = render.load(sorted(render.THEMES.glob('*.theme'))[0])
         (self.wall / real['wallpaper']).write_bytes(b'')
-        entries = {e['name']: e for e in render.catalogue(self.wall)}
+        entries = {e['name']: e for e in render.catalogue(self.wall, self.repo_wall)}
         self.assertEqual(entries[real['name']]['wallpaper'], str(self.wall / real['wallpaper']))
 
     def test_wallpaper_falls_back_to_the_repo(self):
-        for e in render.catalogue(self.dir / 'nowhere'):
-            self.assertEqual(Path(e['wallpaper']).parent, render.WALLPAPERS)
+        for e in render.catalogue(self.dir / 'nowhere', self.repo_wall):
+            self.assertEqual(Path(e['wallpaper']).parent, self.repo_wall)
+
+    def test_local_override_is_per_theme(self):
+        real = render.load(sorted(render.THEMES.glob('*.theme'))[0])
+        (self.repo_wall / 'local').mkdir()
+        (self.repo_wall / 'local' / f"{real['name']}.jpg").write_bytes(b'')
+        entries = {e['name']: e for e in render.catalogue(self.wall, self.repo_wall)}
+        self.assertEqual(entries[real['name']]['wallpaper'], str(self.repo_wall / 'local' / f"{real['name']}.jpg"))
+        for name, e in entries.items():
+            if name != real['name']:
+                self.assertNotEqual(Path(e['wallpaper']).parent, self.repo_wall / 'local')
 
     def test_every_theme_with_its_colours(self):
-        entries = render.catalogue(self.wall)
+        entries = render.catalogue(self.wall, self.repo_wall)
         self.assertEqual(sorted(e['name'] for e in entries), sorted(p.stem for p in render.THEMES.glob('*.theme')))
         for e in entries:
             self.assertTrue(set(render.META + render.COLOURS) <= set(e))
+
+
+class WallpaperPath(Tmp):
+    def setUp(self):
+        super().setUp()
+        self.repo_wall = self.dir / 'repo-wallpapers'
+        (self.repo_wall / 'local').mkdir(parents=True)
+
+    def test_local_image_for_the_theme_wins(self):
+        (self.repo_wall / 'local' / 't.png').write_bytes(b'')
+        self.assertEqual(render.wallpaper_path('t', 'w.jpg', self.wall, self.repo_wall),
+                         self.repo_wall / 'local' / 't.png')
+
+    def test_local_image_of_another_theme_is_ignored(self):
+        (self.repo_wall / 'local' / 'other.jpg').write_bytes(b'')
+        self.assertEqual(render.wallpaper_path('t', 'w.jpg', self.wall, self.repo_wall), self.wall / 'w.jpg')
+
+    def test_wall_dir_then_repo(self):
+        self.assertEqual(render.wallpaper_path('t', 'w.jpg', self.wall, self.repo_wall), self.wall / 'w.jpg')
+        self.assertEqual(render.wallpaper_path('t', 'x.jpg', self.wall, self.repo_wall), self.repo_wall / 'x.jpg')
 
 
 class RealThemes(unittest.TestCase):

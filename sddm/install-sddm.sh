@@ -21,7 +21,7 @@ ln -sfn "$VAR/bg.jpg"     "$DST/bg.jpg"
 mkdir -p /usr/share/fonts/dotfiles && cp "$REPO"/fonts/*/*.ttf /usr/share/fonts/dotfiles/ && fc-cache -f >/dev/null
 
 # render the active theme into $VAR as the user
-sudo -u "$SUDO_USER" env HOME="$UHOME" WALL_DIR="${WALL_DIR:-$UHOME/Pictures/Wallpapers}" "$REPO/scripts/.local/bin/theme" sddm "$(cat "$UHOME/.local/state/theme/current" 2>/dev/null || echo harbour)" "$VAR"
+sudo -u "$SUDO_USER" env HOME="$UHOME" WALL_DIR="${WALL_DIR:-$UHOME/Pictures/Wallpapers}" "$REPO/scripts/.local/bin/theme" sddm "$(cat "$UHOME/.local/state/theme/current" 2>/dev/null || echo dusk)" "$VAR"
 
 # sddm config: our theme, Qt6 greeter, neutral cursor (the per-theme cursor applies after login)
 mkdir -p /etc/sddm.conf.d

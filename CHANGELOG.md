@@ -7,6 +7,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.2.0] - 2026-11-27 18:25 (IST)
+
+### Added
+- `theme auto on|off|status`: the theme follows the sun, showing the light sibling from sunrise to sunset and the
+  dark one otherwise. Sunrise and sunset come from wttr.in for the same place as the bar's weather (`WEATHER_LOC`,
+  else located by IP), fetched once a day and cached; offline with no cached times, the day runs 07:00 to 19:00.
+  Quickshell checks every 5 minutes and at start. Picking a theme by hand (`theme set`, `light`, `dark`, `toggle`,
+  `pick` or the theme window) turns auto off.
+- Per-machine wallpapers: an image at `wallpapers/local/<theme>.jpg` (or `.png`, `.webp`) shows for that theme in
+  place of its own, in the desktop, the theme window's previews and the login screen. The folder is gitignored, so
+  two themes that share a public wallpaper can each show a different image on one machine.
+- `render.py wallpaper THEME` prints the image a theme shows.
+
+### Changed
+- Dusk is the default theme: a fresh install starts on Dusk with `theme auto` on. Reinstalling keeps the current
+  theme and auto setting.
+- `install.sh` links only files from `wallpapers/` into `~/Pictures/Wallpapers`.
+
+### Tests
+- Parsing wttr.in's sunrise and sunset, the daily cache (today's kept, a stale one refreshed, the last one used
+  offline, a corrupt one ignored, the fallback with neither), and day or night at the edges.
+- The wallpaper lookup order: the theme's local image, then `~/Pictures/Wallpapers`, then the repo, with another
+  theme's local image ignored. The theme window catalogue tests no longer read the machine's own wallpapers.
+
+### Results
+119 tests across 4 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax
+and secrets checks clean (CachyOS Linux). By hand on Hyprland: with auto on, moving the cached sunset to 23:59
+switched to Dusk Light and its local wallpaper; restoring the real times and restarting Quickshell switched back to
+Dusk within seconds; `theme dark` turned auto off.
+
 ## [1.2.1.10] - 2026-11-27 17:44 (IST)
 
 ### Fixed

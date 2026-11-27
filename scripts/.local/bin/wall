@@ -5,6 +5,7 @@
 set -euo pipefail
 DIR="${WALL_DIR:-$HOME/Pictures/Wallpapers}"
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}/wall/current"
+THEME_WALL="${XDG_STATE_HOME:-$HOME/.local/state}/theme/wallpaper"   # written by `theme`
 mkdir -p "$(dirname "$STATE")"
 
 apply() {
@@ -17,9 +18,9 @@ case "${1:-set}" in
     set)
         if [[ -n "${2:-}" ]]; then apply "$2"
         elif [[ -s "$STATE" && -f "$(cat "$STATE")" ]]; then apply "$(cat "$STATE")"
-        # remembered file missing (moved/renamed) → fall through to the theme's wallpaper, then random
-        elif [[ -s "${STATE%/*}/../theme/wallpaper" && -f "$DIR/$(cat "${STATE%/*}/../theme/wallpaper")" ]]; then
-            apply "$DIR/$(cat "${STATE%/*}/../theme/wallpaper")"     # the active theme's wallpaper
+        # remembered file missing (moved/renamed) → fall through to the theme's wallpaper (a full path), then random
+        elif [[ -s "$THEME_WALL" && -f "$(cat "$THEME_WALL")" ]]; then
+            apply "$(cat "$THEME_WALL")"
         else
             f=$(find "$DIR" -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.webp' \) | shuf -n1 || true)
             [[ -n "$f" ]] && apply "$f"

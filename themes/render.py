@@ -4,6 +4,7 @@
   render.py one THEME TEMPLATE    print one template rendered (VS Code, Firefox, SDDM)
   render.py check [THEME...]      validate themes (default: all) against every template
   render.py json                  every theme's name, mode, colours and wallpaper path as JSON (the theme window)
+  render.py wallpaper THEME       the path of the image THEME shows (wallpapers/local/THEME.* first)
 THEME is a name (themes/NAME.theme) or a path to a .theme file.
 A template names a value as {{key}}, or {{key|fallback}} when a theme may leave the key out."""
 import json
@@ -16,6 +17,7 @@ REPO = Path(__file__).resolve().parent.parent
 THEMES = REPO / 'themes'
 TEMPLATES = THEMES / 'templates'
 WALLPAPERS = REPO / 'wallpapers'
+LOCAL_EXTS = ('jpg', 'png', 'webp')
 
 # Every theme sets these; palette.md describes the colour roles.
 META = ('name', 'mode', 'wallpaper', 'cursor')
@@ -184,15 +186,30 @@ def render_all(path, cfg, tpl_root=TEMPLATES, wallpapers=WALLPAPERS):
     return []
 
 
-def catalogue(wall_dir):
-    """Every theme as a dict of its META, COLOURS and on_accent values, with the wallpaper as a path: the copy in
-    wall_dir when there is one, else the repo's."""
+def wallpaper_path(name, file, wall_dir, wallpapers=WALLPAPERS):
+    """The image a theme shows: wallpapers/local/NAME.(jpg|png|webp) when the machine has one (a gitignored
+    per-machine choice, keyed by theme so two themes sharing a file can still differ), else FILE in wall_dir,
+    else FILE in the repo."""
+    for ext in LOCAL_EXTS:
+        local = wallpapers / 'local' / f'{name}.{ext}'
+        if local.is_file():
+            return local
+    wp = Path(wall_dir) / file
+    return wp if wp.is_file() else wallpapers / file
+
+
+def default_wall_dir():
+    return os.environ.get('WALL_DIR', os.path.expanduser('~/Pictures/Wallpapers'))
+
+
+def catalogue(wall_dir, wallpapers=WALLPAPERS):
+    """Every theme as a dict of its META, COLOURS and on_accent values, with the wallpaper as a path
+    (wallpaper_path)."""
     out = []
     for p in sorted(THEMES.glob('*.theme')):
         v = values(load(p))
         entry = {k: v.get(k, '') for k in META + COLOURS + OPTIONAL_COLOURS}
-        wp = Path(wall_dir) / entry['wallpaper']
-        entry['wallpaper'] = str(wp if wp.is_file() else WALLPAPERS / entry['wallpaper'])
+        entry['wallpaper'] = str(wallpaper_path(entry['name'], entry['wallpaper'], wall_dir, wallpapers))
         out.append(entry)
     return out
 
@@ -221,8 +238,14 @@ def main(argv):
             print(f'{len(names)} themes ok against {len(templates())} templates')
         return 1 if failed else 0
     if cmd == 'json' and not args:
-        wall_dir = os.environ.get('WALL_DIR', os.path.expanduser('~/Pictures/Wallpapers'))
-        print(json.dumps(catalogue(wall_dir)))
+        print(json.dumps(catalogue(default_wall_dir())))
+        return 0
+    if cmd == 'wallpaper' and len(args) == 1:
+        path = theme_path(args[0])
+        if not path.is_file():
+            return report(args[0], [f'no such theme: {args[0]}'])
+        v = load(path)
+        print(wallpaper_path(v['name'], v['wallpaper'], default_wall_dir()))
         return 0
     print(__doc__, file=sys.stderr)
     return 2

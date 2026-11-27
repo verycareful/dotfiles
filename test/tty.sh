@@ -37,7 +37,7 @@ grep -rl '~/.local/bin/' "$TMP" | xargs -r sed -i "s#~/.local/bin/#$REPO/scripts
 export XDG_CONFIG_HOME="$TMP/config"
 # render the colour files for the current theme into the temp copies
 ln -sfn "$TMP" "$TMP/config/hypr"
-XDG_CONFIG_HOME="$TMP/config" XDG_STATE_HOME="$TMP/state" "$REPO/scripts/.local/bin/theme" set "$(cat "$HOME/.local/state/theme/current" 2>/dev/null || echo harbour)" --no-reload >/dev/null
+XDG_CONFIG_HOME="$TMP/config" XDG_STATE_HOME="$TMP/state" "$REPO/scripts/.local/bin/theme" set "$(cat "$HOME/.local/state/theme/current" 2>/dev/null || echo dusk)" --no-reload >/dev/null
 
 export PATH="$REPO/scripts/.local/bin:$PATH"
 export WALL_DIR="$REPO/wallpapers"
