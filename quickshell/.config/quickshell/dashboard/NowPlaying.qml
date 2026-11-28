@@ -95,6 +95,11 @@ Widgets.Tile {
                 color: Theme.muted; elide: Text.ElideRight; font { family: Theme.fontUi; pixelSize: 13; weight: Font.DemiBold }
             }
             Item { Layout.fillHeight: true }
+            VizStrip {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 80
+                shown: card.visible && Panel.open && card.player !== null
+            }
             RowLayout {                                   // seek
                 Layout.fillWidth: true
                 spacing: 10

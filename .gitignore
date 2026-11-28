@@ -26,7 +26,6 @@ fish/.config/starship.toml
 fastfetch/.config/fastfetch/config.jsonc
 sddm/harbour/theme.conf
 waybar/.config/waybar/state.css
-waybar/.config/waybar/viz-mode
 
 # Thunar writes these into the linked ~/.config/Thunar: accels.scm in hash-table order
 # (so it reshuffles), renamerrc as bulk-rename state

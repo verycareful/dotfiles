@@ -18,7 +18,7 @@ Scope {
     readonly property int navWidth: 210
     readonly property var pages: [
         { id: "appearance",    label: "Appearance",          glyph: "\u{F03D8}", page: appearance },
-        { id: "bar",           label: "Bar & visualiser",    glyph: "\u{F0EA2}", page: bar },
+        { id: "bar",           label: "Bar & music",         glyph: "\u{F0EA2}", page: bar },
         { id: "notifications", label: "Notifications",       glyph: "\u{F009A}", page: notifications },
         { id: "network",       label: "Network & DNS",       glyph: "\u{F0200}", page: network },
         { id: "performance",   label: "Performance",         glyph: "\u{F0EE0}", page: performance },

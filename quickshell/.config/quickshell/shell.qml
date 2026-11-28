@@ -2,7 +2,6 @@
 //   qs ipc call notifs dnd|clear|status
 //   qs ipc call panel  toggle|open|close|mediabar|status   (the dashboard, SUPER+A, the bar's anchor)
 //   qs ipc call dashboard home|apps                (open the dashboard on Home or All apps)
-//   qs ipc call panel  viz | vizmode off|compact|wide|full   (song visualiser, SUPER+Shift+V cycles)
 //   qs ipc call switcher next|prev|apply|cancel   (Alt-Tab)
 //   qs ipc call dns open|close|toggle             (DNS settings window)
 //   qs ipc call perms open|close|toggle           (permissions window)
@@ -22,7 +21,6 @@ import "themes"
 import "tray"
 import "calendar"
 import "osd"
-import "viz"
 import "settings"
 
 ShellRoot {
@@ -37,5 +35,4 @@ ShellRoot {
     TrayWindow {}
     CalendarPopup {}
     Osd {}
-    BarViz {}
 }

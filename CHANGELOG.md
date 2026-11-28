@@ -7,6 +7,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.6.0] - 2026-11-28 11:22 (IST)
+
+### Added
+- A live spectrum on the dashboard's Now playing card: 48 bars between the album line and the seek bar, 80 px
+  tall, drawn while the card is on screen and a player is playing. `cava` starts and stops with it, so nothing runs
+  with the dashboard closed or the music paused.
+- `services/Viz.qml`, the one place that runs `cava` for the shell: a view holds it while it shows the visualiser,
+  and `Viz.bins(n)` groups its 160 bars down to the width the view draws.
+
+### Changed
+- The visualiser follows the music more closely. `cava` now runs 160 bars at 60 frames per second with light
+  smoothing and no monstercat spreading. Measured from the sound reaching the output to a frame: the first bar
+  moves in about 29 ms (about 32 ms before), and the bars fall below a fifth of full height in about 190 ms after
+  the sound stops (about 390 ms before). More bars lower the lag, because `cava` sizes its bass window by the
+  lowest bar.
+- The Settings page "Bar & visualiser" is now "Bar & music" and holds Media on bar.
+
+### Removed
+- The three bar visualiser modes (compact, wide and full), with the `viz` script, the two Waybar `cava`
+  configs, `BarViz.qml`, the `custom/viz` modules, the Visualiser toggle on the dashboard, the Settings row, the
+  `qs ipc call panel viz` and `vizmode` calls and SUPER+SHIFT+V. The workspaces module that moved to the left in
+  wide mode is gone too: the workspaces always sit in the centre. A `state.css` left by an older shell is
+  replaced on the first load.
+
+### Results
+153 tests across 4 suites, all passed, 6 themes checked against 22 templates, ShellCheck on 56 scripts, Lua syntax
+and secrets checks clean (CachyOS Linux). By hand on Hyprland: the Now playing strip was reviewed on screen with
+music playing, through a dashboard close and open, a pause and resume, and a shell reload.
+
 ## [1.2.5.0] - 2026-11-28 10:44 (IST)
 
 ### Added
