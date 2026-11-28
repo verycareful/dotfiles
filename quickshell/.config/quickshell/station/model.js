@@ -45,13 +45,14 @@ function branchOfWorkspace(ws) {
         }
     }
     if (ws.classes.length === 0) return "empty";
-    // Outside their own workspaces, pads and shots count as ordinary apps.
-    const kinds = new Set(ws.classes.map(c => {
-        const b = branchOfClass(c);
-        return b === "terminal" ? "terminal" : "app:" + c;
-    }));
+    // A pad or a shot brought onto a normal workspace stays a pad or a shot; only alongside other windows does the
+    // workspace become a mix.
+    const kinds = new Set(ws.classes.map(c => (branchOfClass(c) === "terminal" ? "terminal" : "app:" + c)));
     if (kinds.size > 1) return "mix";
-    return kinds.has("terminal") ? "terminal" : "app";
+    const only = ws.classes[0];
+    if (kinds.has("terminal")) return "terminal";
+    if (SHOTS.includes(only)) return "shot";
+    return padOfClass(only) ? "pad" : "app";
 }
 
 // First letters of the words, then the name's remaining letters in order; the first one not taken wins.
@@ -208,7 +209,7 @@ function buildModel(workspaces, book) {
         seen.add(id);
         const name = ws.windows.length > 0 ? ws.windows[0].name : "";
         let fixed = null;
-        if (branch === "pad") fixed = PADS[ws.name.slice("special:".length)].key;
+        if (branch === "pad") fixed = PADS[padOfClass(classes[0]) || ws.name.slice("special:".length)].key;
         else if (branch === "app" && FIXED_APPS[classes[0]]) fixed = FIXED_APPS[classes[0]];
         tiles.push({ id, branch, wsName: ws.name, name, key: book.assign(id, branch, name, fixed), windows: ws.windows });
     }
@@ -223,7 +224,7 @@ function buildModel(workspaces, book) {
 
 if (typeof module !== "undefined") {
     module.exports = {
-        TERMINALS, SHOTS, PADS, FIXED_APPS, branchOfClass, branchOfWorkspace, nameKey, KeyBook, layoutArms,
+        TERMINALS, SHOTS, PADS, FIXED_APPS, padOfClass, branchOfClass, branchOfWorkspace, nameKey, KeyBook, layoutArms,
         resolveLaunch, buildModel, tileByKey, freshClassWs, neighbour,
     };
 }

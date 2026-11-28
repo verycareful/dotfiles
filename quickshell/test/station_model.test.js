@@ -167,3 +167,30 @@ test("buildModel: a shot tile is named Screenshot, whatever its class says", () 
     const model = m.buildModel([ws(-97, "special:shots", win("org.satty.shot", "org.satty.shot", "s1"))], new m.KeyBook());
     assert.equal(model.tiles[0].name, "Screenshot");
 });
+
+test("branchOfWorkspace: a pad on a normal workspace is still a pad", () => {
+    assert.equal(m.branchOfWorkspace({ name: "7", classes: ["Spotify"] }), "pad");
+    assert.equal(m.branchOfWorkspace({ name: "7", classes: ["Spotify", "kitty"] }), "mix");
+});
+
+test("branchOfWorkspace: a shot on a normal workspace is still a shot", () => {
+    assert.equal(m.branchOfWorkspace({ name: "8", classes: ["org.satty.shot"] }), "shot");
+});
+
+test("buildModel: a pad on a normal workspace keeps its fixed key", () => {
+    const model = m.buildModel([ws(7, "7", win("Spotify", "Spotify", "a1"))], new m.KeyBook());
+    assert.equal(model.tiles.length, 1);
+    assert.equal(model.tiles[0].branch, "pad");
+    assert.equal(model.tiles[0].key, "S");
+});
+
+test("buildModel: a shot on a normal workspace is its own tile", () => {
+    const model = m.buildModel([ws(8, "8", win("org.satty.shot", "x", "s1"))], new m.KeyBook());
+    assert.equal(model.tiles[0].branch, "shot");
+    assert.equal(model.tiles[0].id, "win:s1");
+});
+
+test("padOfClass: names the pad of a class", () => {
+    assert.equal(m.padOfClass("Spotify"), "spotify");
+    assert.equal(m.padOfClass("firefox"), null);
+});

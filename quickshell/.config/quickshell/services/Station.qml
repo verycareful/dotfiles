@@ -22,6 +22,7 @@ Singleton {
     property bool shown: false
     property string pendingPrefix: ""            // "T" or "A" waiting for its number; cleared whenever the view opens or closes
     property string selected: ""                 // tile id
+    property string originId: "hub"              // the dock the screen showed when the view opened: "hub" or a tile id
     property var model: ({ tiles: [], positions: [] })
     readonly property var book: new Model.KeyBook()
 
@@ -35,7 +36,7 @@ Singleton {
     readonly property var fixedCommands: ({
         K: ["kern"], S: ["spotify"], D: ["discord"], Z: ["signal-desktop"], B: ["firefox"],
     })
-    readonly property var padOfKey: ({ K: "kern", S: "spotify", D: "discord", Z: "signal", G: "general" })
+    function padOfKey(key) { return Object.keys(Model.PADS).find(n => Model.PADS[n].key === key) || null }
 
     // Hyprland's Lua config reads a dispatch as a Lua expression (hl.dsp.*), not the classic dispatcher text.
     function q(text) { return JSON.stringify(String(text)) }
@@ -56,9 +57,24 @@ Singleton {
     function setShown(v) {
         pendingPrefix = ""
         endMoveHold()
-        if (v && Panel.open) Panel.setOpen(false)
-        if (v) { Hyprland.refreshToplevels(); rebuild() }
+        const fromHub = v && Panel.open
+        if (fromHub) Panel.setOpen(false)
+        if (v) { Hyprland.refreshToplevels(); rebuild(); originId = originOf(fromHub) }
         shown = v
+    }
+
+    // The dock on screen when the view opens: the hub when the dashboard was up, else the tile holding the focused
+    // window (a pad, Hidden or Shots window included), else the tile of the focused workspace.
+    function originOf(fromHub) {
+        if (fromHub) return "hub"
+        const here = Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.name : ""
+        const a = Hyprland.activeToplevel
+        if (a && a.workspace && (a.workspace.name === here || a.workspace.name.startsWith("special:"))) {
+            const t = model.tiles.find(x => x.windows.some(w => w.address === a.address))
+            if (t) return t.id
+        }
+        const t = model.tiles.find(x => x.wsName === here && x.branch !== "hidden" && x.branch !== "shot")
+        return t ? t.id : "hub"
     }
 
     // ── model ─────────────────────────────────────────────────
@@ -73,12 +89,14 @@ Singleton {
         return names[cls]
     }
 
+    function classOf(t) { return (t.lastIpcObject || {}).class || (t.wayland ? t.wayland.appId : "") }
+
     function rebuild() {
         const byWs = {}
         for (const t of Hyprland.toplevels.values) {
             if (!t.workspace) continue
             const ipc = t.lastIpcObject || {}
-            const cls = ipc.class || (t.wayland ? t.wayland.appId : "")
+            const cls = classOf(t)
             // Special workspaces carry no id, so windows group by workspace name; the name stands in as the id.
             const name = t.workspace.name
             const id = typeof t.workspace.id === "number" && t.workspace.id > 0 ? t.workspace.id : name
@@ -173,29 +191,65 @@ Singleton {
         afterCloseTimer.action = fn
         afterCloseTimer.restart()
     }
-    function goTo(tile) { afterClose(() => goToNow(tile)) }
-    function goToNow(tile) {
-        if (tile.branch === "pad") { toggleSpecial(tile.wsName.slice("special:".length)); return }
+    // `via` says the move came through the station (the view was open) rather than straight from a key: through the
+    // station a pad becomes the workspace the user is on; straight from a key it is an overlay.
+    function goTo(tile) { const via = shown; afterClose(() => goToNow(tile, via)) }
+    function goToNow(tile, via) {
         const w = tile.windows[0]
-        if (tile.branch === "hidden") {
-            moveWindow(w.address, Hyprland.focusedWorkspace.name, false)
-            focusWindow(w.address)
+        if (tile.branch === "pad") {
+            padJump(Model.padOfClass(w ? w.cls : null) || tile.wsName.slice("special:".length), via)
             return
         }
-        if (tile.branch === "shot") {
-            toggleSpecial("shots")
-            focusWindow(w.address)
+        if ((tile.branch === "hidden" || tile.branch === "shot") && tile.wsName.startsWith("special:")) {
+            foreground([w])
             return
         }
         focusWorkspace(tile.wsName)
     }
 
+    function freeWorkspace() { return Math.max(0, ...Hyprland.workspaces.values.map(w => w.id)) + 1 }
+    // Special workspaces are always overlays, so a window made the user's workspace gets a normal one of its own.
+    function foreground(wins) {
+        const free = freeWorkspace()
+        for (const w of wins) moveWindow(w.address, free, false)
+        focusWorkspace(free)
+    }
+    function padWindows(name) {
+        const cls = Model.PADS[name].cls
+        return Hyprland.toplevels.values.filter(t => t.workspace && classOf(t) === cls)
+    }
+    // A pad's windows are either all on its special workspace (overlay) or on a normal one (foreground). Through the
+    // station an overlay becomes the foreground; straight from a key a foreground pad you are on opens the station,
+    // and one you are not on returns to the overlay.
+    function padJump(name, via) {
+        if (name === "general") { toggleSpecial("general"); return }
+        const special = "special:" + name
+        const wins = padWindows(name)
+        if (wins.length === 0) {
+            const cmd = fixedCommands[Model.PADS[name].key]
+            if (cmd) Quickshell.execDetached(["station-launch"].concat(cmd))
+            return
+        }
+        const normal = wins.filter(w => w.workspace.name !== special)
+        if (normal.length === 0) { if (via) foreground(wins); else toggleSpecial(name); return }
+        const ws = normal[0].workspace.name
+        if (via) {
+            for (const w of wins) if (w.workspace.name === special) moveWindow(w.address, ws, false)
+            focusWorkspace(ws)
+            return
+        }
+        if (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.name === ws) { setShown(true); return }
+        for (const w of normal) moveWindow(w.address, special, false)
+        toggleSpecial(name)
+    }
+
     function jump(key) {
+        const via = shown
         if (pendingPrefix !== "" && /^[0-9]$/.test(key)) key = pendingPrefix + key
+        const pad = padOfKey(key)
+        if (pad) { afterClose(() => padJump(pad, via)); return }
         const tile = Model.tileByKey(model, key)
         if (tile) { goTo(tile); return }
-        const pad = padOfKey[key]
-        if (pad === "general") { afterClose(() => toggleSpecial("general")); return }
         afterClose(() => { if (fixedCommands[key]) Quickshell.execDetached(["station-launch"].concat(fixedCommands[key])) })
     }
     function merge(key) {
@@ -223,7 +277,7 @@ Singleton {
             return
         }
         if (tile.branch !== "app") return
-        const free = Math.max(0, ...Hyprland.workspaces.values.map(w => w.id)) + 1
+        const free = freeWorkspace()
         const e = DesktopEntries.applications.values.find(a => a.name === tile.name)
         if (!e) return
         focusWorkspace(free)
@@ -245,7 +299,7 @@ Singleton {
             return "launches: " + JSON.stringify(root.launches) + "\nclass routes: " + JSON.stringify([...root.classRoutes])
         }
         function status(): string {
-            return root.model.tiles.map(t => (t.key || "-") + " " + t.branch + " " + t.wsName + " " + t.name + " [" + t.windows.map(w => w.cls).join(",") + "]").join("\n")
+            return "origin " + root.originId + ", selected " + (root.selected || "-") + "\n" + root.model.tiles.map(t => (t.key || "-") + " " + t.branch + " " + t.wsName + " " + t.name + " [" + t.windows.map(w => w.cls).join(",") + "]").join("\n")
         }
     }
 }

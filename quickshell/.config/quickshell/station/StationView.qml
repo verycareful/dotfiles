@@ -104,9 +104,7 @@ Scope {
             if (!Station.shown) return
             root.prefixShift = false
             root.pan = Qt.point(0, 0)
-            const here = Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.name : ""
-            const t = Station.model.tiles.find(x => x.wsName === here && x.branch !== "hidden" && x.branch !== "shot")
-            Station.selected = t ? t.id : "hub"
+            Station.selected = Station.originId
         }
         function onSelectedChanged() { root.pan = Qt.point(0, 0) }
     }
