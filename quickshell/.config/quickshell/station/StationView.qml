@@ -57,7 +57,7 @@ Scope {
         openAnim.restart()
     }
     Timer { id: captureWait; interval: root.captureGiveUpMs; onTriggered: root.begin() }
-    NumberAnimation { id: openAnim; target: root; property: "opened"; from: 0; to: 1; duration: Station.zoomMs; easing.type: Easing.InOutCubic }
+    NumberAnimation { id: openAnim; target: root; property: "opened"; from: 0; to: 1; duration: Station.zoomMs; easing.type: Easing.OutCubic }
     SequentialAnimation {
         id: fadeAnim
         PauseAnimation { duration: Station.holdMs }
@@ -66,7 +66,7 @@ Scope {
     SequentialAnimation {
         id: leaveAnim
         PauseAnimation { duration: Station.leaveDelayMs }
-        NumberAnimation { target: root; property: "zoomed"; from: 0; to: 1; duration: Station.zoomMs; easing.type: Easing.InOutCubic }
+        NumberAnimation { target: root; property: "zoomed"; from: 0; to: 1; duration: Station.zoomMs; easing.type: Easing.OutCubic }
     }
 
     readonly property var cells: {

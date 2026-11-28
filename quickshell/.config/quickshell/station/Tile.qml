@@ -50,8 +50,8 @@ Item {
         // Workspaces: one live capture per window, side by side (a Mix shows its branches next to each other).
         Row {
             visible: !tile.hub
-            anchors { fill: parent; margins: 6 }
-            spacing: 4
+            anchors { fill: parent; margins: 6 * tile.chrome }
+            spacing: 4 * tile.chrome
             Repeater {
                 model: tile.hub ? [] : tile.info.windows.slice(0, 3)
                 ScreencopyView {

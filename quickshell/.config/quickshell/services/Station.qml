@@ -29,7 +29,7 @@ Singleton {
     readonly property int panMs: 240             // the view's pan to a new selection
     property int leaveDelayMs: 0                 // the pan the zoom waits for when the selection has to change first
     readonly property int zoomMs: 420            // the screen shrinking into a tile, or a tile growing to the screen
-    readonly property int fadeMs: 180            // the view fading out over the screen it has zoomed into
+    readonly property int fadeMs: 140            // the view fading out over the screen it has zoomed into
     property int holdMs: 0                       // how long the view stays opaque after the zoom: the dashboard needs it to appear first
     property var model: ({ tiles: [], positions: [] })
     readonly property var book: new Model.KeyBook()
@@ -72,6 +72,7 @@ Singleton {
         actionTimer.action = null
         leaving = false
         releasing = false
+        if (animationsOff) workspaceAnimations(true)
         if (v) {
             fromHub = Panel.open
             Hyprland.refreshToplevels()
@@ -105,11 +106,19 @@ Singleton {
         Panel.instant = false
     }
     // Backing out grows the origin dock again; for the dashboard that means opening it once more.
+    // The station fades between screens itself; Hyprland's slide between workspaces (and over and off a special
+    // one) would play on top of it, so it is off from the release until the view is gone.
+    property bool animationsOff: false
+    function workspaceAnimations(on) {
+        animationsOff = !on
+        Hyprland.dispatch("function() workspace_animation(" + on + ") end")
+    }
     function dismiss() { leaveTo(originId, fromHub ? openDashboard : null) }
     Timer {
         id: leaveTimer
         onTriggered: {
             root.releasing = true
+            root.workspaceAnimations(false)
             if (actionTimer.action) actionTimer.restart()
             fadeTimer.restart()
         }
@@ -117,7 +126,10 @@ Singleton {
     Timer {
         id: fadeTimer
         interval: root.holdMs + root.fadeMs
-        onTriggered: { root.shown = false; root.leaving = false; root.releasing = false }
+        onTriggered: {
+            root.shown = false; root.leaving = false; root.releasing = false
+            root.workspaceAnimations(true)
+        }
     }
     Timer {
         id: actionTimer

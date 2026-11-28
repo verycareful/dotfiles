@@ -13,4 +13,10 @@ hl.animation({ leaf = "border",      enabled = true, speed = 6, bezier = "linear
 hl.animation({ leaf = "fade",        enabled = true, speed = 3, bezier = "snap" })
 hl.animation({ leaf = "layersIn",    enabled = true, speed = 3, bezier = "snap",   style = "fade" })
 hl.animation({ leaf = "layersOut",   enabled = true, speed = 3, bezier = "snap",   style = "fade" })
-hl.animation({ leaf = "workspaces",  enabled = true, speed = 3, bezier = "glide",  style = "slidefade 15%" })
+-- The station fades between screens itself, so the shell turns workspace animations off around the switches it
+-- makes (quickshell/services/Station.qml calls this through hyprctl) and back on after. Special workspaces
+-- inherit this leaf.
+function workspace_animation(on)
+    hl.animation({ leaf = "workspaces", enabled = on, speed = 3, bezier = "glide", style = "slidefade 15%" })
+end
+workspace_animation(true)
