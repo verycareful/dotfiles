@@ -142,3 +142,23 @@ test("freshClassWs: class routes older than the time limit are dropped", () => {
     const fresh = m.freshClassWs(routes, 1000 + 601000, 600000);
     assert.deepEqual([...fresh.entries()], [["firefox", "4"]]);
 });
+
+test("layoutArms: each tile names the tile it grows from, the first of an arm grows from the hub", () => {
+    const tiles = [1, 2, 3, 4, 5].map(n => ({ id: "t" + n, branch: "terminal", key: "T" + n }))
+        .concat([{ id: "b", branch: "app", key: "B" }]);
+    const from = Object.fromEntries(m.layoutArms(tiles).map(p => [p.id, p.from]));
+    assert.equal(from.t1, "hub");
+    assert.equal(from.t2, "t1");
+    assert.equal(from.t5, "t2");
+    assert.equal(from.b, "hub");
+});
+
+test("neighbour: an arrow moves to the nearest tile that way, along the arm first", () => {
+    const pos = [{ id: "a", col: 1, row: 0 }, { id: "b", col: 2, row: 0 }, { id: "c", col: 2, row: -1 }, { id: "p", col: 0, row: -1 }];
+    assert.equal(m.neighbour(pos, "hub", "right"), "a");
+    assert.equal(m.neighbour(pos, "a", "right"), "b");
+    assert.equal(m.neighbour(pos, "b", "up"), "c");
+    assert.equal(m.neighbour(pos, "a", "left"), "hub");
+    assert.equal(m.neighbour(pos, "hub", "up"), "p");
+    assert.equal(m.neighbour(pos, "c", "up"), null);
+});

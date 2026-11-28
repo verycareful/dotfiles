@@ -45,6 +45,13 @@ Singleton {
     function focusWorkspace(name) { Hyprland.dispatch("hl.dsp.focus({ workspace = " + wsArg(name) + " })") }
     function toggleSpecial(name) { Hyprland.dispatch("hl.dsp.workspace.toggle_special(" + q(name) + ")") }
 
+    // Opening the station over the dashboard closes the dashboard: the station holds it as its hub.
+    function setShown(v) {
+        if (v && Panel.open) Panel.setOpen(false)
+        if (v) { Hyprland.refreshToplevels(); rebuild() }
+        shown = v
+    }
+
     // ── model ─────────────────────────────────────────────────
     property var names: ({})                     // class -> desktop entry name
     function displayName(cls) {
@@ -197,9 +204,9 @@ Singleton {
 
     IpcHandler {
         target: "station"
-        function toggle(): void { root.shown = !root.shown }
-        function open(): void   { root.shown = true }
-        function close(): void  { root.shown = false }
+        function toggle(): void { root.setShown(!root.shown) }
+        function open(): void   { root.setShown(true) }
+        function close(): void  { root.setShown(false) }
         function jump(key: string): void  { root.jump(key) }
         function merge(key: string): void { root.merge(key) }
         function move(key: string): void  { root.move(key) }

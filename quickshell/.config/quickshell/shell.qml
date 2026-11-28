@@ -24,6 +24,7 @@ import "tray"
 import "calendar"
 import "osd"
 import "settings"
+import "station"
 
 ShellRoot {
     // The station service holds the `station` IPC target, so it is created with the shell.
@@ -39,4 +40,5 @@ ShellRoot {
     TrayWindow {}
     CalendarPopup {}
     Osd {}
+    StationView {}
 }

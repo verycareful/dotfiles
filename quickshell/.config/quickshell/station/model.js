@@ -102,7 +102,7 @@ const TERMINAL_UP_ARM = 3;    // tiles on the side arm above trunk tile 2; the r
 function layoutArms(tiles) {
     const taken = new Set(["0,0"]);
     const out = [];
-    const place = (id, col, row) => { taken.add(col + "," + row); out.push({ id, col, row }); };
+    const place = (id, col, row, from) => { taken.add(col + "," + row); out.push({ id, col, row, from }); };
     const free = (col, row) => !taken.has(col + "," + row);
 
     // Walks from (col,row) along dir; a blocked cell turns the arm a quarter, else it keeps going straight.
@@ -123,21 +123,44 @@ function layoutArms(tiles) {
     for (const branch of BRANCH_ORDER) {
         const arm = tiles.filter(t => t.branch === branch);
         if (branch === "terminal") {
-            const trunk = [];
+            let fallback = null;
             arm.forEach((t, i) => {
-                let cell;
-                if (i < TERMINAL_TRUNK) cell = [i + 1, 0];
-                else if (i < TERMINAL_TRUNK + TERMINAL_UP_ARM) cell = [2, -(i - TERMINAL_TRUNK + 1)];
-                else cell = [3, i - TERMINAL_TRUNK - TERMINAL_UP_ARM + 1];
-                if (!free(cell[0], cell[1])) cell = (trunk.next || (trunk.next = walker(cell[0], cell[1], [1, 0])))();
-                place(t.id, cell[0], cell[1]);
+                let cell, from;
+                const up = i - TERMINAL_TRUNK, down = i - TERMINAL_TRUNK - TERMINAL_UP_ARM;
+                if (i < TERMINAL_TRUNK) { cell = [i + 1, 0]; from = i === 0 ? "hub" : arm[i - 1].id; }
+                else if (up < TERMINAL_UP_ARM) { cell = [2, -(up + 1)]; from = up === 0 ? arm[1].id : arm[i - 1].id; }
+                else { cell = [3, down + 1]; from = down === 0 ? arm[2].id : arm[i - 1].id; }
+                if (!free(cell[0], cell[1])) cell = (fallback || (fallback = walker(cell[0], cell[1], [1, 0])))();
+                place(t.id, cell[0], cell[1], from);
             });
             continue;
         }
         const step = walker(0, 0, ARMS[branch]);
-        arm.forEach(t => { const [c, r] = step(); place(t.id, c, r); });
+        arm.forEach((t, i) => { const [c, r] = step(); place(t.id, c, r, i === 0 ? "hub" : arm[i - 1].id); });
     }
     return out;
+}
+
+const DIRECTIONS = { right: [1, 0], left: [-1, 0], up: [0, -1], down: [0, 1] };
+// Off-axis distance costs this much more than distance along the arrow, so the arrow follows the arm it is on.
+const OFF_AXIS_WEIGHT = 2;
+
+// The tile an arrow key moves to from fromId ("hub" is the hub at 0,0), or null when nothing lies that way.
+function neighbour(positions, fromId, dir) {
+    const all = [{ id: "hub", col: 0, row: 0 }].concat(positions);
+    const here = all.find(p => p.id === fromId);
+    if (!here) return null;
+    const [dx, dy] = DIRECTIONS[dir];
+    let best = null, bestScore = Infinity;
+    for (const p of all) {
+        if (p.id === fromId) continue;
+        const ax = p.col - here.col, ay = p.row - here.row;
+        const along = ax * dx + ay * dy;
+        if (along <= 0) continue;
+        const score = along + OFF_AXIS_WEIGHT * Math.abs(ax * dy - ay * dx);
+        if (score < bestScore) { best = p.id; bestScore = score; }
+    }
+    return best;
 }
 
 // chain: the new window's pid and its ancestors; launches: pids recorded by station-launch with their workspace;
@@ -199,6 +222,6 @@ function buildModel(workspaces, book) {
 if (typeof module !== "undefined") {
     module.exports = {
         TERMINALS, SHOTS, PADS, FIXED_APPS, branchOfClass, branchOfWorkspace, nameKey, KeyBook, layoutArms,
-        resolveLaunch, buildModel, tileByKey, freshClassWs,
+        resolveLaunch, buildModel, tileByKey, freshClassWs, neighbour,
     };
 }
