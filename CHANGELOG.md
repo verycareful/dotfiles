@@ -7,6 +7,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.4.0] - 2026-11-28 09:45 (IST)
+
+### Added
+- A dashboard replaces the widget panel and the notification centre. SUPER+A or the anchor button opens a full-screen
+  glass overlay that covers the bar over the blurred, dimmed desktop (`qs ipc call dashboard home|apps`; Esc or a
+  click on the dim closes it). It fades and rises in block by block and out again. Home holds the clock, date,
+  weather and sunrise and sunset, a search box, the quick toggles, the full system card (CPU thermal limit, GPU),
+  lighting, a month calendar, ClamAV and the safeguards, and the notifications on the dim itself (Do not disturb,
+  Read all, Clear).
+- Now playing runs across the bottom of Home for any player: art, title, artist, album, seek, previous, play and
+  next, volume, and the lyrics. Synced lyrics follow the song with the current line centred; plain lyrics scroll.
+  The card hides when nothing is playing.
+- `lyrics` script (`lyrics TITLE ARTIST [ALBUM] [LENGTH_SECONDS]`): looks a song up on LRCLIB and prints JSON. It sends the
+  song's title, artist, album and length to lrclib.net. Hits are cached in `~/.cache/lyrics` for good, misses for 7
+  days, network errors not at all.
+- All apps: Tab, Shift+Tab or the scroll wheel slides from Home to every installed app, A-Z with letter headers, an
+  A-Z rail (empty letters greyed, a click highlights that letter's first app), and a filter over name, generic name and keywords;
+  typing fills it, Up, Down and Enter pick, Esc clears and then closes. `dashboard/apps-exclude.txt` lists desktop
+  IDs to leave out (`*` globs).
+
+### Changed
+- The bar's bell now toggles Do not disturb on a click; a right click does nothing.
+- Hyprland blurs `qs-dashboard` in place of the old panel and centre layers.
+- Notification popups stay at the bottom right and are held back while the dashboard is open.
+
+### Removed
+- The widget panel, the notification centre, and its Media card (Now playing replaces it).
+- SUPER+Shift+N, and the `notifs toggle|open|close` IPC calls (`notifs dnd|clear|status` remain). The panel's DNS
+  card is gone: DNS is in Settings under Network & DNS.
+
+### Tests
+- `test/test_lyrics.py`: 19 cases for the LRC parser, the choice of a search result by length, the result shape, the
+  cache (hit, miss expiry, errors never cached), the get-then-search fallback and network errors.
+
+### Results
+138 tests across 4 suites, all passed, 6 themes checked against 21 templates, ShellCheck on 56 scripts, Lua syntax
+and secrets checks clean (CachyOS Linux). By hand on Hyprland: the dashboard, All apps and
+Now playing with synced lyrics were reviewed on screen.
+
 ## [1.2.3.0] - 2026-11-27 18:57 (IST)
 
 ### Added

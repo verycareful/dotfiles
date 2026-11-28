@@ -29,7 +29,7 @@ Scope {
     function pageIndex(id) { return Math.max(0, pages.findIndex(p => p.id === id)) }
 
     function setOpen(o, page) {
-        if (o) { Panel.setOpen(false); Notifs.setCenter(false) }
+        if (o) Panel.setOpen(false)
         if (page) keep.page = pageIndex(page)
         keep.open = o
     }

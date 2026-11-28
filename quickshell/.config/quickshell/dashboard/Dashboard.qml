@@ -1,0 +1,126 @@
+// The dashboard: a full-screen overlay over the dimmed, blurred desktop. SUPER+A / the bar's anchor opens it;
+// Esc or a click on the dim closes it. Two views stacked vertically: Home (clock, calendar, controls, media,
+// system, lighting, safety, notifications) and All apps (A-Z). Tab or the scroll wheel slides between them.
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import Quickshell.Wayland
+import ".."
+import "../services"
+import "reveal.js" as Reveal
+
+Scope {
+    id: root
+    readonly property real dim: 0.55            // over 20% alpha, so Hyprland blurs it (layers.lua)
+    readonly property int  slideMs: 220
+    readonly property int  wheelStep: 120       // one mouse-wheel notch; a touchpad swipe sums to it
+    readonly property int  wheelPauseMs: 450    // one swipe switches the view once
+    readonly property int  hideMs: 160
+
+    // Hyprland fades the layer (dim and blur) in and out; the content rises in on top of that (reveal.js) and
+    // drops out before the window unmaps
+    readonly property bool showing: Panel.open && !Panel.releaseKeyboard
+    property bool mapped: false
+    property real reveal: 0
+    onShowingChanged: {
+        if (showing) { mapped = true; hide.stop(); show.restart() }
+        else { show.stop(); hide.restart() }
+    }
+    NumberAnimation { id: show; target: root; property: "reveal"; to: 1; duration: Reveal.TOTAL_MS }
+    NumberAnimation { id: hide; target: root; property: "reveal"; to: 0; duration: root.hideMs; easing.type: Easing.InCubic
+                      onFinished: if (!root.showing) root.mapped = false }
+
+    // a theme switch rewrites Theme.qml and Quickshell reloads the whole shell: keep the dashboard and its view
+    PersistentProperties {
+        id: keep
+        reloadableId: "dashboard"
+        property bool open: false
+        property int view: 0                    // 0 Home, 1 All apps
+        onLoaded: if (open) Panel.setOpen(true)
+    }
+    Connections {
+        target: Panel
+        function onOpenChanged() {
+            if (Panel.open && !keep.open) keep.view = 0
+            keep.open = Panel.open
+        }
+    }
+    function setView(v) { keep.view = v }
+    function toggleView() { setView(1 - keep.view) }
+
+    IpcHandler {
+        target: "dashboard"
+        function apps(): void { Panel.setOpen(true); root.setView(1) }
+        function home(): void { Panel.setOpen(true); root.setView(0) }
+    }
+
+    // Hidden while a widget waits on a password prompt (Panel.releaseKeyboard): the prompt is an ordinary
+    // window, and this layer would cover it. It comes back when the prompt closes either way.
+    PanelWindow {
+        id: win
+        visible: root.mapped
+        anchors { top: true; bottom: true; left: true; right: true }
+        // over the bar: the Overlay layer, ignoring its exclusive zone, so the bar sits under the dim and blur
+        exclusionMode: ExclusionMode.Ignore
+        color: Qt.rgba(0, 0, 0, root.dim)
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.namespace: "qs-dashboard"
+        WlrLayershell.keyboardFocus: root.showing ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+
+        MouseArea { anchors.fill: parent; onClicked: Panel.setOpen(false) }
+
+        Item {
+            id: body
+            anchors.fill: parent
+            clip: true
+            focus: true
+            Keys.onEscapePressed: Panel.setOpen(false)
+            Keys.onTabPressed: root.toggleView()
+            Keys.onBacktabPressed: root.toggleView()
+
+            property real acc: 0
+            WheelHandler {
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                onWheel: event => {
+                    if (pause.running) return
+                    body.acc += event.angleDelta.y
+                    if (Math.abs(body.acc) < root.wheelStep) return
+                    root.setView(body.acc < 0 ? 1 : 0)
+                    body.acc = 0
+                    pause.restart()
+                }
+            }
+            Timer { id: pause; interval: root.wheelPauseMs; onTriggered: body.acc = 0 }
+
+            Item {
+                id: track
+                width: parent.width; height: parent.height * 2
+                y: -keep.view * body.height
+                Behavior on y { NumberAnimation { duration: root.slideMs; easing.type: Easing.OutCubic } }
+
+                Home {
+                    id: home
+                    reveal: root.reveal
+                    width: body.width; height: body.height
+                    onAllApps: root.setView(1)
+                }
+                AllApps {
+                    id: apps
+                    reveal: root.reveal
+                    y: body.height
+                    width: body.width; height: body.height
+                    onBack: root.setView(0)
+                }
+            }
+        }
+
+        // the shown view's field takes the typing
+        function focusView() {
+            if (!visible) return
+            if (keep.view === 0) home.focusItem.forceActiveFocus()
+            else apps.focusItem.forceActiveFocus()
+        }
+        onVisibleChanged: focusView()
+        Connections { target: keep; function onViewChanged() { win.focusView() } }
+    }
+}

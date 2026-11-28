@@ -18,7 +18,6 @@ Singleton {
     // ── state ────────────────────────────────────────────────
     property var  groups: []          // [Group], newest app first
     property var  popups: []          // [Entry], newest last
-    property bool centerOpen: false
     property bool dnd: false
     property int  unread: 0
     property date now: new Date()
@@ -77,7 +76,7 @@ Singleton {
             g.items = [item].concat(g.items)
             if (!g.icon) g.icon = root.iconName(n)
 
-            if (!root.dnd && !root.centerOpen && !n.lastGeneration) {
+            if (!root.dnd && !Panel.open && !n.lastGeneration) {
                 item.popupShown = true
                 root.popups = root.popups.concat([item]).slice(-root.maxPopups)
             }
@@ -155,12 +154,7 @@ Singleton {
         markRead(item)
     }
 
-    function toggleCenter() { setCenter(!centerOpen) }
-    function setCenter(open) {
-        if (open) Panel.setOpen(false)
-        centerOpen = open
-        if (open) popups = []          // the centre shows everything; popups are redundant
-    }
+    function clearPopups() { popups = [] }
     function setDnd(on) {
         dnd = on
         if (on) popups = []
@@ -179,7 +173,7 @@ Singleton {
     // ── bar + persistence + clock ────────────────────────────
     // waybar's custom/notifications module re-runs `qs ipc call notifs status` on RTMIN+9
     Timer { id: barSignal; interval: 50; onTriggered: Quickshell.execDetached(["pkill", "-RTMIN+9", "waybar"]) }
-    Timer { interval: 30000; running: root.centerOpen; repeat: true; triggeredOnStart: true; onTriggered: root.now = new Date() }
+    Timer { interval: 30000; running: Panel.open; repeat: true; triggeredOnStart: true; onTriggered: root.now = new Date() }
 
     FileView {
         id: dndFile
@@ -200,9 +194,6 @@ Singleton {
 
     IpcHandler {
         target: "notifs"
-        function toggle(): void { root.toggleCenter() }
-        function open(): void   { root.setCenter(true) }
-        function close(): void  { root.setCenter(false) }
         function dnd(): void    { root.setDnd(!root.dnd) }
         function clear(): void  { root.clearAll() }
         function status(): string { return root.status() }

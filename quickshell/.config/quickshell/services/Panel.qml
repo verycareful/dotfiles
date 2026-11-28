@@ -1,4 +1,4 @@
-// Widget panel state + IPC. Only one of panel / notification centre is open at a time.
+// Dashboard state + IPC (the `panel` target: SUPER+A, the bar's anchor). `open` is the dashboard's.
 pragma Singleton
 import QtQuick
 import Quickshell
@@ -19,7 +19,7 @@ Singleton {
     readonly property bool nightLight: nightTemp < 6000
 
     function setOpen(o) {
-        if (o) Notifs.setCenter(false)
+        if (o) Notifs.clearPopups()      // the dashboard lists every notification
         open = o
         if (o) nightProbe.running = true
         barSignal.restart()
@@ -107,7 +107,7 @@ Singleton {
 
     // waybar's custom/panel module re-runs `qs ipc call panel status` on RTMIN+10
     Timer { id: barSignal; interval: 50; onTriggered: Quickshell.execDetached(["pkill", "-RTMIN+10", "waybar"]) }
-    function status() { return JSON.stringify({ text: "", alt: open ? "open" : "closed", class: open ? "open" : "closed", tooltip: "Widget panel (SUPER+A)" }) }
+    function status() { return JSON.stringify({ text: "", alt: open ? "open" : "closed", class: open ? "open" : "closed", tooltip: "Dashboard (SUPER+A)" }) }
 
     IpcHandler {
         target: "panel"

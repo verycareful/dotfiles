@@ -1,4 +1,4 @@
-// One notification. Used by both the centre and the popups.
+// One notification. Used by both the dashboard and the popups.
 //   left click  → mark read (popup: also hide the popup)
 //   right/middle click → dismiss just this one
 import QtQuick

@@ -1,4 +1,4 @@
-// One app's group in the centre: header (icon · name · count · collapse · close-all) + its cards.
+// One app's group on the dashboard: header (icon · name · count · collapse · close-all) + its cards.
 import QtQuick
 import QtQuick.Layouts
 import Quickshell

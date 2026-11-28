@@ -1,5 +1,5 @@
 [Unit]
-Description=OpenRGB server (lighting presets via the widget panel: rgb set NAME)
+Description=OpenRGB server (lighting presets via the dashboard: rgb set NAME)
 PartOf=graphical-session.target
 After=graphical-session.target
 

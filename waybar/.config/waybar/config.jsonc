@@ -16,7 +16,7 @@
                        "group/traybox", "custom/updates", "custom/notifications", "custom/settings", "custom/keyhint", "custom/power"],
 
     // ── left ──────────────────────────────────────────────────
-    "custom/panel": {                       // anchor: opens the Quickshell widget panel (also SUPER+A)
+    "custom/panel": {                       // anchor: opens the Quickshell dashboard (also SUPER+A)
         "exec": "qs ipc call panel status",
         "return-type": "json",
         "interval": "once",
@@ -180,7 +180,7 @@
         "on-click": "~/.local/bin/updates run"
     },
     "custom/notifications": {
-        // bell + unread count from the Quickshell notification centre; it signals RTMIN+9 on change
+        // bell + unread count from Quickshell (the list is on the dashboard); a click toggles Do not disturb; it signals RTMIN+9 on change
         "exec": "qs ipc call notifs status",
         "return-type": "json",
         "interval": "once",
@@ -192,8 +192,7 @@
             "dnd":        "󰂛",
             "dnd-unread": "󰂛"
         },
-        "on-click": "qs ipc call notifs toggle",
-        "on-click-right": "qs ipc call notifs dnd",
+        "on-click": "qs ipc call notifs dnd",
         "escape": true
     },
     "custom/keyhint": {

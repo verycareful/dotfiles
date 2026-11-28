@@ -1,0 +1,15 @@
+# Desktop entries the dashboard's All apps view leaves out: helpers and test tools that are not apps to
+# open from a list. One desktop file ID per line (the file name without .desktop); * matches anything.
+xfce4-about
+jconsole-*
+jshell-*
+qv4l2
+qvidcap
+lstopo
+xdvi
+xgps
+xgpsspeed
+rofi
+rofi-theme-selector
+uuctl
+org.kde.kdeconnect.nonplasma
