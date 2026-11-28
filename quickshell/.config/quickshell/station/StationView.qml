@@ -31,7 +31,11 @@ Scope {
     property bool ready: false                // the picture exists (or gave up) and the opening has started
     property real opened: 0
     property real zoomed: 0
-    property real fade: 0                     // 1 while the view has faded into the real screen
+    property real fade: 0                     // 0 to 1 while the view fades into the real screen
+    // The grown tile already looks like the real screen, so it stays opaque for the first half of the fade while the
+    // wallpaper behind it goes: a translucent window would otherwise show the wallpaper through it for a moment.
+    readonly property real wallFade: Math.max(0, 1 - 2 * fade)
+    readonly property real tileFade: fade < 0.5 ? 1 : 2 * (1 - fade)
     readonly property real blurAmount: 0.55   // the wallpaper's softness, 0 to 1
     readonly property int captureGiveUpMs: 250
     readonly property string stateHome: Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")
@@ -171,7 +175,7 @@ Scope {
         visible: Station.shown
         anchors { top: true; bottom: true; left: true; right: true }
         exclusionMode: ExclusionMode.Ignore
-        color: root.ready ? Qt.alpha(Theme.base, 1 - root.fade) : "transparent"
+        color: root.ready ? Qt.alpha(Theme.base, root.wallFade) : "transparent"
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "qs-station"
         WlrLayershell.keyboardFocus: Station.shown && !Station.releasing ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
@@ -179,7 +183,6 @@ Scope {
         Item {
             id: stage
             anchors.fill: parent
-            opacity: 1 - root.fade
             focus: true
             Keys.onPressed: event => root.onKey(event)
 
@@ -195,10 +198,11 @@ Scope {
             MultiEffect {
                 anchors.fill: parent
                 visible: root.ready && wallImage.status === Image.Ready
+                opacity: root.wallFade
                 source: wallImage
                 autoPaddingEnabled: false
                 blurEnabled: true
-                blur: root.blurAmount
+                blur: root.blurAmount * (1 - root.zoomed)       // sharp by the time a tile fills the screen, as the real wallpaper is
                 blurMax: 48
             }
 
@@ -234,7 +238,7 @@ Scope {
 
             Item {
                 id: world
-                opacity: Math.min(1, root.opened / 0.6)
+                opacity: Math.min(1, root.opened / 0.6) * root.tileFade
                 transform: Scale {
                     origin.x: root.cellX(root.selCell) + root.tileW / 2
                     origin.y: root.cellY(root.selCell) + root.tileH / 2

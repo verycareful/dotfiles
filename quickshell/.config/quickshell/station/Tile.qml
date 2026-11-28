@@ -25,7 +25,7 @@ Item {
         id: frame
         anchors.fill: parent
         radius: 10 * tile.chrome
-        color: Theme.glassCard
+        color: Qt.alpha(Theme.glassCard, Theme.glassCard.a * tile.chrome)
         clip: true
         border.width: (tile.selected ? 3 : (tile.hub ? 2 : 1)) * tile.chrome
         border.color: tile.selected ? Theme.accent : (tile.hub ? Theme.text : Theme.overlay)
@@ -47,17 +47,23 @@ Item {
             }
         }
 
-        // Workspaces: one live capture per window, side by side (a Mix shows its branches next to each other).
-        Row {
+        // Workspaces: the screen in miniature, one live capture per window at its place and size on the screen, so
+        // the tile grown to the whole screen lines up with the real windows.
+        Item {
+            id: pane
             visible: !tile.hub
-            anchors { fill: parent; margins: 6 * tile.chrome }
-            spacing: 4 * tile.chrome
+            anchors.fill: parent
+            readonly property real k: width / Screen.width
             Repeater {
-                model: tile.hub ? [] : tile.info.windows.slice(0, 3)
+                model: tile.hub ? [] : tile.info.windows
                 ScreencopyView {
                     required property var modelData
-                    width: (parent.width - (Math.min(tile.info.windows.length, 3) - 1) * 4) / Math.min(tile.info.windows.length, 3)
-                    height: parent.height
+                    readonly property var ipc: modelData.toplevel ? modelData.toplevel.lastIpcObject : null
+                    readonly property bool placed: ipc !== null && ipc !== undefined && !!ipc.at && !!ipc.size
+                    x: placed ? ipc.at[0] * pane.k : 0
+                    y: placed ? ipc.at[1] * pane.k : 0
+                    width: placed ? ipc.size[0] * pane.k : pane.width
+                    height: placed ? ipc.size[1] * pane.k : pane.height
                     captureSource: modelData.toplevel ? modelData.toplevel.wayland : null
                     live: tile.live
                     paintCursor: false
