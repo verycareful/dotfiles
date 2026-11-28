@@ -28,7 +28,7 @@ ColumnLayout {
                 Head { glyph: "\u{F0EE0}"; label: "CPU"; name: "Ryzen 9 7900X"
                        action: Widgets.Button { label: coresOpen ? "\u{F0143}" : "\u{F0140}"; onClicked: coresOpen = !coresOpen } }
                 Meter { value: s.cpu; big: s.cpu + " %"; note: s.ghz + " GHz"; hot: s.cpu >= 90 }
-                Line  { items: [[s.tctl + " °C", "Tctl", s.tctl >= 85], [PowerProfiles.profile === PowerProfile.Performance ? "Performance" : (PowerProfiles.profile === PowerProfile.PowerSaver ? "Power saver" : "Balanced"), "profile"]] }
+                Line  { items: [[s.tctl + " °C", "Tctl", s.tctl >= 85], [PowerProfiles.profile === PowerProfile.Performance ? "Performance" : (PowerProfiles.profile === PowerProfile.PowerSaver ? "Power saver" : "Balanced"), "Profile"]] }
                 Thermal { Layout.fillWidth: true; Layout.topMargin: 2 }
                 Line  { items: [[s.ccd1 + " °C", "CCD1", s.ccd1 >= 85], [s.ccd2 + " °C", "CCD2", s.ccd2 >= 85], ["12 c / 24 t", ""]] }
                 Cores { Layout.fillWidth: true; visible: coresOpen; cores: s.cores || [] }
@@ -46,10 +46,10 @@ ColumnLayout {
                 Head { glyph: "\u{F08AE}"; label: "GPU"; name: Gpu.name !== "" ? Gpu.name : "Radeon"
                        action: Widgets.Button { label: "Open LACT"; onClicked: { Panel.launch(["lact", "gui"]); Panel.setOpen(false) } } }
                 Meter { value: Gpu.busyPct; big: Math.round(Gpu.busyPct) + " %"; note: Gpu.clock + " MHz"; hot: Gpu.busyPct >= 95 }
-                Line  { items: [[Math.round(Gpu.tempEdge) + " °C", "edge", Gpu.tempEdge >= 90], [Math.round(Gpu.tempJunc) + " °C", "junction", Gpu.tempJunc >= 100], [Math.round(Gpu.tempMem) + " °C", "memory", Gpu.tempMem >= 95]] }
+                Line  { items: [[Math.round(Gpu.tempEdge) + " °C", "Edge", Gpu.tempEdge >= 90], [Math.round(Gpu.tempJunc) + " °C", "Junction", Gpu.tempJunc >= 100], [Math.round(Gpu.tempMem) + " °C", "Memory", Gpu.tempMem >= 95]] }
                 Meter { value: Gpu.vramTotal > 0 ? Gpu.vramUsed / Gpu.vramTotal * 100 : 0; big: Gpu.vramUsed.toFixed(1) + " GiB"; note: "of " + Math.round(Gpu.vramTotal) + " GiB VRAM · " + Gpu.vclock + " MHz"; small: true }
                 PowerCap { Layout.fillWidth: true }
-                Line  { items: [[Gpu.fanPct + " %", "fan"], [Gpu.fanRpm + " rpm", ""]] }
+                Line  { items: [[Gpu.fanPct + " %", "Fan"], [Gpu.fanRpm + " rpm", ""]] }
             }
         }
     }
@@ -63,7 +63,7 @@ ColumnLayout {
             spacing: 18
             Glyph { text: "\u{F035B}"; color: Theme.muted; size: 14 }
             Meter { Layout.fillWidth: true; value: s.memTotal > 0 ? s.memUsed / s.memTotal * 100 : 0; big: s.memUsed + " GiB"; note: "of " + s.memTotal + " GiB RAM"; small: true; hot: s.memUsed / Math.max(1, s.memTotal) > 0.85 }
-            Line  { items: [[s.uptime, "uptime"]] }
+            Line  { items: [[s.uptime, "Uptime"]] }
             Line  { items: [[s.updates === "" || s.updates === "0" ? "Up to date" : s.updates + " updates", ""]]; accent: s.updates !== "" && s.updates !== "0" }
         }
     }

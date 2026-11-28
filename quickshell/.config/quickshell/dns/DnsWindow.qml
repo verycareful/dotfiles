@@ -114,7 +114,7 @@ Scope {
 
         Text {
             Layout.fillWidth: true
-            text: "In use now: " + (form.cfg.live !== "" ? form.cfg.live : "none")
+            text: "In use now: " + (form.cfg.live !== "" ? form.cfg.live : "None")
             color: Theme.subtext; wrapMode: Text.WrapAnywhere; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold }
         }
         Text {

@@ -125,7 +125,7 @@ decide() { # allow-file, pw-dump on stdin: ids of the links to delete
 
 notify() { # summary body
     logger -t share-audio "$1: $2"
-    command -v notify-send >/dev/null && notify-send -a share-audio -i audio-volume-muted "$1" "$2"
+    command -v notify-send >/dev/null && notify-send -a "Share audio" -i audio-volume-muted "$1" "$2"
 }
 
 # One pass: when a share is on and Discord has capture streams, delete the links of the unwanted ones.

@@ -50,10 +50,10 @@ stop() {
     rm -f "$PID" "$MODE"; bar
     if [[ $mode == record\ * ]]; then
         local file=${mode#record }
-        notify-send -a recorder -i video-x-generic "Recording saved" "$(basename "$file")"
+        notify-send -a Recorder -i video-x-generic "Recording saved" "$(basename "$file")"
         printf 'file://%s' "$file" | wl-copy -t text/uri-list
     else
-        notify-send -a recorder -i video-x-generic "Instant replay off"
+        notify-send -a Recorder -i video-x-generic "Instant replay off"
     fi
 }
 
@@ -63,20 +63,20 @@ case "${1:-}" in
     stop) stop ;;
     replay)
         if running; then
-            [[ $(<"$MODE") == replay ]] || { notify-send -a recorder "Recording in progress" "Stop it first (same key again)"; exit 1; }
+            [[ $(<"$MODE") == replay ]] || { notify-send -a Recorder "Recording in progress" "Stop it first (same key again)"; exit 1; }
             stop
         else
             setsid gpu-screen-recorder -w "$(target full)" -f "$FPS" -a default_output -c mp4 -q very_high \
                 -r "$REPLAY_SECONDS" -o "$OUT" >"$RUN/log" 2>&1 &
             echo $! >"$PID"; echo replay >"$MODE"; bar
-            notify-send -a recorder -i video-x-generic "Instant replay on" "The last ${REPLAY_SECONDS} s are kept: screenrec save (SUPER+ALT+R)"
+            notify-send -a Recorder -i video-x-generic "Instant replay on" "The last ${REPLAY_SECONDS} s are kept: screenrec save (SUPER+ALT+R)"
         fi ;;
     save)
         if running && [[ $(<"$MODE") == replay ]]; then
             kill -USR1 "$(<"$PID")"
-            notify-send -a recorder -i video-x-generic "Replay saved" "Last ${REPLAY_SECONDS} s in $(basename "$OUT")"
+            notify-send -a Recorder -i video-x-generic "Replay saved" "Last ${REPLAY_SECONDS} s in $(basename "$OUT")"
         else
-            notify-send -a recorder "Instant replay is off" "Start it with SUPER+SHIFT+R"
+            notify-send -a Recorder "Instant replay is off" "Start it with SUPER+SHIFT+R"
         fi ;;
     status)
         if running; then

@@ -15,7 +15,7 @@ aur=$(timeout 30 yay -Qua 2>/dev/null || true)
 n=$(( $(grep -c . <<<"$repo") + $(grep -c . <<<"$aur") ))
 mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}"; echo "$n" > "${XDG_CACHE_HOME:-$HOME/.cache}/updates-count"   # read by the panel (panel-sys)
 if (( n == 0 )); then
-    printf '{"text":"","tooltip":"up to date","class":"none"}\n'; exit 0
+    printf '{"text":"","tooltip":"Up to date","class":"none"}\n'; exit 0
 fi
 tip=$(printf '%s\n%s' "$repo" "$aur" | grep . | awk '{printf "%s → %s\\n", $1, $4}' | head -40)
 (( n > 40 )) && tip+="… and $((n-40)) more\\n"

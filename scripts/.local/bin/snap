@@ -26,9 +26,9 @@ case "${1:-status}" in
     now)
         desc="${2:-manual}"
         if snapper -c "$CFG" create --cleanup-algorithm number --description "$desc"; then
-            notify-send -a snapper -i drive-harddisk "Snapshot taken" "$desc"
+            notify-send -a Snapper -i drive-harddisk "Snapshot taken" "$desc"
         else
-            notify-send -a snapper -u critical -i dialog-error "Snapshot failed" "Is snapper set up? sudo ./snapper/install-snapper.sh"
+            notify-send -a Snapper -u critical -i dialog-error "Snapshot failed" "Is snapper set up? sudo ./snapper/install-snapper.sh"
             exit 1
         fi ;;
     list) snapper -c "$CFG" list ;;

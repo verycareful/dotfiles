@@ -134,7 +134,7 @@ reload() {
         [[ -S "$s" ]] && kitty @ --to "unix:$s" set-background-opacity --all "$kitty_opacity" >/dev/null 2>&1 || true
         [[ -S "$s" ]] && kitty @ --to "unix:$s" load-config >/dev/null 2>&1 || true   # text_composition_strategy
     done
-    command -v notify-send >/dev/null && notify-send -a theme "Theme: $(current)" "GTK/Qt apps, btop and Firefox pick it up on next launch; Discord now" || true
+    command -v notify-send >/dev/null && notify-send -a Theme "Theme: $(current)" "GTK/Qt apps, btop and Firefox pick it up on next launch; Discord now" || true
 }
 
 # auto: "on" in $STATE/auto while the theme follows the sun
@@ -160,7 +160,7 @@ case "${1:-}" in
              for i in "${!all[@]}"; do [[ "${all[$i]}" == "$cur" ]] && next="${all[$(( (i+1) % ${#all[@]} ))]}"; done
              render "$next"; reload ;;
     light|dark) manual; switch "$1" "${2:-}" ;;
-    pick)    sel=$(themes | rofi -dmenu -p "theme") && [[ -n "$sel" ]] && { manual; render "$sel"; reload; } ;;
+    pick)    sel=$(themes | rofi -dmenu -p "Theme") && [[ -n "$sel" ]] && { manual; render "$sel"; reload; } ;;
     sddm)    sddm_render "${2:-$(current)}" "${3:-/var/lib/dotfiles-sddm}" ;;
     render)  python3 "$REPO/themes/render.py" one "${3:-$(current)}" "${2:?template path}" ;;
     window)  qs ipc call themes open ;;

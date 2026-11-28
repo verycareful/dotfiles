@@ -30,7 +30,7 @@ drive_present() {
     local m=${RESTIC_REPOSITORY%/*}
     timeout 10 ls "$m" >/dev/null 2>&1 && mountpoint -q "$m"
 }
-note() { notify-send -a backup -i drive-harddisk "$@"; }
+note() { notify-send -a Backup -i drive-harddisk "$@"; }
 json_str() { local s=${1//\\/\\\\}; s=${s//\"/\\\"}; printf '"%s"' "$s"; }
 
 case "${1:-status}" in

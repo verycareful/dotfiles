@@ -39,8 +39,8 @@
         // "caffeine": while active, hypridle won't lock/suspend the session
         "format": "{icon}",
         "format-icons": { "activated": "󰅶", "deactivated": "󰾪" },
-        "tooltip-format-activated":   "caffeine ON — idle lock disabled",
-        "tooltip-format-deactivated": "caffeine off"
+        "tooltip-format-activated":   "Caffeine on: idle lock disabled",
+        "tooltip-format-deactivated": "Caffeine off"
     },
     "custom/weather": {
         "exec": "~/.local/bin/weather",
@@ -112,7 +112,7 @@
         "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
         "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr}   {bandwidthDownBytes} {bandwidthUpBytes}",
         "tooltip-format-ethernet": "{ifname}\n{ipaddr}   {bandwidthDownBytes} {bandwidthUpBytes}",
-        "tooltip-format-disconnected": "disconnected",
+        "tooltip-format-disconnected": "Disconnected",
         "interval": 5,
         "on-click": "~/.local/bin/wifi"
     },
@@ -134,8 +134,8 @@
         "modules": ["group/tray-arrow", "tray"]
     },
     "group/tray-arrow": { "orientation": "inherit", "modules": ["custom/tray-down", "custom/tray-left"] },
-    "custom/tray-down": { "format": "󰅀", "tooltip-format": "tray" },
-    "custom/tray-left": { "format": "󰅁", "tooltip-format": "tray" },
+    "custom/tray-down": { "format": "󰅀", "tooltip-format": "Tray" },
+    "custom/tray-left": { "format": "󰅁", "tooltip-format": "Tray" },
     "tray": {
         "icon-size": 16,
         "spacing": 8
@@ -175,7 +175,7 @@
     },
     "custom/keyhint": {
         "format": "󰌌",
-        "tooltip-format": "keybinds",
+        "tooltip-format": "Keybinds",
         "on-click": "~/.local/bin/keyhint"
     },
     "custom/settings": {                    // sliders: the Quickshell settings window (also SUPER+comma)
@@ -185,7 +185,7 @@
     },
     "custom/power": {
         "format": "󰐥",
-        "tooltip-format": "power menu",
+        "tooltip-format": "Power menu",
         "on-click": "wlogout -b 5 -T 520 -B 520 -L 440 -R 440"
     }
 }

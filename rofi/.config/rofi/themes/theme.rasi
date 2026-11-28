@@ -36,7 +36,7 @@ prompt {
 }
 entry {
     vertical-align:    0.5;
-    placeholder:       "search…";
+    placeholder:       "Search…";
     placeholder-color: @muted;
     cursor:            text;
 }

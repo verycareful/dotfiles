@@ -9,7 +9,7 @@ if [[ -s "$CACHE" && $(( $(date +%s) - $(stat -c %Y "$CACHE") )) -lt 1800 ]]; th
 text=$(curl -sf -m 8 "wttr.in/${LOC}?format=%c+%t" | sed 's/+//; s/  */ /g') || text=""
 tip=$(curl -sf -m 8 "wttr.in/${LOC}?format=%l%0A%C+%t+(feels+%f)%0A%h+humidity+·+%w+wind%0A%p+rain+·+%P" | sed 's/+//g') || tip=""
 if [[ -z "$text" ]]; then
-    [[ -s "$CACHE" ]] && cat "$CACHE" || echo '{"text":"󰖐 --","tooltip":"weather unavailable","class":"disabled"}'
+    [[ -s "$CACHE" ]] && cat "$CACHE" || echo '{"text":"󰖐 --","tooltip":"Weather unavailable","class":"disabled"}'
     exit 0
 fi
 python3 -c 'import json,sys; print(json.dumps({"text":sys.argv[1],"tooltip":sys.argv[2],"class":"normal"}))' "$text" "$tip" | tee "$CACHE"

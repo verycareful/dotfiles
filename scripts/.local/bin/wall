@@ -26,7 +26,7 @@ case "${1:-set}" in
             [[ -n "$f" ]] && apply "$f"
         fi ;;
     pick)
-        f=$(find "$DIR" -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.webp' \) -printf '%f\n' | sort | rofi -dmenu -p "wallpaper")
+        f=$(find "$DIR" -type f \( -iname '*.jpg' -o -iname '*.png' -o -iname '*.webp' \) -printf '%f\n' | sort | rofi -dmenu -p "Wallpaper")
         [[ -n "$f" ]] && apply "$DIR/$f" ;;
     *) echo "usage: wall {set [FILE]|pick}" >&2; exit 1 ;;
 esac

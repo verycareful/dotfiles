@@ -55,7 +55,7 @@ Widgets.Tile {
                   + "  ·  " + v.blocked + " blocked this boot"
             Widgets.Switch { on: fwRow.v.on === true; enabled: !tile.busy && fwRow.v.installed === true; onClicked: tile.run([tile.bin + "fw", fwRow.v.on ? "off" : "on"], true) }
             Text { text: "\u{F0341}"; color: Theme.muted; font { family: Theme.fontIcon; pixelSize: 11 } }   // lock: needs auth
-            Widgets.Button { label: "Log"; onClicked: { Panel.launch(["kitty", "--title", "firewall log", "-e", "bash", "-c", tile.bin + "fw log | less +G"]); Panel.setOpen(false) } }
+            Widgets.Button { label: "Log"; onClicked: { Panel.launch(["kitty", "--title", "Firewall log", "-e", "bash", "-c", tile.bin + "fw log | less +G"]); Panel.setOpen(false) } }
         }
 
         Guard {

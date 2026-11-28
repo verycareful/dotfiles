@@ -7,13 +7,13 @@
 #   Alt+X    turn Wi-Fi off
 # Enterprise (802.1X) networks need a file in /var/lib/iwd (man iwd.network).
 set -uo pipefail
-note() { notify-send -a wifi "Wi-Fi" "$1"; }
+note() { notify-send -a Wi-Fi "Wi-Fi" "$1"; }
 iwd() { busctl --system --json=short call net.connman.iwd "$@"; }
 
 dev=$(basename "$(dirname "$(ls -d /sys/class/net/*/wireless 2>/dev/null | head -1)")")
 [[ -n "$dev" && "$dev" != . ]] || { note "No Wi-Fi adapter"; exit 1; }
 if rfkill list wlan | grep -q 'Soft blocked: yes'; then
-    [[ "$(printf 'Turn Wi-Fi on\n' | rofi -dmenu -i -p "wifi" -mesg "Wi-Fi is off")" ]] || exit 0
+    [[ "$(printf 'Turn Wi-Fi on\n' | rofi -dmenu -i -p "Wi-Fi" -mesg "Wi-Fi is off")" ]] || exit 0
     rfkill unblock wlan; sleep 3; RESCAN=yes exec "$0"
 fi
 
@@ -46,7 +46,7 @@ while IFS=$'\x1f' read -r use sig type known name; do
     lines+="${icons[$(( sig > 99 ? 4 : sig / 20 ))]}  $name$tags  ($sig%)"$'\n'
 done <<<"$rows"
 
-i=$(printf '%s' "$lines" | rofi -dmenu -i -format i -p "wifi" \
+i=$(printf '%s' "$lines" | rofi -dmenu -i -format i -p "Wi-Fi" \
     -mesg "Enter connect / disconnect · Alt+D forget · Alt+R rescan · Alt+X Wi-Fi off" \
     -kb-custom-1 "Alt+d" -kb-custom-2 "Alt+r" -kb-custom-3 "Alt+x"); rc=$?
 case $rc in
@@ -68,7 +68,7 @@ case "$type" in
     open)  out=$(iwctl station "$dev" connect "$name" 2>&1); ok=$? ;;
     *)  if [[ -n "$known" ]]; then out=$(iwctl station "$dev" connect "$name" 2>&1); ok=$?
         else
-            pw=$(rofi -dmenu -password -p "password" -mesg "$name" </dev/null) || exit 0
+            pw=$(rofi -dmenu -password -p "Password" -mesg "$name" </dev/null) || exit 0
             [[ -n "$pw" ]] || exit 0
             out=$(iwctl --passphrase "$pw" station "$dev" connect "$name" 2>&1); ok=$?
         fi ;;

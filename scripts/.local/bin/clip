@@ -7,9 +7,9 @@
 # Thumbnails are decoded once per entry into ~/.cache/clip-thumbs and dropped when the entry leaves the history.
 set -uo pipefail
 THUMBS="${XDG_CACHE_HOME:-$HOME/.cache}/clip-thumbs"
-if [[ "${1:-}" == "wipe" ]]; then cliphist wipe; wl-copy --clear; rm -rf "$THUMBS"; notify-send -a clipboard "Clipboard" "History cleared"; exit 0; fi
+if [[ "${1:-}" == "wipe" ]]; then cliphist wipe; wl-copy --clear; rm -rf "$THUMBS"; notify-send -a Clipboard "Clipboard" "History cleared"; exit 0; fi
 list=$(cliphist list) || exit 0
-[[ -n "$list" ]] || { notify-send -a clipboard "Clipboard" "History is empty"; exit 0; }
+[[ -n "$list" ]] || { notify-send -a Clipboard "Clipboard" "History is empty"; exit 0; }
 
 # rofi rows: image entries carry "\0icon\x1f<thumb>"; rofi hands back the row text without it.
 # Printed straight to rofi: a bash variable cannot hold the NUL.
@@ -34,7 +34,7 @@ for f in "$THUMBS"/*.png; do
     grep -q "^$id"$'\t' <<<"$list" || rm -f "$f"
 done
 
-sel=$(rows | rofi -dmenu -i -show-icons -theme-str "element-icon { size: 2.4em; }" -p "clipboard" -mesg "Enter copy · Alt+D delete · Alt+X clear all" \
+sel=$(rows | rofi -dmenu -i -show-icons -theme-str "element-icon { size: 2.4em; }" -p "Clipboard" -mesg "Enter copy · Alt+D delete · Alt+X clear all" \
       -kb-custom-1 "Alt+d" -kb-custom-2 "Alt+x"); rc=$?
 case $rc in
     0)  [[ -n "$sel" ]] && cliphist decode <<<"$sel" | wl-copy ;;

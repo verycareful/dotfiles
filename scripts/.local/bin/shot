@@ -57,9 +57,9 @@ wl-copy --type image/png < "$RAW/$NAME"
 
 if [[ ${SET[annotate]} == off ]]; then
     mv "$RAW/$NAME" "$OUT/$NAME"
-    [[ ${SET[notify]} == on ]] && { notify-send -a shot -i "$OUT/$NAME" "Screenshot copied" "Saved to $OUT" 2>/dev/null || true; }
+    [[ ${SET[notify]} == on ]] && { notify-send -a Screenshot -i "$OUT/$NAME" "Screenshot copied" "Saved to $OUT" 2>/dev/null || true; }
     exit 0
 fi
-[[ ${SET[notify]} == on ]] && { notify-send -a shot -i "$RAW/$NAME" "Screenshot copied" "Annotate it from the station (Shots)" 2>/dev/null || true; }
+[[ ${SET[notify]} == on ]] && { notify-send -a Screenshot -i "$RAW/$NAME" "Screenshot copied" "Annotate it from the station (Shots)" 2>/dev/null || true; }
 satty --app-id org.satty.shot --filename "$RAW/$NAME" --output-filename "$OUT/$NAME" --copy-command wl-copy --early-exit || true
 rm -f "$RAW/$NAME"

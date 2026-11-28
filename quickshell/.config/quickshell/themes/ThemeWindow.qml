@@ -149,7 +149,7 @@ Scope {
             anchors.fill: parent
             color: "transparent"
             border.width: 1; border.color: Theme.overlay
-            Text { anchors.centerIn: parent; text: "none"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
+            Text { anchors.centerIn: parent; text: "None"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
         }
 
         Column {
@@ -233,7 +233,7 @@ Scope {
                 Item { Layout.fillWidth: true }
                 Text {
                     visible: card.current || root.applying === (card.theme || {}).name
-                    text: card.current ? "\u{F012C} current" : "applying…"
+                    text: card.current ? "\u{F012C} Current" : "Applying…"
                     color: Theme.accent
                     font { family: Theme.fontIcon; pixelSize: 11 }
                 }

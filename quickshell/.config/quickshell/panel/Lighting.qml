@@ -37,7 +37,7 @@ Widgets.Tile {
                 MouseArea { id: pm; anchors.fill: parent; hoverEnabled: true; onClicked: tile.apply(parent.modelData) }
             }
         }
-        Text { visible: tile.profiles.length === 0; text: "no profiles — save some in OpenRGB"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
+        Text { visible: tile.profiles.length === 0; text: "No profiles: save some in OpenRGB"; color: Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
         Item { Layout.fillWidth: true }
         Widgets.Button { label: "Themes"; onClicked: Panel.openWindow("themes") }
         Widgets.Button { label: "Open OpenRGB"; onClicked: { Panel.launch(["openrgb", "--gui", "--client", "localhost:6742", "--noautoconnect"]); Panel.setOpen(false) } }

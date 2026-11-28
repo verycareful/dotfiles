@@ -77,9 +77,9 @@ Scope {
         const st = ((s.clipboard || {}).apps || {})[app]
         const blocked = Perms.mode("clipboard", app) === "block"
         if (st === "x11") return { text: "X11 app: reads the clipboard freely, can't be restricted", warn: true }
-        if (st === "restricted") return { text: blocked ? "restricted now" : "still restricted: restart it to lift", warn: !blocked }
-        if (st === "open" && blocked) return { text: "running unrestricted: restart it to apply", warn: true }
-        if (st === "open") return { text: "running, can read in the background", warn: false }
+        if (st === "restricted") return { text: blocked ? "Restricted now" : "Still restricted: restart it to lift", warn: !blocked }
+        if (st === "open" && blocked) return { text: "Running unrestricted: restart it to apply", warn: true }
+        if (st === "open") return { text: "Running, can read in the background", warn: false }
         return { text: "", warn: false }
     }
     function controlledSub(perm) {
@@ -155,7 +155,7 @@ Scope {
                     width: parent.width
                     spacing: 6
 
-                    Section { text: "CONTROLLED"; sub: "can be blocked" }
+                    Section { text: "CONTROLLED"; sub: "Can be blocked" }
                     Repeater {
                         model: root.controlled
                         delegate: ColumnLayout {
@@ -203,7 +203,7 @@ Scope {
                         }
                     }
 
-                    Section { text: "WATCHED"; sub: "shown, never blocked"; Layout.topMargin: 12 }
+                    Section { text: "WATCHED"; sub: "Shown, never blocked"; Layout.topMargin: 12 }
 
                     // camera
                     Row_ {
@@ -579,7 +579,7 @@ Scope {
                     font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold }
                 }
             }
-            Text { visible: line.busyHere; text: "applying"; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
+            Text { visible: line.busyHere; text: "Applying"; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
             RowLayout {
                 spacing: 0
                 Choice { label: "Allow"; active: line.mode === "allow"; onClicked: Perms.setApp(line.perm, line.app, "allow") }

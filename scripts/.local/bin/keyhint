@@ -14,4 +14,4 @@ for b in json.load(sys.stdin):
     act=b.get("description") or f"{b["dispatcher"]} {b["arg"]}".strip()
     if act.startswith("__lua"): act=""
     rows.append(f"{combo:<26} {act}")
-print("\n".join(sorted(set(rows))))' | rofi -dmenu -i -p "keys" -theme-str 'window {width: 60%;}' >/dev/null || true
+print("\n".join(sorted(set(rows))))' | rofi -dmenu -i -p "Keys" -theme-str 'window {width: 60%;}' >/dev/null || true

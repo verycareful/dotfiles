@@ -52,7 +52,7 @@ fw_toggle() {
     if [[ $("$B/fw" status | jq -r .on) == true ]]; then "$B/fw" off; else "$B/fw" on; fi
 }
 
-i=$(printf '%s\n' "${labels[@]}" | rofi -dmenu -i -p "actions" -format i) || exit 0
+i=$(printf '%s\n' "${labels[@]}" | rofi -dmenu -i -p "Actions" -format i) || exit 0
 [[ -n $i ]] || exit 0
 cmd=${cmds[$i]}
 if [[ $cmd == fw_toggle ]]; then fw_toggle; else eval "$cmd"; fi

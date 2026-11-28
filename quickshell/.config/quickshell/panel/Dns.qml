@@ -32,12 +32,12 @@ Widgets.Tile {
         spacing: 8
         Glyph { text: line.glyph; color: line.manual ? Theme.accent : Theme.muted; size: 14 }
         Text {
-            text: (line.cfg.override ? "Temporary  " : line.manual ? "" : "Automatic  ") + (line.cfg.ipv6 === "off" ? "no IPv6  " : "") + (line.cfg.tls === "yes" ? "󰌾 " : "")
+            text: (line.cfg.override ? "Temporary  " : line.manual ? "" : "Automatic  ") + (line.cfg.ipv6 === "off" ? "No IPv6  " : "") + (line.cfg.tls === "yes" ? "󰌾 " : "")
             visible: text !== ""; color: Theme.subtext; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold }
         }
         Text {
             Layout.fillWidth: true; elide: Text.ElideRight
-            text: line.cfg.live !== "" ? line.cfg.live.split(" ").map(s => s.split("#")[0]).join("  ") : "no DNS in use"
+            text: line.cfg.live !== "" ? line.cfg.live.split(" ").map(s => s.split("#")[0]).join("  ") : "No DNS in use"
             color: line.cfg.live !== "" ? Theme.text : Theme.muted; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold }
         }
     }
