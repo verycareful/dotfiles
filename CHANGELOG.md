@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.7.1] - 2026-11-28 12:46 (IST)
+
+### Fixed
+- The dashboard on a dark theme no longer shows a light rim around the content. The wallpaper showed through the
+  6 px gaps between windows and the blur carried it about 50 px inward through the translucent scrim. The dark
+  themes' scrim is now 0.75 opaque (it was 0.55), which hides it; light themes are unchanged at 0.78.
+
+### Results
+179 tests across 4 suites, all passed, 6 themes checked against 23 templates, ShellCheck on 56 scripts, Lua syntax
+and secrets checks clean (CachyOS Linux). By hand: the dashboard on Dusk over a busy workspace shows no rim.
+
 ## [1.2.7.0] - 2026-11-28 12:23 (IST)
 
 ### Added

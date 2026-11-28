@@ -36,7 +36,7 @@ OPTIONAL_COLOURS = ('on_accent',)
 MODES = {
     'dark':  {'gtk_theme': 'adw-gtk3-dark', 'gtk_prefer_dark': '1', 'icon_theme': 'Papirus-Dark',
               'color_scheme': 'prefer-dark', 'vscode_theme': 'Default Dark Modern', 'kitty_text': 'platform',
-              'gtk_rgba': 'rgb', 'scrim_alpha': '0.55', 'terminal_opacity': '0.78', 'dim_opacity': '0.4'},
+              'gtk_rgba': 'rgb', 'scrim_alpha': '0.75', 'terminal_opacity': '0.78', 'dim_opacity': '0.4'},
     'light': {'gtk_theme': 'adw-gtk3', 'gtk_prefer_dark': '0', 'icon_theme': 'Papirus',
               'color_scheme': 'prefer-light', 'vscode_theme': 'Default Light Modern', 'kitty_text': '1.4 20',
               'gtk_rgba': 'none', 'scrim_alpha': '0.78', 'terminal_opacity': '0.68', 'dim_opacity': '0.9'},
