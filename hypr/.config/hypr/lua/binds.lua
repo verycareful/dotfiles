@@ -35,22 +35,9 @@ end
 for i = 0, 9 do
     bind(tostring(i), station("jump " .. i), "Go to Mix workspace " .. i)
 end
--- Terminals and shots: SUPER+T or SUPER+A, then a number. Any other key leaves the sequence.
-local function numbered(prefix, what)
-    local name = "station-" .. what:lower()
-    hl.define_submap(name, function()
-        for i = 0, 9 do
-            gbind(tostring(i), function()
-                hl.dispatch(station("jump " .. prefix .. i))
-                hl.dispatch(hl.dsp.submap("reset"))
-            end, "Go to " .. what:lower() .. " " .. prefix .. i)
-        end
-        gbind("catchall", hl.dsp.submap("reset"), "Leave the " .. what:lower() .. " sequence")
-    end)
-    bind(prefix, hl.dsp.submap(name), what .. ": " .. prefix .. ", then a number")
-end
-numbered("T", "Terminals")
-numbered("A", "Shots")
+-- Terminals and shots: SUPER+T or SUPER+A opens the station with the letter typed; the station takes the number.
+bind("T", station("prefix T"), "Terminals: open the station, then a number")
+bind("A", station("prefix A"), "Shots: open the station, then a number")
 -- Move only the focused window: hold Home, press Shift + the target's key. Home still reaches the app, and a
 -- Home release ends the hold.
 hl.define_submap("station-move", function()

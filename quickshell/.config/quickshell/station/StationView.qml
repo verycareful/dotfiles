@@ -19,8 +19,7 @@ Scope {
     readonly property int stepY: 260
     readonly property int panMs: 180
 
-    property string prefix: ""                // "T" or "A" waiting for its number
-    property bool prefixShift: false
+    property bool prefixShift: false          // the T or A waiting in Station.pendingPrefix was typed with Shift
     property point pan: Qt.point(0, 0)        // right-drag offset, reset when the selection changes
 
     readonly property var cells: {
@@ -88,13 +87,14 @@ Scope {
         else if (shiftedDigits[event.text] !== undefined) ch = shiftedDigits[event.text]
         if (ch === "") { event.accepted = false; return }
         const digit = ch >= "0" && ch <= "9"
-        if (prefix !== "") {
-            const p = prefix, s = prefixShift
-            prefix = ""
+        if (Station.pendingPrefix !== "") {
+            const p = Station.pendingPrefix, s = prefixShift
+            Station.pendingPrefix = ""
+            prefixShift = false
             if (digit) send(p + ch, s)
             return
         }
-        if (ch === "T" || ch === "A") { prefix = ch; prefixShift = shift; return }
+        if (ch === "T" || ch === "A") { Station.pendingPrefix = ch; prefixShift = shift; return }
         send(ch, shift)
     }
 
@@ -102,7 +102,7 @@ Scope {
         target: Station
         function onShownChanged() {
             if (!Station.shown) return
-            root.prefix = ""
+            root.prefixShift = false
             root.pan = Qt.point(0, 0)
             const here = Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.name : ""
             const t = Station.model.tiles.find(x => x.wsName === here && x.branch !== "hidden" && x.branch !== "shot")

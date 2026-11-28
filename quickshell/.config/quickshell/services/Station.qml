@@ -2,6 +2,8 @@
 // keys, layout: station/model.js), routes newly opened windows back to the workspace they were launched from,
 // and carries out jumps, merges, moves and branching.
 //   qs ipc call station toggle|open|close
+//   qs ipc call station prefix T|A         open the view with T or A already typed; the next digit (typed in the view
+//                                          or sent as `jump DIGIT`, as SUPER+digit does) picks the number
 //   qs ipc call station jump KEY            go to the tile with KEY (a fixed key launches its app when absent)
 //   qs ipc call station merge KEY           move every window of the current workspace into KEY's, follow
 //   qs ipc call station move KEY            move only the focused window into KEY's workspace
@@ -18,6 +20,7 @@ import "../station/model.js" as Model
 Singleton {
     id: root
     property bool shown: false
+    property string pendingPrefix: ""            // "T" or "A" waiting for its number; cleared whenever the view opens or closes
     property string selected: ""                 // tile id
     property var model: ({ tiles: [], positions: [] })
     readonly property var book: new Model.KeyBook()
@@ -47,6 +50,7 @@ Singleton {
 
     // Opening the station over the dashboard closes the dashboard: the station holds it as its hub.
     function setShown(v) {
+        pendingPrefix = ""
         if (v && Panel.open) Panel.setOpen(false)
         if (v) { Hyprland.refreshToplevels(); rebuild() }
         shown = v
@@ -150,7 +154,22 @@ Singleton {
     }
 
     // ── actions ──────────────────────────────────────────────
-    function goTo(tile) {
+    // Closing the view hands focus back to the window that had it, so a focus change made while the view is still
+    // open is undone by the close. Close first, then act once the compositor has finished.
+    Timer {
+        id: afterCloseTimer
+        interval: 60
+        property var action: null
+        onTriggered: { const a = action; action = null; if (a) a() }
+    }
+    function afterClose(fn) {
+        if (!shown) { fn(); return }
+        setShown(false)
+        afterCloseTimer.action = fn
+        afterCloseTimer.restart()
+    }
+    function goTo(tile) { afterClose(() => goToNow(tile)) }
+    function goToNow(tile) {
         if (tile.branch === "pad") { toggleSpecial(tile.wsName.slice("special:".length)); return }
         const w = tile.windows[0]
         if (tile.branch === "hidden") {
@@ -167,11 +186,12 @@ Singleton {
     }
 
     function jump(key) {
+        if (pendingPrefix !== "" && /^[0-9]$/.test(key)) key = pendingPrefix + key
         const tile = Model.tileByKey(model, key)
         if (tile) { goTo(tile); return }
         const pad = padOfKey[key]
-        if (pad === "general") { toggleSpecial("general"); return }
-        if (fixedCommands[key]) Quickshell.execDetached(["station-launch"].concat(fixedCommands[key]))
+        if (pad === "general") { afterClose(() => toggleSpecial("general")); return }
+        afterClose(() => { if (fixedCommands[key]) Quickshell.execDetached(["station-launch"].concat(fixedCommands[key])) })
     }
     function merge(key) {
         const tile = Model.tileByKey(model, key)
@@ -209,6 +229,7 @@ Singleton {
         target: "station"
         function toggle(): void { root.setShown(!root.shown) }
         function open(): void   { root.setShown(true) }
+        function prefix(p: string): void { root.setShown(true); root.pendingPrefix = p }
         function close(): void  { root.setShown(false) }
         function jump(key: string): void  { root.jump(key) }
         function merge(key: string): void { root.merge(key) }
