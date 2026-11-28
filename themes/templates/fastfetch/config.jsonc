@@ -31,8 +31,8 @@
         { "type": "custom", "format": "Hardware", "outputColor": "{{subtext_ansi}}" },
         { "type": "cpu",       "key": "CPU",     "format": "{name}" },
         { "type": "gpu",       "key": "GPU",     "format": "{name}", "hideType": "integrated" },
-        { "type": "memory",    "key": "Memory",  "format": "{used} / {total}  {percentage-bar} {percentage}" },
-        { "type": "disk",      "key": "Disk",    "folders": "/", "format": "{size-used} / {size-total}  {size-percentage-bar} {size-percentage}" },
+        { "type": "memory",    "key": "Memory",  "format": "{used>10} / {total<10}  {percentage-bar}  {percentage>4}" },
+        { "type": "disk",      "key": "Disk",    "folders": "/", "format": "{size-used>10} / {size-total<10}  {size-percentage-bar}  {size-percentage>4}" },
         { "type": "display",   "key": "Display", "format": "{width}x{height} @ {refresh-rate} Hz" },
         "break",
         { "type": "colors",    "symbol": "circle", "paddingLeft": 0 }

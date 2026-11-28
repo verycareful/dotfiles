@@ -1,7 +1,15 @@
 # fish — "Harbour" shell config. Aliases/abbrs live in conf.d/.
-# greeting: fastfetch (logo + system info), only for interactive shells
+# greeting: fastfetch (logo + system info), only for interactive shells. A terminal wide enough for the large
+# logo (152 by 21, the height of the info, so it starts on the first row) beside the info gets it; narrower ones
+# keep the small logo from the config.
+set -g greeting_wide_columns 220
 function fish_greeting
-    command -q fastfetch; and fastfetch
+    command -q fastfetch; or return
+    if test $COLUMNS -ge $greeting_wide_columns
+        fastfetch --logo-type file --logo ~/.config/fastfetch/sonnenplatz-wide.txt --logo-padding-top 0
+    else
+        fastfetch
+    end
 end
 
 # ── paths ────────────────────────────────────────────────────
