@@ -187,7 +187,7 @@ Scope {
         property string placeholder
         implicitHeight: 28
         opacity: enabled ? 1 : 0.4
-        color: Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.8)
+        color: Theme.fillField
         border.width: 1; border.color: input.activeFocus ? Theme.accent : Theme.overlay
         TextInput {
             id: input
@@ -203,7 +203,7 @@ Scope {
         property bool on
         signal toggled
         implicitWidth: 34; implicitHeight: 18
-        color: on ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.7) : Theme.surface
+        color: on ? Theme.fillSelected : Theme.surface
         border.width: 1; border.color: on ? Theme.primaryBright : Theme.overlay
         Rectangle { width: 12; height: 12; y: 3; x: parent.on ? parent.width - width - 3 : 3; color: parent.on ? Theme.accent : Theme.muted
                     Behavior on x { NumberAnimation { duration: 120 } } }
@@ -215,7 +215,7 @@ Scope {
         property bool active: false
         signal clicked
         implicitWidth: cl.implicitWidth + 16; implicitHeight: 24
-        color: active ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.55) : (cm.containsMouse ? Qt.rgba(Theme.overlay.r, Theme.overlay.g, Theme.overlay.b, 0.9) : "transparent")
+        color: active ? Theme.fillSelected : (cm.containsMouse ? Theme.fillHover : "transparent")
         border.width: 1; border.color: active ? Theme.primaryBright : Theme.overlay
         Text { id: cl; anchors.centerIn: parent; text: parent.label; color: parent.active ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
         MouseArea { id: cm; anchors.fill: parent; hoverEnabled: true; onClicked: parent.clicked() }

@@ -7,6 +7,59 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.5.0] - 2026-11-28 10:44 (IST)
+
+### Added
+- A Claude Code theme drawn from the palette: `theme set` renders `~/.claude/themes/dotfiles.json` from
+  `themes/templates/claude/theme.json`, and Claude Code reloads it live, so a theme switch (or the sun) recolours a
+  running session. Pick Dotfiles once in `/theme`. Every documented colour token comes from the theme: accent,
+  text and status colours, message and selection backgrounds, mode borders, shimmer tints, subagent and rainbow
+  colours, and tinted diff backgrounds. The selection background is the strongest accent tint that keeps text,
+  dim text and inline code readable on it (Claude Code keeps each cell's own text colour on a selection). The ANSI
+  base is kept, so inline code follows the terminal's ANSI blue; the diff colours are snapped to the 256-colour
+  cube because that base quantises them.
+- Shared fill colours for a selected item, a hovered item and an input field: `Theme.fillSelected`,
+  `Theme.fillHover`, `Theme.fillField` and `Theme.textOnSelected` in Quickshell, `@fillSelected`, `@fillHover`,
+  `@textOnSelected` and `@mutedDim` in Waybar, `selectedGlass` and `fieldGlass` in rofi. About 28 Quickshell sites,
+  the Waybar workspaces and rofi's selected row and input use them. Dark themes keep fixed alphas; on a light theme
+  each alpha is solved so the selected fill is 1.45:1 and the hover fill 1.28:1 against the card, with the selected
+  fill an accent tint.
+- `theme` values derived per mode for the new surfaces: the dashboard scrim, the terminal and faint-text opacity, an
+  accent wash and selection tint, red and green diff tints and shimmer tints. A `~/` destination in the render
+  table writes under the home directory.
+
+### Changed
+- The three light palettes read properly: `surface`, `overlay` and `primary` are darker so cards, borders and
+  toggle tracks show against `base` (at least 1.30:1, 2.00:1 and 1.70:1), and `muted`, `red`, `green`, `yellow` and
+  `cyan` are at least 4.5:1 on `surface`. Dusk Light's accent is 065dc0 and its bright blue is 2038ae.
+- Light themes are more transparent: kitty `background_opacity` is 0.68 (dark themes 0.78), the dashboard scrim is
+  0.78, and Dusk and Dusk Light use glass 0.85. kitty draws faint text at 0.9 on a light theme.
+- kitty's ANSI blue is the accent on light themes, so tools that print ANSI blue follow the theme.
+
+### Fixed
+- The dashboard was unreadable on a light theme: its dim layer was black, so the clock, labels, notifications and
+  every app name were dark text on a dark scrim. The dim layer is now the theme's base colour, a frosted wash on a
+  light theme.
+- Selected, hover and field backgrounds on a light theme were within 1.05 to 1.3:1 of the card, with hover stronger
+  than selected and search fields invisible; text on hover fell under 4.5:1.
+- The current lyric line was Oxanium Bold, the heavy weight the other Quickshell text no longer uses; it is DemiBold
+  and still marked by its size and colour.
+
+### Tests
+- Mode values: the scrim, terminal and faint-text values for light against dark; the fixed dark fill alphas.
+- `snap256` returns cube colours, keeps a green green and honours a filter; tints are cube colours with the right
+  hue and ordering; the accent wash and the selection fill (visible, and readable under every text colour on a
+  light theme); `solve_alpha` finds the first alpha that reaches a target; the light fills meet their contrast
+  targets with text, subtext and muted readable on them.
+- The Claude theme renders valid JSON on the matching ANSI base for every theme, goes to the Claude themes folder,
+  and keeps the theme's text at least 3.5:1 on every diff background. Home destinations stay out of the config
+  directory, and the render tests never write to the real home.
+
+### Results
+153 tests across 4 suites, all passed, 6 themes checked against 22 templates, ShellCheck on 56 scripts, Lua syntax
+and secrets checks clean (CachyOS Linux). By hand on Hyprland: the dashboard in each light theme and the Claude Code
+theme (diffs, selection, expanded blocks, inline code) were reviewed on screen.
+
 ## [1.2.4.0] - 2026-11-28 09:45 (IST)
 
 ### Added

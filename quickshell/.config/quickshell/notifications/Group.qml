@@ -64,7 +64,7 @@ ColumnLayout {
         property bool hot: false
         signal clicked
         implicitWidth: 26; implicitHeight: 26
-        color: hb.containsMouse ? Qt.rgba(Theme.overlay.r, Theme.overlay.g, Theme.overlay.b, 0.9) : "transparent"
+        color: hb.containsMouse ? Theme.fillHover : "transparent"
         Glyph {
             anchors.centerIn: parent
             text: parent.glyph

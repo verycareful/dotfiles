@@ -55,7 +55,7 @@ ColumnLayout {
         property real watts
         readonly property bool active: Math.round(Gpu.cap) === Math.round(watts)
         implicitWidth: pl.implicitWidth + 14; implicitHeight: 20
-        color: active ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.55) : (pm.containsMouse ? Qt.rgba(Theme.overlay.r, Theme.overlay.g, Theme.overlay.b, 0.9) : "transparent")
+        color: active ? Theme.fillSelected : (pm.containsMouse ? Theme.fillHover : "transparent")
         border.width: 1; border.color: active ? Theme.primaryBright : Theme.overlay
         Text { id: pl; anchors.centerIn: parent; text: parent.label + " " + Math.round(parent.watts); color: parent.active ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 10; weight: Font.DemiBold } }
         MouseArea { id: pm; anchors.fill: parent; hoverEnabled: true; enabled: !Gpu.busy; onClicked: pc.apply(parent.watts) }

@@ -352,7 +352,7 @@ Scope {
                                 readonly property bool on: root.selected === modelData
                                 Layout.fillWidth: true
                                 implicitHeight: 32
-                                color: on ? Theme.glassCard : (am.containsMouse ? Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.8) : "transparent")
+                                color: on ? Theme.glassCard : (am.containsMouse ? Theme.fillHover : "transparent")
                                 border.width: 1; border.color: on ? Theme.primaryBright : Theme.overlay
                                 RowLayout {
                                     anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
@@ -502,7 +502,7 @@ Scope {
             }
             Rectangle {
                 implicitWidth: br.implicitWidth + 16; implicitHeight: 26
-                color: bm.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.5) : "transparent"
+                color: bm.containsMouse ? Theme.fillHover : "transparent"
                 border.width: 1; border.color: bm.containsMouse || row.open ? Theme.primaryBright : Theme.overlay
                 RowLayout {
                     id: br; anchors.centerIn: parent; spacing: 4
@@ -616,7 +616,7 @@ Scope {
         signal clicked
         implicitWidth: cl.implicitWidth + 18; implicitHeight: 24
         opacity: Perms.busy !== "" ? 0.5 : 1
-        color: active ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.55) : (cm.containsMouse ? Qt.rgba(Theme.overlay.r, Theme.overlay.g, Theme.overlay.b, 0.9) : "transparent")
+        color: active ? Theme.fillSelected : (cm.containsMouse ? Theme.fillHover : "transparent")
         border.width: 1; border.color: active ? (danger ? Theme.red : Theme.primaryBright) : Theme.overlay
         Text { id: cl; anchors.centerIn: parent; text: parent.label; color: parent.active ? (parent.danger ? Theme.red : Theme.text) : Theme.subtext
                font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }

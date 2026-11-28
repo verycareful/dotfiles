@@ -97,14 +97,14 @@ tooltip label { padding: 4px; color: @text; text-shadow: none; }
     font-weight: 700;
     transition: all 150ms ease;
 }
-#workspaces button:hover { color: @primaryBr; background: alpha(@surface, 0.7); }
+#workspaces button:hover { color: @primaryBr; background: @fillHover; }
 #workspaces button.active {
-    color: @accent;
-    background: alpha(@primary, 0.55);
+    color: @textOnSelected;
+    background: @fillSelected;
     padding: 0 14px;
 }
 #workspaces button.urgent { color: @onAccent; background: @accent; }
-#workspaces button.empty  { color: alpha(@muted, 0.45); }
+#workspaces button.empty  { color: @mutedDim; }
 
 /* ── right ────────────────────────────────────────────────── */
 #mpris { color: @text; font-style: normal; padding-right: 4px; }

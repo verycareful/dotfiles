@@ -42,7 +42,7 @@ ColumnLayout {
     Rectangle {
         Layout.fillWidth: true
         implicitHeight: 36
-        color: Qt.rgba(Theme.base.r, Theme.base.g, Theme.base.b, 0.55)
+        color: Theme.fillField
         border.width: 1; border.color: input.activeFocus ? Theme.primaryBright : Theme.overlay
         RowLayout {
             anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
@@ -76,7 +76,7 @@ ColumnLayout {
                 required property int index
                 Layout.fillWidth: true
                 implicitHeight: 34
-                color: index === search.selected || rm.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.45) : "transparent"
+                color: index === search.selected || rm.containsMouse ? Theme.fillSelected : "transparent"
                 RowLayout {
                     anchors { fill: parent; leftMargin: 8; rightMargin: 8 }
                     spacing: 10

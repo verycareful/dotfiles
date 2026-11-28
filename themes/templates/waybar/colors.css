@@ -15,3 +15,7 @@
 @define-color red       #{{red}};
 @define-color green     #{{green}};
 @define-color yellow    #{{yellow}};
+@define-color fillSelected rgba({{fill_selected_rgb}}, {{select_alpha}});
+@define-color fillHover    rgba({{fill_hover_rgb}}, {{hover_alpha}});
+@define-color textOnSelected #{{on_selected}};
+@define-color mutedDim     rgba({{muted_rgb}}, {{empty_alpha}});

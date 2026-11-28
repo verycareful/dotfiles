@@ -26,6 +26,12 @@ QtObject {
     readonly property color glassPanel: Qt.rgba(mantle.r, mantle.g, mantle.b, {{glass|0.74}})
     readonly property color glassCard:  Qt.rgba(mantle.r, mantle.g, mantle.b, {{glass|0.78}})
     readonly property color glassBar:   Qt.rgba(mantle.r, mantle.g, mantle.b, {{glass|0.60}})   // waybar's @mantleGlass
+    // fills: a selected item, a hovered item and an input field, laid over a card; textOnSelected is the text on a selected fill
+    readonly property color fillSelected: Qt.alpha("#{{fill_selected}}", {{select_alpha}})
+    readonly property color fillHover:    Qt.alpha("#{{fill_hover}}", {{hover_alpha}})
+    readonly property color fillField:    Qt.alpha("#{{fill_field}}", {{field_alpha}})
+    readonly property color textOnSelected: "#{{on_selected}}"
+    readonly property color scrim:      Qt.alpha("#{{base}}", {{scrim_alpha}})   // behind a full-screen overlay
 
     readonly property string fontUi:      "Oxanium"
     readonly property string fontDisplay: "Quantico"

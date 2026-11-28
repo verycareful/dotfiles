@@ -120,7 +120,7 @@ Item {
         }
         Rectangle {
             implicitWidth: view.filterWidth; implicitHeight: 36
-            color: Qt.rgba(Theme.base.r, Theme.base.g, Theme.base.b, 0.55)
+            color: Theme.fillField
             border.width: 1; border.color: input.activeFocus ? Theme.primaryBright : Theme.overlay
             MouseArea { anchors.fill: parent; onClicked: input.forceActiveFocus() }
             RowLayout {
@@ -213,7 +213,7 @@ Item {
         property int index
         readonly property string icon: Quickshell.iconPath(entry.icon, true)
         height: view.rowH
-        color: index === view.selected ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.55)
+        color: index === view.selected ? Theme.fillSelected
              : (am.containsMouse ? Theme.glassCard : "transparent")
         RowLayout {
             anchors { fill: parent; leftMargin: 6; rightMargin: 6 }

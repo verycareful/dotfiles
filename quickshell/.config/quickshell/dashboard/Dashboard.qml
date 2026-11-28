@@ -11,7 +11,6 @@ import "reveal.js" as Reveal
 
 Scope {
     id: root
-    readonly property real dim: 0.55            // over 20% alpha, so Hyprland blurs it (layers.lua)
     readonly property int  slideMs: 220
     readonly property int  wheelStep: 120       // one mouse-wheel notch; a touchpad swipe sums to it
     readonly property int  wheelPauseMs: 450    // one swipe switches the view once
@@ -62,7 +61,7 @@ Scope {
         anchors { top: true; bottom: true; left: true; right: true }
         // over the bar: the Overlay layer, ignoring its exclusive zone, so the bar sits under the dim and blur
         exclusionMode: ExclusionMode.Ignore
-        color: Qt.rgba(0, 0, 0, root.dim)
+        color: Theme.scrim          // over 20% alpha, so Hyprland blurs it (layers.lua)
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "qs-dashboard"
         WlrLayershell.keyboardFocus: root.showing ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None

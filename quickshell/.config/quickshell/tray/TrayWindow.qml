@@ -121,7 +121,7 @@ Scope {
         readonly property bool selected: at === root.cursor
         Layout.fillWidth: true
         implicitHeight: 44
-        color: selected ? Qt.alpha(Theme.primary, 0.45) : Theme.surface
+        color: selected ? Theme.fillSelected : Theme.surface
         border.width: selected ? 2 : 1
         border.color: selected ? Theme.primaryBright : Theme.overlay
 

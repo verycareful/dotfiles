@@ -102,7 +102,7 @@ Rectangle {
                     Rectangle {
                         required property var modelData
                         implicitWidth: alabel.implicitWidth + 18; implicitHeight: 24
-                        color: ahover.containsMouse ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.5) : Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.8)
+                        color: ahover.containsMouse ? Theme.fillHover : Qt.rgba(Theme.surface.r, Theme.surface.g, Theme.surface.b, 0.8)
                         border.width: 1; border.color: Theme.overlay
                         Text {
                             id: alabel
@@ -124,7 +124,7 @@ Rectangle {
                 spacing: 6
                 Rectangle {
                     Layout.fillWidth: true; implicitHeight: 26
-                    color: Qt.rgba(Theme.base.r, Theme.base.g, Theme.base.b, 0.6)
+                    color: Theme.fillField
                     border.width: 1; border.color: reply.activeFocus ? Theme.primaryBright : Theme.overlay
                     TextInput {
                         id: reply

@@ -7,7 +7,9 @@
   render.py wallpaper THEME       the path of the image THEME shows (wallpapers/local/THEME.* first)
 THEME is a name (themes/NAME.theme) or a path to a .theme file.
 A template names a value as {{key}}, or {{key|fallback}} when a theme may leave the key out."""
+import colorsys
 import json
+import math
 import os
 import re
 import sys
@@ -28,26 +30,66 @@ COLOURS = ('base', 'mantle', 'surface', 'overlay', 'primary', 'primary_bright', 
 # Colours a theme may set; values() derives them otherwise.
 OPTIONAL_COLOURS = ('on_accent',)
 
-# Values that follow from mode, so templates name them instead of branching on it.
+# Values that follow from mode, so templates name them instead of branching on it. dim_opacity is how strongly kitty draws faint text (Claude Code draws removed diff lines faint; the 0.4 default washes
+# out dark text on a light background). scrim_alpha is how opaque the
+# base-coloured scrim behind a full-screen overlay is: a light theme needs it high so dark text stays legible.
 MODES = {
     'dark':  {'gtk_theme': 'adw-gtk3-dark', 'gtk_prefer_dark': '1', 'icon_theme': 'Papirus-Dark',
               'color_scheme': 'prefer-dark', 'vscode_theme': 'Default Dark Modern', 'kitty_text': 'platform',
-              'gtk_rgba': 'rgb'},
+              'gtk_rgba': 'rgb', 'scrim_alpha': '0.55', 'terminal_opacity': '0.78', 'dim_opacity': '0.4'},
     'light': {'gtk_theme': 'adw-gtk3', 'gtk_prefer_dark': '0', 'icon_theme': 'Papirus',
               'color_scheme': 'prefer-light', 'vscode_theme': 'Default Light Modern', 'kitty_text': '1.4 20',
-              'gtk_rgba': 'none'},
+              'gtk_rgba': 'none', 'scrim_alpha': '0.78', 'terminal_opacity': '0.68', 'dim_opacity': '0.9'},
 }
 
 # Colour roles whose meaning flips with mode: each name is set to the value of the named key. ANSI black and white
-# stay dark and light on either background; Qt's bevel shades keep Light lighter than Dark.
+# stay dark and light on either background; Qt's bevel shades keep Light lighter than Dark; the fill_* roles are the
+# colours of a selected, hovered and input-field background and on_selected the text on a selected one; ANSI blue is the
+# accent on a light theme (Claude Code's light-ansi inline code is the terminal's blue) and primary_bright on a dark one.
 MODE_ROLES = {
     'dark':  {'ansi_black': 'surface', 'ansi_black_bright': 'overlay', 'ansi_white': 'subtext', 'ansi_white_bright': 'text',
-              'qt_light': 'overlay', 'qt_midlight': 'surface', 'qt_mid': 'mantle', 'qt_dark': 'base'},
+              'qt_light': 'overlay', 'qt_midlight': 'surface', 'qt_mid': 'mantle', 'qt_dark': 'base',
+              'ansi_blue': 'primary_bright',
+              'fill_selected': 'primary', 'fill_hover': 'overlay', 'fill_field': 'base', 'on_selected': 'accent'},
     'light': {'ansi_black': 'subtext', 'ansi_black_bright': 'muted', 'ansi_white': 'overlay', 'ansi_white_bright': 'surface',
-              'qt_light': 'base', 'qt_midlight': 'mantle', 'qt_mid': 'surface', 'qt_dark': 'overlay'},
+              'qt_light': 'base', 'qt_midlight': 'mantle', 'qt_mid': 'surface', 'qt_dark': 'overlay',
+              'ansi_blue': 'accent',
+              'fill_selected': 'accent', 'fill_hover': 'overlay', 'fill_field': 'surface', 'on_selected': 'text'},
 }
 
-TARGETS = {  # template -> destination(s) under $XDG_CONFIG_HOME
+# The text colours Claude Code draws on a mouse selection, and the contrast each must keep. Only the background of a
+# selection is themeable, so it is the strongest tint of the accent hue that leaves all of these readable.
+SELECT_TEXT_CONTRAST = {'text': 7, 'subtext': 4.5, 'muted': 4.5, 'accent': 2.5}
+SELECT_TEXT_CONTRAST_DARK = {**SELECT_TEXT_CONTRAST, 'muted': 3.0}  # dark themes' muted text is dim by design
+SELECT_VISIBLE = 1.2  # a selection must differ at least this much from the theme's background to be seen
+
+# Colours that get a lighter <name>_shimmer tint, for apps that animate a highlight across a colour.
+SHIMMER_ROLES = ('accent', 'yellow', 'muted')
+SHIMMER_MIX = 0.15  # how far the tint moves toward white: a hint of a highlight, not a different colour
+
+# Colours that get <name>_tint, <name>_tint_strong and <name>_tint_faint: the colour's own hue and saturation at a high
+# lightness on a light theme and a low one on a dark theme, for the background behind added and removed text (a pale
+# wash, a stronger one for changed words, a fainter one for dimmed diffs, one for a selection). (light, dark)
+# lightness for each. Claude Code's ANSI base quantises colours to the 256-colour cube, so each tint is snapped to a
+# cube colour here, and what is written is what is drawn.
+TINT_ROLES = ('green', 'red')
+TINTS = {'tint': (0.84, 0.16), 'tint_strong': (0.77, 0.27), 'tint_faint': (0.91, 0.11)}
+TINT_TEXT_CONTRAST = {'': 6, 'tint_strong': 3.5}  # the theme's text on each tint, at least
+# The accent's hue and saturation at a very high (light theme) or low (dark theme) lightness, not snapped to the cube:
+# the background of a large block, such as an expanded tool call, which is drawn in true colour.
+ACCENT_WASH = (0.93, 0.14)
+TINT_HUE_SHIFT = {'red': 14 / 360}  # the palette reds lean magenta, which reads as pink at a high lightness
+TINT_SATURATION = {'red': 1.2}  # a pale red needs more saturation than a pale green to read as red
+
+# Translucent fills for a selected item, a hovered item and an input field, laid over a card. A dark theme uses fixed
+# alphas. On a light theme the selected and hover alphas are solved so each fill is a set contrast against the card
+# (mantle), because the colours differ so much in strength between themes (black against orange): the selected fill
+# must read clearly stronger than hover, yet text on it must stay readable.
+FILL_DARK = {'select_alpha': 0.55, 'hover_alpha': 0.90, 'field_alpha': 0.55, 'empty_alpha': 0.45}
+FILL_LIGHT_FIELD_ALPHA = 0.90
+FILL_LIGHT_CONTRAST = {'select_alpha': 1.45, 'hover_alpha': 1.28, 'empty_alpha': 3.0}  # fill against the card
+
+TARGETS = {  # template -> destination(s) under $XDG_CONFIG_HOME; a '~/' destination is under the home directory
     'hypr/colors.lua':    ['hypr/lua/colors.lua'],
     'hypr/cursor.lua':    ['hypr/lua/cursor.lua'],
     'hypr/hyprlock.conf': ['hypr/hyprlock.conf'],
@@ -65,6 +107,7 @@ TARGETS = {  # template -> destination(s) under $XDG_CONFIG_HOME
     'fastfetch/config.jsonc': ['fastfetch/config.jsonc'],
     'btop/dotfiles.theme': ['btop/themes/dotfiles.theme'],
     'vencord/dotfiles.theme.css': ['Vencord/themes/dotfiles.theme.css'],
+    'claude/theme.json':  ['~/.claude/themes/dotfiles.json'],
 }
 
 HEX = re.compile(r'[0-9a-fA-F]{6}')
@@ -100,11 +143,91 @@ def contrast(a, b):
     return (la + 0.05) / (lb + 0.05)
 
 
+def mix(a, b, t):
+    """The hex colour t of the way from a to b (both six-digit hex)."""
+    return ''.join('%02x' % round(int(a[i:i + 2], 16) * (1 - t) + int(b[i:i + 2], 16) * t) for i in (0, 2, 4))
+
+
+CUBE_LEVELS = (0, 95, 135, 175, 215, 255)
+CUBE_256 = ([(r, g, b) for r in CUBE_LEVELS for g in CUBE_LEVELS for b in CUBE_LEVELS]
+            + [(v, v, v) for v in range(8, 239, 10)])  # the 6x6x6 cube and the 24 greys of xterm-256
+
+
+def lab(rgb):
+    """CIELAB of an (r, g, b) tuple of 0-255 values."""
+    lin = [c / 255 / 12.92 if c / 255 <= 0.04045 else ((c / 255 + 0.055) / 1.055) ** 2.4 for c in rgb]
+    x = (0.4124 * lin[0] + 0.3576 * lin[1] + 0.1805 * lin[2]) / 0.95047
+    y = 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+    z = (0.0193 * lin[0] + 0.1192 * lin[1] + 0.9505 * lin[2]) / 1.08883
+    f = [t ** (1 / 3) if t > 0.008856 else 7.787 * t + 16 / 116 for t in (x, y, z)]
+    return 116 * f[1] - 16, 500 * (f[0] - f[1]), 200 * (f[1] - f[2])
+
+
+HUE_TOLERANCE = 25  # degrees a snapped tint may turn away from the colour it stands in for
+CHROMATIC = 12      # below this CIELAB chroma a colour counts as grey and its hue is ignored
+
+
+def _hue_gap(a, b):
+    """Degrees between the hues of two CIELAB colours."""
+    gap = abs(math.degrees(math.atan2(a[2], a[1]) - math.atan2(b[2], b[1]))) % 360
+    return min(gap, 360 - gap)
+
+
+def snap256(colour, keep=lambda c: True):
+    """The xterm-256 colour nearest to a six-digit hex colour among those keep() accepts, as hex. A chromatic colour
+    keeps its hue (within HUE_TOLERANCE) when any accepted cube colour allows it, and chroma errors cost four times
+    what a lightness error does, so a green stays green rather than turning teal."""
+    want = lab(tuple(int(colour[i:i + 2], 16) for i in (0, 2, 4)))
+    pool = [c for c in CUBE_256 if keep(c)] or CUBE_256
+    if math.hypot(want[1], want[2]) >= CHROMATIC:
+        pool = [c for c in pool if math.hypot(*lab(c)[1:]) >= CHROMATIC
+                and _hue_gap(lab(c), want) <= HUE_TOLERANCE] or pool
+
+    def cost(c):
+        got = lab(c)
+        return (got[0] - want[0]) ** 2 + 4 * ((got[1] - want[1]) ** 2 + (got[2] - want[2]) ** 2)
+    return '%02x%02x%02x' % min(pool, key=cost)
+
+
+def tint(colour, lightness, hue_shift=0.0, saturation=1.0):
+    """The colour with its lightness replaced, its saturation scaled and its hue turned by hue_shift (six-digit hex)."""
+    h, _, sat = colorsys.rgb_to_hls(*(int(colour[i:i + 2], 16) / 255 for i in (0, 2, 4)))
+    return ''.join('%02x' % round(c * 255)
+                   for c in colorsys.hls_to_rgb((h + hue_shift) % 1, lightness, min(1.0, sat * saturation)))
+
+
+def solve_alpha(fg, bg, target):
+    """The alpha (two decimals) at which fg laid over bg first reaches the contrast target against bg."""
+    for hundredths in range(2, 99):
+        if contrast(mix(bg, fg, hundredths / 100), bg) >= target:
+            return hundredths / 100
+    return 0.98
+
+
+def select_fill(raw, dark):
+    """The accent hue at the strongest lightness that keeps every SELECT_TEXT_CONTRAST colour readable on it: scanning
+    from the strong end (low lightness on a light theme, high on a dark one), the first tint that passes. If none
+    does, the tint whose worst colour comes closest to its target. Tints too close to the background are skipped."""
+    needs = SELECT_TEXT_CONTRAST_DARK if dark else SELECT_TEXT_CONTRAST
+    best, best_score = None, 0.0
+    for step in range(56):
+        lightness = 0.60 - step * 0.01 if dark else 0.50 + step * 0.01
+        fill = tint(raw['accent'], lightness)
+        if contrast(fill, raw['base']) < SELECT_VISIBLE:
+            continue
+        score = min(contrast(raw[k], fill) / need for k, need in needs.items())
+        if score >= 1:
+            return fill
+        if score > best_score:
+            best, best_score = fill, score
+    return best
+
+
 def values(raw):
     """The theme's own keys plus the derived ones: the MODE_ROLES colours, on_accent (text drawn on an accent
     fill: the theme's own, else whichever of base and text contrasts more with accent), x_rgb ('r, g, b' for
     rgba()) and x_ansi ('38;2;r;g;b') for every hex value, glass_hex (glass as an alpha byte for rgba(hexAA))
-    and the MODES set."""
+    the SHIMMER_ROLES and TINT_ROLES tints and the MODES set."""
     v = dict(raw)
     v.update({role: raw[k] for role, k in MODE_ROLES.get(raw.get('mode'), {}).items() if k in raw})
     if 'on_accent' not in raw and all(HEX.fullmatch(raw.get(k, '')) for k in ('accent', 'base', 'text')):
@@ -117,6 +240,40 @@ def values(raw):
             v[k + '_ansi'] = '38;2;' + ';'.join(rgb)
     if 'glass' in raw:
         v['glass_hex'] = '%02x' % round(float(raw['glass']) * 255)
+    v.update({f'{k}_shimmer': mix(raw[k], 'ffffff', SHIMMER_MIX) for k in SHIMMER_ROLES
+              if HEX.fullmatch(raw.get(k, ''))})
+    if raw.get('mode') in MODES and HEX.fullmatch(raw.get('text', '')):
+        dark = raw['mode'] == 'dark'
+        for k in TINT_ROLES:
+            if not HEX.fullmatch(raw.get(k, '')):
+                continue
+            wash = None
+            for name, levels in TINTS.items():
+                want = tint(raw[k], levels[dark], TINT_HUE_SHIFT.get(k, 0.0), TINT_SATURATION.get(k, 1.0))
+                floor = TINT_TEXT_CONTRAST.get(name, TINT_TEXT_CONTRAST[''])
+
+                def keep(c, name=name, wash=wash, floor=floor):
+                    if contrast(raw['text'], '%02x%02x%02x' % c) < floor:
+                        return False
+                    if name == 'tint_strong' and wash is not None:  # a changed word must stand out from its line
+                        return lab(c)[0] - wash > 3 if dark else wash - lab(c)[0] > 3
+                    return True
+                v[f'{k}_{name}'] = snap256(want, keep)
+                if name == 'tint':
+                    wash = lab(tuple(int(v[f'{k}_{name}'][i:i + 2], 16) for i in (0, 2, 4)))[0]
+    if raw.get('mode') in MODES and HEX.fullmatch(raw.get('accent', '')):
+        v['accent_wash'] = tint(raw['accent'], ACCENT_WASH[raw['mode'] == 'dark'])
+        if all(HEX.fullmatch(raw.get(k, '')) for k in (*SELECT_TEXT_CONTRAST, 'base')):
+            v['accent_select'] = select_fill(raw, raw['mode'] == 'dark')
+    if raw.get('mode') in MODES and all(HEX.fullmatch(raw.get(k, '')) for k in ('mantle', 'accent', 'overlay', 'muted')):
+        if raw['mode'] == 'dark':
+            alphas = dict(FILL_DARK)
+        else:
+            alphas = {'select_alpha': solve_alpha(raw['accent'], raw['mantle'], FILL_LIGHT_CONTRAST['select_alpha']),
+                      'hover_alpha': solve_alpha(raw['overlay'], raw['mantle'], FILL_LIGHT_CONTRAST['hover_alpha']),
+                      'field_alpha': FILL_LIGHT_FIELD_ALPHA,
+                      'empty_alpha': solve_alpha(raw['muted'], raw['mantle'], FILL_LIGHT_CONTRAST['empty_alpha'])}
+        v.update({k: '%.2f' % a for k, a in alphas.items()})
     v.update(MODES.get(raw.get('mode'), {}))
     return v
 
@@ -171,8 +328,14 @@ def problems(path, tpl_root=TEMPLATES, wallpapers=WALLPAPERS):
     return out
 
 
-def render_all(path, cfg, tpl_root=TEMPLATES, wallpapers=WALLPAPERS):
-    """Write every TARGETS file under cfg. A theme with problems writes nothing."""
+def destination(d, cfg, home):
+    """Where a TARGETS destination lands: under home if it starts with '~/', else under cfg."""
+    return os.path.join(home, d[2:]) if d.startswith('~/') else os.path.join(cfg, d)
+
+
+def render_all(path, cfg, tpl_root=TEMPLATES, wallpapers=WALLPAPERS, home=None):
+    """Write every TARGETS file under cfg (or home, for '~/' destinations). A theme with problems writes nothing."""
+    home = home or Path.home()
     bad = problems(path, tpl_root, wallpapers)
     if bad:
         return bad
@@ -180,7 +343,7 @@ def render_all(path, cfg, tpl_root=TEMPLATES, wallpapers=WALLPAPERS):
     for src, dsts in TARGETS.items():
         text, _ = fill((Path(tpl_root) / src).read_text(), v)
         for d in dsts:
-            p = os.path.join(cfg, d)
+            p = destination(d, cfg, home)
             os.makedirs(os.path.dirname(p), exist_ok=True)
             Path(p).write_text(text)
     return []

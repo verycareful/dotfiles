@@ -96,7 +96,7 @@ Scope {
                         required property int index
                         readonly property bool selected: index === root.index
                         width: 236; height: 176
-                        color: selected ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.45) : Theme.glassCard
+                        color: selected ? Theme.fillSelected : Theme.glassCard
                         border.width: selected ? 2 : 1; border.color: selected ? Theme.accent : Theme.overlay
                         Column {
                             anchors { fill: parent; margins: 8 }

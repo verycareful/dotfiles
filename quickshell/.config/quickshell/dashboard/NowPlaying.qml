@@ -155,7 +155,7 @@ Widgets.Tile {
                     wrapMode: Text.WordWrap
                     text: (card.synced ? modelData[1] : modelData) || "♪"
                     color: now ? Theme.text : (card.synced && index < card.line ? Theme.muted : Theme.subtext)
-                    font { family: Theme.fontUi; pixelSize: now ? 20 : 16; weight: now ? Font.Bold : Font.DemiBold }
+                    font { family: Theme.fontUi; pixelSize: now ? 20 : 16; weight: Font.DemiBold }
                     Behavior on color { ColorAnimation { duration: 200 } }
                 }
             }
@@ -174,7 +174,7 @@ Widgets.Tile {
         property bool big: false
         signal clicked
         implicitWidth: big ? 48 : 38; implicitHeight: big ? 48 : 38
-        color: mm.containsMouse && enabled ? Qt.rgba(Theme.overlay.r, Theme.overlay.g, Theme.overlay.b, 0.9) : "transparent"
+        color: mm.containsMouse && enabled ? Theme.fillHover : "transparent"
         border.width: big ? 1 : 0; border.color: Theme.overlay
         Glyph { anchors.centerIn: parent; text: parent.glyph; color: parent.enabled ? (mm.containsMouse ? Theme.accent : Theme.text) : Theme.muted; size: parent.big ? 26 : 20 }
         MouseArea { id: mm; anchors.fill: parent; hoverEnabled: true; onClicked: if (parent.enabled) parent.clicked() }

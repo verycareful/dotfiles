@@ -12,8 +12,8 @@
     subtext:   #{{subtext}};
     muted:     #{{muted}};
     mantleGlass:  rgba({{mantle_rgb}}, {{glass|0.72}});
-    baseGlass:    rgba({{base_rgb}}, 0.6);
-    primaryGlass: rgba({{primary_rgb}}, 0.45);
+    fieldGlass:    rgba({{fill_field_rgb}}, {{field_alpha}});
+    selectedGlass: rgba({{fill_selected_rgb}}, {{select_alpha}});
 }
 /* `highlight` only takes a literal colour, so it lives here */
 element-text { highlight: bold #{{accent}}; }

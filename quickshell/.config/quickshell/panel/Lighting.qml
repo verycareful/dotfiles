@@ -31,7 +31,7 @@ Widgets.Tile {
                 readonly property bool active: modelData === tile.current
                 readonly property bool busy: modelData === tile.pending
                 implicitWidth: pl.implicitWidth + 16; implicitHeight: 24
-                color: active ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.55) : (pm.containsMouse ? Qt.rgba(Theme.overlay.r, Theme.overlay.g, Theme.overlay.b, 0.9) : "transparent")
+                color: active ? Theme.fillSelected : (pm.containsMouse ? Theme.fillHover : "transparent")
                 border.width: 1; border.color: active ? Theme.primaryBright : Theme.overlay
                 Text { id: pl; anchors.centerIn: parent; text: parent.busy ? "…" : parent.modelData; color: parent.active ? Theme.text : Theme.subtext; font { family: Theme.fontUi; pixelSize: 11; weight: Font.DemiBold } }
                 MouseArea { id: pm; anchors.fill: parent; hoverEnabled: true; onClicked: tile.apply(parent.modelData) }

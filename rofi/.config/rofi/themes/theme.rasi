@@ -23,7 +23,7 @@ mainbox {
 
 inputbar {
     children:         [ prompt, entry ];
-    background-color: @baseGlass;
+    background-color: @fieldGlass;
     border:           0 0 1px 0;
     border-color:     @overlay;
     padding:          14px 18px;
@@ -64,13 +64,13 @@ element normal.urgent  { text-color: @accent; }
 element normal.active  { text-color: @primaryBr; }
 element alternate.normal { text-color: @text; }
 element selected.normal {
-    background-color: @primaryGlass;
+    background-color: @selectedGlass;
     text-color:       @text;
     border:           0 0 0 2px;
     border-color:     @accent;
 }
 element selected.urgent { background-color: @accent; text-color: @onAccent; }
-element selected.active { background-color: @primaryGlass; text-color: @primaryBr; }
+element selected.active { background-color: @selectedGlass; text-color: @primaryBr; }
 
 element-icon {
     size:             1.4em;
