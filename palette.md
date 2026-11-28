@@ -8,7 +8,7 @@ header — edit the template or the theme, never the generated copy.
 ```sh
 theme list            # dusk, dusk-light, harbour, harbour-light, mono, mono-light
 theme set mono        # render + live reload (wallpaper, Hyprland, Waybar, Quickshell, open kitty windows)
-theme window          # the theme window (SUPER+Shift+T): a preview card per theme, dark and light side by side
+theme window          # the theme window (from Settings): a preview card per theme, dark and light side by side
 theme toggle          # next theme
 theme light           # light half of the current pair (dusk -> dusk-light); `theme dark` goes back
 theme pick            # rofi menu

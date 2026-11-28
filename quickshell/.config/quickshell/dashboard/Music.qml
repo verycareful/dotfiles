@@ -1,7 +1,7 @@
 // The Music screen: the song visualiser full screen, in the look chosen in Settings (or by the chips and
 // Left/Right here), with the album art, title, artist and playback buttons below, and the lyrics beside them in the
 // same row, or down the right when clicked (and back when clicked again). A third dashboard view: a click on the Now playing
-// card or SUPER+SHIFT+V opens it. It holds services/Viz.qml (and so its audio source) only while it is shown.
+// card opens it. It holds services/Viz.qml (and so its audio source) only while it is shown.
 // Everything inside the margins takes the clicks; a click in the margin, which is the dim, closes the dashboard.
 import QtQuick
 import QtQuick.Layouts

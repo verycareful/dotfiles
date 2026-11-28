@@ -1,4 +1,4 @@
-// Dashboard state + IPC (the `panel` target: SUPER+A, the bar's anchor). `open` is the dashboard's.
+// Dashboard state + IPC (the `panel` target: the station's hub, the bar's anchor). `open` is the dashboard's.
 pragma Singleton
 import QtQuick
 import Quickshell
@@ -142,7 +142,7 @@ Singleton {
 
     // waybar's custom/panel module re-runs `qs ipc call panel status` on RTMIN+10
     Timer { id: barSignal; interval: 50; onTriggered: Quickshell.execDetached(["pkill", "-RTMIN+10", "waybar"]) }
-    function status() { return JSON.stringify({ text: "", alt: open ? "open" : "closed", class: open ? "open" : "closed", tooltip: "Dashboard (SUPER+A)" }) }
+    function status() { return JSON.stringify({ text: "", alt: open ? "open" : "closed", class: open ? "open" : "closed", tooltip: "Dashboard" }) }
 
     IpcHandler {
         target: "panel"

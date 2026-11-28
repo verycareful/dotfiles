@@ -10,7 +10,7 @@
 #                         (themes/sun.py; WEATHER_LOC pins the place). `tick` applies it when auto is on and
 #                         is what Quickshell runs on a timer. Choosing a theme by hand turns auto off.
 #   theme pick            choose with rofi
-#   theme window          choose in the Quickshell theme window (SUPER+Shift+T)
+#   theme window          choose in the Quickshell theme window
 #   theme json            every theme's colours and wallpaper as JSON (what the window reads)
 #   theme render TPL [N]  print template file TPL rendered with theme N (default: current)
 #   theme check [N...]    validate themes (default: all) against every template

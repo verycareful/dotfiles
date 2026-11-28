@@ -15,7 +15,7 @@
                        "group/traybox", "custom/updates", "custom/notifications", "custom/settings", "custom/keyhint", "custom/power"],
 
     // ── left ──────────────────────────────────────────────────
-    "custom/panel": {                       // anchor: opens the Quickshell dashboard (also SUPER+A)
+    "custom/panel": {                       // anchor: opens the Quickshell dashboard (the station's hub)
         "exec": "qs ipc call panel status",
         "return-type": "json",
         "interval": "once",

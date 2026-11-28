@@ -1,7 +1,7 @@
-// The dashboard: a full-screen overlay over the dimmed, blurred desktop. SUPER+A / the bar's anchor opens it;
+// The dashboard: a full-screen overlay over the dimmed, blurred desktop. The station's hub (Enter on it) or the bar's anchor opens it;
 // Esc or a click on the dim closes it. Three views stacked vertically: Music (the song visualiser, above), Home
 // (clock, calendar, controls, media, system, lighting, safety, notifications) and All apps (A-Z). The scroll wheel
-// moves one view along that column; Tab toggles Home and All apps; the Now playing card or SUPER+SHIFT+V opens
+// moves one view along that column; Tab toggles Home and All apps; the Now playing card opens
 // Music, and Tab leaves it for Home.
 import QtQuick
 import Quickshell

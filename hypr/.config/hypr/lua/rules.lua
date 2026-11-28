@@ -12,10 +12,8 @@ hl.window_rule({ match = { class = "^(io.github.ilya_zlobintsev.LACT)$" }, size 
 hl.window_rule({ match = { title = "^(DNS settings)$" }, float = true, center = true })
 -- Quickshell's permissions window (Waybar shield, `qs ipc call perms open`)
 hl.window_rule({ match = { title = "^(Permissions)$" }, float = true, center = true })
--- Quickshell's theme window (SUPER+SHIFT+T, `qs ipc call themes open`)
+-- Quickshell's theme window (from Settings, `qs ipc call themes open`)
 hl.window_rule({ match = { title = "^(Themes)$" }, float = true, center = true })
--- Quickshell's tray window (SUPER+SHIFT+M, `qs ipc call tray open`)
-hl.window_rule({ match = { title = "^(Tray)$" }, float = true, center = true })
 
 -- File pickers / dialogs
 local dialogs = "^(Open File|Save File|Open Folder|Select .*)$"
@@ -25,6 +23,18 @@ hl.window_rule({ match = { title = dialogs }, float = true, center = true })
 -- it was; the station lists each one under Shots. Any other satty window keeps the default app id org.satty.satty
 -- and opens normally.
 hl.window_rule({ match = { class = "^(org.satty.shot)$" }, workspace = "special:shots silent" })
+
+-- Pads: each opens in its own special workspace, shown at once; the station's fixed keys (K, S, D, Z) summon
+-- them, and G is the General pad, which takes anything.
+local pads = {
+    { class = "^(io.github.verycareful.kern)$", pad = "kern" },
+    { class = "^(Spotify|spotify)$",            pad = "spotify" },
+    { class = "^(discord)$",                    pad = "discord" },
+    { class = "^(signal)$",                     pad = "signal" },
+}
+for _, p in ipairs(pads) do
+    hl.window_rule({ match = { class = p.class }, workspace = "special:" .. p.pad })
+end
 
 -- Picture-in-picture always on top
 hl.window_rule({ match = { title = "^(Picture-in-Picture)$" }, float = true, pin = true })

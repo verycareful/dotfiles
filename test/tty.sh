@@ -5,7 +5,7 @@
 #
 #   1. Ctrl+Alt+F3  → log in
 #   2. ~/Sonnenplatz/Projects/Github/dotfiles/test/tty.sh
-#   3. SUPER+Shift+Q exits; the log path is printed afterwards.
+#   3. Log out from the power menu (SUPER+Shift+Escape); the log path is printed afterwards.
 set -euo pipefail
 if [[ -n "${WAYLAND_DISPLAY:-}" || -n "${DISPLAY:-}" ]]; then
     echo "This is running inside a graphical session, so Hyprland would start as a nested" >&2

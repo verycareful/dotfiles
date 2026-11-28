@@ -1,6 +1,6 @@
 // Settings: a glass window centred on the screen, a page list on the left and the page on the right.
 // The rest of the screen stays clear; a click there or Esc closes it. Pages reuse the panel's widgets.
-//   qs ipc call settings open [PAGE] | close | toggle   (SUPER+comma, the bar's gear, SUPER+X > Settings)
+//   qs ipc call settings open [PAGE] | close | toggle   (SUPER+comma, the bar's gear, SUPER+Shift+X > Settings)
 // PAGE is a page id (appearance, bar, notifications, network, performance, lighting, security, permissions).
 import QtQuick
 import QtQuick.Layouts

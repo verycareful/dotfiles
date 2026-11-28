@@ -1,7 +1,7 @@
 // Theme window: every theme as a preview card, its dark and light halves side by side. A card shows the theme's
 // wallpaper with a small mock desktop drawn in its colours; clicking one (or Enter) runs `theme set`.
 // Arrow keys move between cards, Escape closes.
-//   qs ipc call themes open|close|toggle   (SUPER+Shift+T, `theme window`)
+//   qs ipc call themes open|close|toggle   (Settings, `theme window`)
 import QtQuick
 import QtQuick.Layouts
 import Quickshell

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# actions: one rofi menu for the desktop's own commands (SUPER+X).
+# actions: one rofi menu for the desktop's own commands (SUPER+Shift+X).
 #   actions        open the menu
 # Each row is "glyph  label" mapped to a command below; add a row to both arrays to extend it.
 set -uo pipefail

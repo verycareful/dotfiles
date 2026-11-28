@@ -136,6 +136,9 @@ Singleton {
         onExited: root.nextChain()
     }
     function route(item, pids) {
+        // Pads and shots have their own workspaces (rules.lua); routing them would undo that.
+        const kind = Model.branchOfClass(item.cls)
+        if (kind === "pad" || kind === "shot") return
         const now = Date.now()
         launches = launches.filter(l => now - l.at <= routeTtlMs)
         const target = Model.resolveLaunch(pids, launches, Model.freshClassWs(classRoutes, now, routeTtlMs), item.cls)
