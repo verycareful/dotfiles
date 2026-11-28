@@ -48,9 +48,14 @@ Singleton {
     function focusWorkspace(name) { Hyprland.dispatch("hl.dsp.focus({ workspace = " + wsArg(name) + " })") }
     function toggleSpecial(name) { Hyprland.dispatch("hl.dsp.workspace.toggle_special(" + q(name) + ")") }
 
+    // Home enters the station-move submap and its release ends it, but the release never arrives while this view
+    // holds the keyboard, which would leave every global bind dead. The view therefore ends the hold itself.
+    function endMoveHold() { Hyprland.dispatch("hl.dsp.submap(\"reset\")") }
+
     // Opening the station over the dashboard closes the dashboard: the station holds it as its hub.
     function setShown(v) {
         pendingPrefix = ""
+        endMoveHold()
         if (v && Panel.open) Panel.setOpen(false)
         if (v) { Hyprland.refreshToplevels(); rebuild() }
         shown = v

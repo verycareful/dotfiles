@@ -70,7 +70,7 @@ Scope {
         event.accepted = true
         if (event.key === Qt.Key_Escape) { close(); return }
         if (event.key === Qt.Key_Home) { Station.selected = "hub"; return }
-        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) { activate(Station.selected); return }
+        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) { Station.endMoveHold(); activate(Station.selected); return }
         if (dirs[event.key]) {
             if (ctrl) {
                 const t = tilesById[Station.selected]
