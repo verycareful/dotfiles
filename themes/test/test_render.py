@@ -3,6 +3,7 @@ Run from the repo root:  python3 -B -m unittest discover -s themes/test
 Nothing here touches the live session: themes, templates and output go to a temp dir."""
 import importlib.util
 import json
+import plistlib
 import tempfile
 import unittest
 from pathlib import Path
@@ -334,6 +335,31 @@ class RealThemes(unittest.TestCase):
 
     def test_discord_theme_goes_to_the_vencord_themes_folder(self):
         self.assertEqual(render.TARGETS['vencord/dotfiles.theme.css'], ['Vencord/themes/dotfiles.theme.css'])
+
+    def test_bat_theme_goes_to_the_bat_themes_folder(self):
+        self.assertEqual(render.TARGETS['bat/dotfiles.tmTheme'], ['bat/themes/dotfiles.tmTheme'])
+
+    def bat_theme(self, raw):
+        text, _ = render.fill((render.TEMPLATES / 'bat' / 'dotfiles.tmTheme').read_text(), render.values(raw))
+        return plistlib.loads(text.encode())
+
+    def test_bat_plain_text_is_the_theme_text_colour(self):
+        for p in sorted(render.THEMES.glob('*.theme')):
+            raw = render.load(p)
+            base = self.bat_theme(raw)['settings'][0]['settings']
+            with self.subTest(theme=p.stem):
+                self.assertEqual(base['foreground'], '#' + raw['text'])
+                self.assertEqual(base['background'], '#' + raw['base'])
+                self.assertGreaterEqual(render.contrast(raw['text'], raw['base']), 7)
+
+    def test_bat_scopes_stay_readable_on_the_background(self):
+        for p in sorted(render.THEMES.glob('*.theme')):
+            raw = render.load(p)
+            rules = self.bat_theme(raw)['settings'][1:]
+            self.assertGreater(len(rules), 10)
+            for rule in rules:
+                with self.subTest(theme=p.stem, rule=rule['name']):
+                    self.assertGreaterEqual(render.contrast(rule['settings']['foreground'][1:], raw['base']), 3.0)
 
     def test_claude_theme_goes_to_the_claude_themes_folder(self):
         self.assertEqual(render.TARGETS['claude/theme.json'], ['~/.claude/themes/dotfiles.json'])

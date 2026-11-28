@@ -16,7 +16,7 @@ set -gx VISUAL  code
 set -gx PAGER   less
 set -gx LESS    -R
 set -gx MANPAGER "sh -c 'col -bx | bat -l man -p'"
-set -gx BAT_THEME base16
+set -gx BAT_THEME dotfiles
 # Android: Gradle 8.10.2 runs on JDK 17..23, so not the system JDK 24 and not
 # Android Studio's bundled JBR (25). jdk21-openjdk from pacman.
 set -gx JAVA_HOME    /usr/lib/jvm/java-21-openjdk

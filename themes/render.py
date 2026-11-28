@@ -106,6 +106,7 @@ TARGETS = {  # template -> destination(s) under $XDG_CONFIG_HOME; a '~/' destina
     'starship.toml':      ['starship.toml'],
     'fastfetch/config.jsonc': ['fastfetch/config.jsonc'],
     'btop/dotfiles.theme': ['btop/themes/dotfiles.theme'],
+    'bat/dotfiles.tmTheme': ['bat/themes/dotfiles.tmTheme'],
     'vencord/dotfiles.theme.css': ['Vencord/themes/dotfiles.theme.css'],
     'claude/theme.json':  ['~/.claude/themes/dotfiles.json'],
 }

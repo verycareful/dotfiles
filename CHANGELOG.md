@@ -7,6 +7,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.6.1] - 2026-11-28 11:29 (IST)
+
+### Added
+- A bat theme drawn from the palette: `theme set` renders `~/.config/bat/themes/dotfiles.tmTheme` from
+  `themes/templates/bat/dotfiles.tmTheme` and rebuilds bat's cache, and `BAT_THEME` is `dotfiles`. Plain text is the
+  theme's own text colour, comments the subtext colour in italics, headings and functions the blue, strings and
+  inline code green and links cyan.
+
+### Fixed
+- `cat` (bat) drew body text in ANSI white, which a light theme sets to its pale divider colour: about 2:1 against
+  the background, so the body lines of a file such as `CHANGELOG.md` nearly vanished on Dusk Light, Harbour Light
+  and Mono Light. Plain text is now at least 7:1 on every theme. The ANSI palette is unchanged.
+
+### Tests
+- The bat theme renders to the bat themes folder.
+- On every theme, bat's plain text and background are the theme's text and base colours at 7:1 or more.
+- On every theme, each bat scope is at least 3:1 on the background.
+
+### Results
+156 tests across 4 suites, all passed, 6 themes checked against 23 templates, ShellCheck on 56 scripts, Lua syntax
+and secrets checks clean (CachyOS Linux). By hand: `theme set` on Dusk and Dusk Light each made `cat` draw plain
+text in that theme's text colour.
+
 ## [1.2.6.0] - 2026-11-28 11:22 (IST)
 
 ### Added

@@ -52,6 +52,8 @@ apps() {  # $1 theme name
     # btop: select the rendered theme (btop.conf is btop's own and holds every other setting)
     local btop="$CFG/btop/btop.conf"
     [[ -f $btop ]] && sed -i 's/^color_theme = .*/color_theme = "dotfiles"/' "$btop"
+    # bat reads its themes from a cache: rebuild it so `cat` (a bat alias) draws the new colours
+    command -v bat >/dev/null && BAT_CONFIG_DIR="$CFG/bat" bat cache --build >/dev/null 2>&1 || true
     # VS Code: workbench.colorTheme (light or dark base, for syntax colours) and workbench.colorCustomizations
     # are replaced, the rest of settings.json kept. It applies live.
     local code="$CFG/Code/User/settings.json"
