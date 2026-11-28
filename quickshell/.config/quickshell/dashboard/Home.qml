@@ -15,6 +15,8 @@ import "reveal.js" as Reveal
 Item {
     id: home
     signal allApps
+    signal music
+    property bool active: true                      // false while another dashboard view is shown
     property real reveal: 1                         // 0..1, set by Dashboard (reveal.js)
     property alias focusItem: search.focusItem
 
@@ -110,6 +112,8 @@ Item {
                     id: nowPlaying
                     opacity: Reveal.stage(home.reveal, 4); transform: Translate { y: Reveal.offset(home.reveal, 4) }
                     visible: player !== null
+                    active: home.active
+                    onOpenMusic: home.music()
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.maximumHeight: home.nowPlayingMaxHeight

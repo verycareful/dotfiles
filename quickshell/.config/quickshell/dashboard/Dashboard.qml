@@ -1,6 +1,8 @@
 // The dashboard: a full-screen overlay over the dimmed, blurred desktop. SUPER+A / the bar's anchor opens it;
-// Esc or a click on the dim closes it. Two views stacked vertically: Home (clock, calendar, controls, media,
-// system, lighting, safety, notifications) and All apps (A-Z). Tab or the scroll wheel slides between them.
+// Esc or a click on the dim closes it. Three views stacked vertically: Music (the song visualiser, above), Home
+// (clock, calendar, controls, media, system, lighting, safety, notifications) and All apps (A-Z). The scroll wheel
+// moves one view along that column; Tab toggles Home and All apps; the Now playing card or SUPER+SHIFT+V opens
+// Music, and Tab leaves it for Home.
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -34,23 +36,34 @@ Scope {
         id: keep
         reloadableId: "dashboard"
         property bool open: false
-        property int view: 0                    // 0 Home, 1 All apps
-        onLoaded: if (open) Panel.setOpen(true)
+        property int view: 0                    // 0 Home, 1 All apps, 2 Music
+        property bool lyricsSide: false         // Music: lyrics down the right (true) or along the bottom
+        property bool parked: false             // hidden while a window it opened is up (Panel.parkDashboard)
+        onLoaded: { if (open) Panel.setOpen(true); else if (parked) Panel.dashboardParked = true }
     }
     Connections {
         target: Panel
         function onOpenChanged() {
-            if (Panel.open && !keep.open) keep.view = 0
+            if (Panel.open && !keep.open && !Panel.resuming) keep.view = 0
             keep.open = Panel.open
         }
+        function onDashboardParkedChanged() { keep.parked = Panel.dashboardParked }
     }
     function setView(v) { keep.view = v }
-    function toggleView() { setView(1 - keep.view) }
+    function toggleView() { setView(keep.view === 0 ? 1 : 0) }
+    // the views top to bottom; one wheel step moves to the next one down or up, and stops at the ends
+    readonly property var column: [2, 0, 1]
+    function neighbour(view, down) {
+        const at = column.indexOf(view) + (down ? 1 : -1)
+        return column[Math.max(0, Math.min(column.length - 1, at))]
+    }
 
     IpcHandler {
         target: "dashboard"
         function apps(): void { Panel.setOpen(true); root.setView(1) }
         function home(): void { Panel.setOpen(true); root.setView(0) }
+        function music(): void { Panel.setOpen(true); root.setView(2) }
+        function lyrics(where: string): void { keep.lyricsSide = where === "side" }     // on the Music screen: side or bottom
     }
 
     // Hidden while a widget waits on a password prompt (Panel.releaseKeyboard): the prompt is an ordinary
@@ -76,6 +89,8 @@ Scope {
             Keys.onEscapePressed: Panel.setOpen(false)
             Keys.onTabPressed: root.toggleView()
             Keys.onBacktabPressed: root.toggleView()
+            Keys.onLeftPressed: event => { if (keep.view === 2) Panel.cycleViz(-1); else event.accepted = false }
+            Keys.onRightPressed: event => { if (keep.view === 2) Panel.cycleViz(1); else event.accepted = false }
 
             property real acc: 0
             WheelHandler {
@@ -84,7 +99,7 @@ Scope {
                     if (pause.running) return
                     body.acc += event.angleDelta.y
                     if (Math.abs(body.acc) < root.wheelStep) return
-                    root.setView(body.acc < 0 ? 1 : 0)
+                    root.setView(root.neighbour(keep.view, body.acc < 0))
                     body.acc = 0
                     pause.restart()
                 }
@@ -93,20 +108,31 @@ Scope {
 
             Item {
                 id: track
-                width: parent.width; height: parent.height * 2
-                y: -keep.view * body.height
+                width: parent.width; height: parent.height * 3
+                readonly property int slot: keep.view === 2 ? 0 : keep.view + 1     // Music, Home, All apps from the top
+                y: -slot * body.height
                 Behavior on y { NumberAnimation { duration: root.slideMs; easing.type: Easing.OutCubic } }
 
+                Music {
+                    id: music
+                    active: Panel.open && keep.view === 2     // the view outlives the dashboard: closing it must release cava
+                    lyricsSide: keep.lyricsSide
+                    onLyricsClicked: keep.lyricsSide = !keep.lyricsSide
+                    width: body.width; height: body.height
+                }
                 Home {
                     id: home
                     reveal: root.reveal
+                    active: keep.view === 0
+                    y: body.height
                     width: body.width; height: body.height
                     onAllApps: root.setView(1)
+                    onMusic: root.setView(2)
                 }
                 AllApps {
                     id: apps
                     reveal: root.reveal
-                    y: body.height
+                    y: 2 * body.height
                     width: body.width; height: body.height
                     onBack: root.setView(0)
                 }
@@ -117,7 +143,8 @@ Scope {
         function focusView() {
             if (!visible) return
             if (keep.view === 0) home.focusItem.forceActiveFocus()
-            else apps.focusItem.forceActiveFocus()
+            else if (keep.view === 1) apps.focusItem.forceActiveFocus()
+            else body.forceActiveFocus()
         }
         onVisibleChanged: focusView()
         Connections { target: keep; function onViewChanged() { win.focusView() } }

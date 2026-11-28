@@ -7,6 +7,51 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.7.0] - 2026-11-28 12:23 (IST)
+
+### Added
+- The Music screen, a third dashboard view above Home: the song full screen in one of four looks. A click on the Now
+  playing card or SUPER+SHIFT+V opens it (`qs ipc call dashboard music`). The scroll wheel now moves one view along
+  Music, Home and All apps: up from Home opens Music, down from Music returns. Esc, or a click in the margin around
+  the content, closes the dashboard; a click on the content itself does not.
+- Four looks: bars mirrored about the middle, a waveform, a ring of bars around the album art that swells on the
+  bass, and a waterfall of the last five seconds. Left and Right, the buttons on the screen or Settings pick one.
+- Below the look: the album art, title, artist and previous, play or pause and next buttons, with the synced lyrics
+  centred in the same row. A click on the lyrics moves them to a column on the right, a click again moves them
+  back (`qs ipc call dashboard lyrics side|bottom`).
+- `viz-wave`, the waveform's source: the default output's monitor, low-passed so the line shows the bass and low
+  mids, held steady on a rising zero crossing like a scope, and eased between frames. Like `cava`, it shows as audio
+  capture in the permissions window while it runs, and runs only while the card or the Music screen is on screen
+  and a player is playing.
+- Settings, Bar & music: Visualiser look (`qs ipc call panel viz bars|waveform|radial|waterfall`) and Spectrum
+  layout, mono or stereo (`qs ipc call panel vizlayout mono|stereo`).
+
+### Changed
+- The Now playing card's strip draws the chosen look (the radial ring shows as bars there).
+- The spectrum is one channel by default: the lowest frequency on the left rising to the highest on the right.
+  `viz/cava-stereo.conf` keeps the mirrored layout, with the lowest frequencies in the middle, as a Settings option.
+- The settings, themes, DNS, permissions and tray windows, opened while the dashboard shows, hide it, and closing
+  the window brings it back on the same view, also across a theme switch. Opening Settings used to close the
+  dashboard for good.
+- The lyrics lookup and the playback position refresh moved from the card into shared services, so the card and the
+  Music screen show the same lyrics.
+- `libpulse`, which owns `parec`, is in `packages.txt`.
+
+### Tests
+- `viz-wave`: the smoothed trace keeps a bass tone and removes treble and noise, starts on a rising crossing and
+  gives the same picture for a tone at any offset, is flat in silence, and is clamped to the output range.
+- `viz-wave`: the trigger finds the first rising crossing within its range and falls back to the start.
+- `viz-wave`: the easing passes a fraction of a step at once and converges; the gain follower fills the range for a
+  quiet song, leaves the noise floor alone and releases slowly.
+- `viz-wave`: one line per hop, none for a partial hop, a sustained level shows on the line, and `parec` reads the
+  default monitor.
+
+### Results
+179 tests across 4 suites, all passed, 6 themes checked against 23 templates, ShellCheck on 56 scripts, Lua syntax
+and secrets checks clean (CachyOS Linux). By hand: each look, the Music screen and the windows' return to the
+dashboard were driven through `qs ipc` and checked on screen; from a tone reaching the output to the first line or
+bar it takes a median of 31.7 ms for the waveform and 29.6 ms for the spectrum.
+
 ## [1.2.6.1] - 2026-11-28 11:29 (IST)
 
 ### Added

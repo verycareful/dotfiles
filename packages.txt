@@ -4,7 +4,7 @@ hyprland uwsm hypridle hyprlock hyprsunset hyprpolkitagent hyprpicker xdg-deskto
 rofi rofimoji rofi-calc quickshell awww wlogout
 kitty fish starship fastfetch
 grim slurp satty gpu-screen-recorder wl-clipboard cliphist
-brightnessctl playerctl pamixer cava
+brightnessctl playerctl pamixer cava libpulse
 iwd blueman kdeconnect udiskie gvfs thunar
 tumbler ffmpegthumbnailer thunar-archive-plugin ark
 qt5-wayland qt6-wayland qt5ct qt6ct kvantum nwg-look adw-gtk-theme

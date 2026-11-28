@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""viz-wave: the song's waveform, as text lines, for the Music screen's waveform look (services/Viz.qml).
+
+    viz-wave
+
+Records the default output's monitor with parec (mono, 48 kHz) and prints one line per HOP new samples, 60 a second.
+A line is POINTS integers in -FULL..FULL separated by ';'. The last CAPTURE samples are low-passed hard (two moving
+averages SMOOTH_WIDTH wide: the line shows the bass and low mids, not the treble that would flicker), the picture
+starts at the first rising zero crossing in the first SEARCH_SAMPLES (like a scope's trigger, so a steady tone holds
+still), and every BUCKET-th smoothed sample from there is one point. A gain follower scales the picture so a quiet
+song still fills the range (FULL is the peak) and does not lift the noise floor: below GAIN_FLOOR the gain stops
+rising. Each line then moves only EASE of the way from the previous one to the new picture, which calms the
+frame-to-frame change.
+
+The recording shows as audio capture in the permissions window while this runs. It stops when its input ends, on
+SIGTERM, or when its reader goes away; parec is stopped with it."""
+import array
+import itertools
+import os
+import signal
+import subprocess
+import sys
+from collections import deque
+from typing import BinaryIO, Sequence, TextIO
+
+RATE = 48000
+HOP = 800                   # one frame at 60 fps
+POINTS = 256
+BUCKET = 16                 # samples per point
+SMOOTH_WIDTH = 128          # samples: each moving average's width (the first null is at RATE / SMOOTH_WIDTH = 375 Hz)
+SMOOTH_PASSES = 2
+SEARCH_SAMPLES = 1024       # how far in the trigger may look: a tone down to about 47 Hz finds a crossing
+WINDOW = POINTS * BUCKET    # about 85 ms of signal on screen
+CAPTURE = WINDOW + SEARCH_SAMPLES
+EASE = 0.25                 # the share of a new picture that shows at once
+FULL = 1000
+GAIN_FLOOR = 2000           # of 32768: a window quieter than this is not made louder
+GAIN_RELEASE = 0.995        # the follower's peak falls by this factor per frame
+BYTES_PER_SAMPLE = 2
+PAREC_LATENCY_MS = 5
+
+
+class Gain:
+    """Peak follower: it rises at once to a louder window and falls slowly, never below GAIN_FLOOR."""
+
+    def __init__(self) -> None:
+        self.peak = float(GAIN_FLOOR)
+
+    def scale(self, window_peak: float) -> float:
+        self.peak = max(window_peak, self.peak * GAIN_RELEASE, GAIN_FLOOR)
+        return FULL / self.peak
+
+
+def trigger_start(smooth: Sequence[float], search: int) -> int:
+    """Index of the first rising zero crossing within the first `search` entries, 0 when there is none."""
+    for i in range(1, min(search, len(smooth))):
+        if smooth[i - 1] < 0 <= smooth[i]:
+            return i
+    return 0
+
+
+def moving_average(x: Sequence[float], width: int) -> list[float]:
+    """Mean of the `width` samples around each one (fewer at the ends)."""
+    total = [0, *itertools.accumulate(x)]
+    n, half = len(x), width // 2
+    return [(total[min(n, i + half)] - total[max(0, i - half)]) / (min(n, i + half) - max(0, i - half)) for i in range(n)]
+
+
+def trace(samples: Sequence[int]) -> list[float]:
+    """POINTS smoothed values from `samples` (CAPTURE long), starting on a rising crossing."""
+    smooth: Sequence[float] = samples
+    for _ in range(SMOOTH_PASSES):
+        smooth = moving_average(smooth, SMOOTH_WIDTH)
+    start = trigger_start(smooth, SEARCH_SAMPLES)
+    return [smooth[start + k * BUCKET] for k in range(POINTS)]
+
+
+class Smoother:
+    """Moves each value EASE of the way from its previous value to the new one."""
+
+    def __init__(self) -> None:
+        self.previous: list[float] = []
+
+    def step(self, values: Sequence[float]) -> list[float]:
+        if not self.previous:
+            self.previous = [0.0] * len(values)
+        self.previous = [EASE * v + (1 - EASE) * p for v, p in zip(values, self.previous)]
+        return self.previous
+
+
+def format_line(points: Sequence[float], scale: float) -> str:
+    return ";".join(str(max(-FULL, min(FULL, round(v * scale)))) for v in points)
+
+
+def parec_command() -> list[str]:
+    return ["parec", "-d", "@DEFAULT_MONITOR@", "--format=s16le", f"--rate={RATE}", "--channels=1",
+            f"--latency-msec={PAREC_LATENCY_MS}", "--raw"]
+
+
+def read_hop(stream: BinaryIO) -> array.array | None:
+    """HOP samples, or None when the input ends before a whole hop arrives."""
+    want = HOP * BYTES_PER_SAMPLE
+    data = b""
+    while len(data) < want:
+        chunk = stream.read(want - len(data))
+        if not chunk:
+            return None
+        data += chunk
+    samples = array.array("h", data)
+    if sys.byteorder == "big":
+        samples.byteswap()
+    return samples
+
+
+def relay(stream: BinaryIO, out: TextIO) -> None:
+    window: deque[int] = deque([0] * CAPTURE, maxlen=CAPTURE)
+    gain, smoother = Gain(), Smoother()
+    while (hop := read_hop(stream)) is not None:
+        window.extend(hop)
+        points = trace(list(window))
+        scale = gain.scale(max(map(abs, points)))
+        out.write(format_line(smoother.step([v * scale for v in points]), 1.0) + "\n")
+        out.flush()
+
+
+def main() -> int:
+    parec = subprocess.Popen(parec_command(), stdout=subprocess.PIPE)
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    try:
+        relay(parec.stdout, sys.stdout)
+    except BrokenPipeError:
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())   # the exit flush would complain again
+    finally:
+        parec.terminate()
+        parec.wait()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

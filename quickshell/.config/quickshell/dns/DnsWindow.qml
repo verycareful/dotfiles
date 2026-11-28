@@ -15,7 +15,7 @@ Scope {
     property string tab: "ethernet"
     // Closing it from Hyprland (SUPER+Q) destroys the real window but leaves `visible` true, so a
     // plain `visible = true` would do nothing: recreate it whenever nothing is on screen.
-    function show() { if (!win.backingWindowVisible) win.visible = false; win.visible = true }
+    function show() { Panel.parkDashboard(); if (!win.backingWindowVisible) win.visible = false; win.visible = true }
     property bool fromSettings: false   // opened from Settings: closing goes back there
     Connections { target: Panel; function onWindowRequested(name, back) { if (name === "dns") { root.fromSettings = back; root.show() } } }
 
@@ -35,8 +35,11 @@ Scope {
         implicitHeight: body.implicitHeight + 36
         color: Theme.base
         // show what is installed; reload once more when the fresh status arrives
-        onVisibleChanged: if (!visible && root.fromSettings) { root.fromSettings = false; Panel.backToSettings() }
-                          else if (visible) { eth.load(); wifi.load(); eth.reloadOnce = wifi.reloadOnce = true; Net.clearDnsResult(); Net.refresh() }
+        onVisibleChanged: {
+            if (visible) { eth.load(); wifi.load(); eth.reloadOnce = wifi.reloadOnce = true; Net.clearDnsResult(); Net.refresh(); return }
+            if (root.fromSettings) { root.fromSettings = false; Panel.backToSettings() }
+            else Panel.resumeDashboard()
+        }
 
         ColumnLayout {
             id: body

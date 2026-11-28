@@ -33,7 +33,7 @@ Scope {
         Quickshell.execDetached(["theme", "set", name])
     }
     // reads the list first and maps the window after, so it opens at its full size
-    function show() { list.running = true }
+    function show() { Panel.parkDashboard(); list.running = true }
     function map() {
         if (!win.backingWindowVisible) win.visible = false
         win.visible = true
@@ -70,7 +70,9 @@ Scope {
         onClosed: visible = false
         onVisibleChanged: {
             keep.open = visible
-            if (!visible && keep.fromSettings) { keep.fromSettings = false; Panel.backToSettings() }
+            if (visible) return
+            if (keep.fromSettings) { keep.fromSettings = false; Panel.backToSettings() }
+            else Panel.resumeDashboard()
         }
         title: "Themes"
         implicitWidth: body.implicitWidth + 36

@@ -15,12 +15,31 @@ Singleton {
     readonly property bool nightLight: nightTemp < 6000
 
     function setOpen(o) {
-        if (o) Notifs.clearPopups()      // the dashboard lists every notification
+        if (o) { Notifs.clearPopups(); dashboardParked = false }      // the dashboard lists every notification
         open = o
         if (o) nightProbe.running = true
         barSignal.restart()
     }
     function toggle() { setOpen(!open) }
+
+    // ── windows opened from the dashboard ────────────────────
+    // The Themes, DNS, Permissions and Tray windows are ordinary windows, which sit under every layer, and Settings
+    // is a Top layer under the dashboard's Overlay: none can show over it. Opened while the dashboard shows, each
+    // parks it; closing the window brings the dashboard back on the view it was on (the dashboard persists
+    // `dashboardParked` across a shell reload, which a theme switch causes).
+    property bool dashboardParked: false
+    property bool resuming: false              // the dashboard is coming back: it keeps its view
+    function parkDashboard() {
+        if (!open) return
+        setOpen(false)
+        dashboardParked = true
+    }
+    function resumeDashboard() {
+        if (!dashboardParked || settingsOpen) return     // Settings resumes it when it closes
+        resuming = true
+        setOpen(true)                          // clears dashboardParked
+        resuming = false
+    }
 
     // ── launching ────────────────────────────────────────────
     // Every GUI program started from Quickshell goes into its own app-*.scope (uwsm app). Spawned directly it
@@ -47,8 +66,34 @@ Singleton {
     function saveBarState() {
         stateCss.setText(barCss())
         Quickshell.execDetached(["touch", Quickshell.env("HOME") + "/.config/waybar/style.css"])
-        settings.setText(JSON.stringify({ mediaOnBar: mediaOnBar }))
+        saveSettings()
     }
+
+    // ── song visualiser look ─────────────────────────────────
+    // The look on the Music screen and the Now playing strip; picked there or in Settings, kept in panel.json.
+    readonly property var vizStyles: ["bars", "waveform", "radial", "waterfall"]
+    property string vizStyle: "bars"
+    function setVizStyle(style) {
+        if (!vizStyles.includes(style) || style === vizStyle) return
+        vizStyle = style
+        saveSettings()
+    }
+    function cycleViz(step) {
+        const n = vizStyles.length
+        setVizStyle(vizStyles[(vizStyles.indexOf(vizStyle) + step + n) % n])
+    }
+
+    // How the spectrum is laid out: mono runs from the lowest frequency on the left to the highest on the right;
+    // stereo mirrors it about the middle (services/Viz.qml picks the cava config).
+    readonly property var vizLayouts: ["mono", "stereo"]
+    property string vizLayout: "mono"
+    function setVizLayout(layout) {
+        if (!vizLayouts.includes(layout) || layout === vizLayout) return
+        vizLayout = layout
+        saveSettings()
+    }
+
+    function saveSettings() { settings.setText(JSON.stringify({ mediaOnBar: mediaOnBar, vizStyle: vizStyle, vizLayout: vizLayout })) }
     FileView { id: stateCss; path: Quickshell.env("HOME") + "/.config/waybar/state.css"; blockLoading: true; printErrors: false }
     FileView {
         id: settings; path: Quickshell.statePath("panel.json"); blockLoading: true; printErrors: false
@@ -56,6 +101,8 @@ Singleton {
             try {
                 const j = JSON.parse(text())
                 if (j.mediaOnBar !== undefined) root.mediaOnBar = j.mediaOnBar
+                if (root.vizStyles.includes(j.vizStyle)) root.vizStyle = j.vizStyle
+                if (root.vizLayouts.includes(j.vizLayout)) root.vizLayout = j.vizLayout
             } catch (e) {}
             // a state.css written by an older shell (it could hide the centre workspaces) is replaced; one that
             // already matches is left alone, so a reload does not make Waybar re-read its CSS
@@ -104,5 +151,7 @@ Singleton {
         function close(): void  { root.setOpen(false) }
         function status(): string { return root.status() }
         function mediabar(): void { root.setMediaOnBar(!root.mediaOnBar) }
+        function viz(style: string): void { root.setVizStyle(style) }
+        function vizlayout(layout: string): void { root.setVizLayout(layout) }
     }
 }

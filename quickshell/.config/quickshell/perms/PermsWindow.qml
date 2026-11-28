@@ -17,7 +17,7 @@ Scope {
     property string tab: "perm"         // perm | app
     property string expanded: ""        // the row whose app list is open
     property string selected: ""        // the app shown on the "By app" tab
-    function show() { if (!win.backingWindowVisible) win.visible = false; win.visible = true }
+    function show() { Panel.parkDashboard(); if (!win.backingWindowVisible) win.visible = false; win.visible = true }
     Connections { target: Perms; function onOpenWindow() { root.show() } }
     property bool fromSettings: false   // opened from Settings: closing goes back there
     Connections { target: Panel; function onWindowRequested(name, back) { if (name === "perms") { root.fromSettings = back; root.show() } } }
@@ -112,7 +112,9 @@ Scope {
         onClosed: visible = false
         onVisibleChanged: {
             Perms.windowOpen = visible
-            if (!visible && root.fromSettings) { root.fromSettings = false; Panel.backToSettings() }
+            if (visible) return
+            if (root.fromSettings) { root.fromSettings = false; Panel.backToSettings() }
+            else Panel.resumeDashboard()
         }
         title: "Permissions"
         implicitWidth: 660

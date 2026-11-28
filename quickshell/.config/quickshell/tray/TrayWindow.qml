@@ -9,6 +9,7 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import ".."
 import "../panel"
+import "../services"
 
 Scope {
     id: root
@@ -34,6 +35,7 @@ Scope {
     }
     function close(t) { Quickshell.execDetached(["hyprctl", "dispatch", `hl.dsp.window.close({ window = "${addr(t)}" })`]) }
     function show() {
+        Panel.parkDashboard()
         Hyprland.refreshToplevels()
         cursor = 0
         win.visible = true
@@ -57,7 +59,7 @@ Scope {
         // Hyprland keeps a floating window at the size it mapped with, so the height is pushed to it on
         // every change (rows arriving with the refresh, a row closed)
         onImplicitHeightChanged: if (visible) fit.restart()
-        onVisibleChanged: if (visible) fit.restart()
+        onVisibleChanged: { if (visible) fit.restart(); else Panel.resumeDashboard() }
         Timer {
             id: fit
             interval: 50

@@ -19,7 +19,7 @@ Widgets.Tile {
             Line { type: "ethernet"; glyph: "\u{F0200}" }
             Line { type: "wifi";     glyph: "\u{F05A9}" }
         }
-        Widgets.Button { label: "DNS settings"; Layout.alignment: Qt.AlignVCenter; onClicked: { Panel.openWindow("dns"); Panel.setOpen(false) } }
+        Widgets.Button { label: "DNS settings"; Layout.alignment: Qt.AlignVCenter; onClicked: Panel.openWindow("dns") }
     }
 
     component Line: RowLayout {

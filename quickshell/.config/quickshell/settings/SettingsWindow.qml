@@ -28,10 +28,14 @@ Scope {
     ]
     function pageIndex(id) { return Math.max(0, pages.findIndex(p => p.id === id)) }
 
-    function setOpen(o, page) {
-        if (o) Panel.setOpen(false)
+    // Opening parks the dashboard if it shows; closing brings it back, unless Settings closes only to hand over to
+    // another window (`toWindow`), which resumes it when that closes.
+    function setOpen(o, page, toWindow) {
+        const was = keep.open
+        if (o) Panel.parkDashboard()
         if (page) keep.page = pageIndex(page)
         keep.open = o
+        if (!o && was && !toWindow) Panel.resumeDashboard()
     }
 
     IpcHandler {
@@ -52,7 +56,7 @@ Scope {
     }
     Connections {
         target: Panel
-        function onSettingsClose()  { root.setOpen(false) }
+        function onSettingsClose()  { root.setOpen(false, "", true) }
         function onSettingsReturn() { root.setOpen(true) }
     }
 

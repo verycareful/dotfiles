@@ -5,3 +5,5 @@ singleton Gpu 1.0 Gpu.qml
 singleton Net 1.0 Net.qml
 singleton Perms 1.0 Perms.qml
 singleton Viz 1.0 Viz.qml
+singleton Media 1.0 Media.qml
+singleton Lyrics 1.0 Lyrics.qml
