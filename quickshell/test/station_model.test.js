@@ -162,3 +162,8 @@ test("neighbour: an arrow moves to the nearest tile that way, along the arm firs
     assert.equal(m.neighbour(pos, "hub", "up"), "p");
     assert.equal(m.neighbour(pos, "c", "up"), null);
 });
+
+test("buildModel: a shot tile is named Screenshot, whatever its class says", () => {
+    const model = m.buildModel([ws(-97, "special:shots", win("org.satty.shot", "org.satty.shot", "s1"))], new m.KeyBook());
+    assert.equal(model.tiles[0].name, "Screenshot");
+});

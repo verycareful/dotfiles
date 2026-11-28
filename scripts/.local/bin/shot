@@ -1,11 +1,47 @@
 #!/usr/bin/env bash
-# shot: screenshot via grim/slurp, copied to the clipboard at once; satty opens hidden in the tray
-# (special:tray, see rules.lua) for annotating. SUPER+SHIFT+M brings it up. In satty, Ctrl+C copies the
-# annotated image, Ctrl+S saves it to ~/Pictures/Screenshots.
+# shot: screenshot via grim/slurp, copied to the clipboard at once. With annotating on, satty opens on the
+# Shots workspace (special:shots, see rules.lua), never over what you are doing: pick it from the station.
+# In satty, Ctrl+C copies the annotated image, Ctrl+S saves it to the save folder. With annotating off, the
+# shot is saved to the save folder straight away.
 #   shot area | full | window
+#   shot config                print the settings (key=value)
+#   shot config KEY VALUE      annotate on|off, notify on|off, dir PATH
 set -euo pipefail
-OUT="${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots"
+CONF="${XDG_CONFIG_HOME:-$HOME/.config}/shot/settings"
 RAW="${XDG_RUNTIME_DIR:-$HOME/.cache}/shot"
+
+declare -A SET=([annotate]=on [notify]=on [dir]="${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots")
+
+load() {
+    [[ -f $CONF ]] || return 0
+    local key value
+    while IFS='=' read -r key value; do
+        [[ -n ${SET[$key]+x} ]] && SET[$key]=$value
+    done < "$CONF"
+}
+
+config() {
+    load
+    if [[ $# -eq 0 ]]; then
+        local key
+        for key in annotate notify dir; do printf '%s=%s\n' "$key" "${SET[$key]}"; done
+        return 0
+    fi
+    local key=$1 value=${2:-}
+    [[ -n ${SET[$key]+x} ]] || { echo "shot: unknown setting: $key" >&2; exit 2; }
+    if [[ $key != dir && $value != on && $value != off ]]; then
+        echo "shot: $key takes on or off, not: $value" >&2; exit 2
+    fi
+    [[ $key == dir && -z $value ]] && { echo "shot: dir needs a path" >&2; exit 2; }
+    SET[$key]=$value
+    mkdir -p "$(dirname "$CONF")"
+    for key in annotate notify dir; do printf '%s=%s\n' "$key" "${SET[$key]}"; done > "$CONF"
+}
+
+if [[ ${1:-} == config ]]; then shift; config "$@"; exit 0; fi
+
+load
+OUT=${SET[dir]}
 mkdir -p "$OUT" "$RAW"
 NAME="$(date +%Y-%m-%d_%H-%M-%S).png"
 
@@ -13,11 +49,17 @@ case "${1:-area}" in
     area)   geom=$(slurp -d) ;;
     full)   geom="" ;;
     window) geom=$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"') ;;
-    *) echo "usage: shot {area|full|window}" >&2; exit 1 ;;
+    *) echo "usage: shot {area|full|window|config}" >&2; exit 1 ;;
 esac
 
 if [[ -n "$geom" ]]; then grim -g "$geom" "$RAW/$NAME"; else grim "$RAW/$NAME"; fi
 wl-copy --type image/png < "$RAW/$NAME"
-notify-send -a shot -i "$RAW/$NAME" "Screenshot copied" "Annotate in satty: SUPER+SHIFT+M" 2>/dev/null || true
+
+if [[ ${SET[annotate]} == off ]]; then
+    mv "$RAW/$NAME" "$OUT/$NAME"
+    [[ ${SET[notify]} == on ]] && { notify-send -a shot -i "$OUT/$NAME" "Screenshot copied" "Saved to $OUT" 2>/dev/null || true; }
+    exit 0
+fi
+[[ ${SET[notify]} == on ]] && { notify-send -a shot -i "$RAW/$NAME" "Screenshot copied" "Annotate it from the station (Shots)" 2>/dev/null || true; }
 satty --app-id org.satty.shot --filename "$RAW/$NAME" --output-filename "$OUT/$NAME" --copy-command wl-copy --early-exit || true
 rm -f "$RAW/$NAME"

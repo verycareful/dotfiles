@@ -21,9 +21,10 @@ hl.window_rule({ match = { title = "^(Tray)$" }, float = true, center = true })
 local dialogs = "^(Open File|Save File|Open Folder|Select .*)$"
 hl.window_rule({ match = { title = dialogs }, float = true, center = true })
 
--- satty started by `shot` (it passes --app-id org.satty.shot) opens hidden in the tray, so the screen stays as it
--- was. Any other satty window keeps the default app id org.satty.satty and opens normally.
-hl.window_rule({ match = { class = "^(org.satty.shot)$" }, workspace = "special:tray silent" })
+-- satty started by `shot` (it passes --app-id org.satty.shot) opens on the Shots workspace, so the screen stays as
+-- it was; the station lists each one under Shots. Any other satty window keeps the default app id org.satty.satty
+-- and opens normally.
+hl.window_rule({ match = { class = "^(org.satty.shot)$" }, workspace = "special:shots silent" })
 
 -- Picture-in-picture always on top
 hl.window_rule({ match = { title = "^(Picture-in-Picture)$" }, float = true, pin = true })

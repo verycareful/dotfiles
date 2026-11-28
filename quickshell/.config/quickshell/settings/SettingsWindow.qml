@@ -21,6 +21,7 @@ Scope {
         { id: "bar",           label: "Bar & music",         glyph: "\u{F0EA2}", page: bar },
         { id: "notifications", label: "Notifications",       glyph: "\u{F009A}", page: notifications },
         { id: "network",       label: "Network & DNS",       glyph: "\u{F0200}", page: network },
+        { id: "screenshots",   label: "Screenshots",         glyph: "\u{F0104}", page: screenshots },
         { id: "performance",   label: "Performance",         glyph: "\u{F0EE0}", page: performance },
         { id: "lighting",      label: "Lighting",            glyph: "\u{F0335}", page: lighting },
         { id: "security",      label: "Security & backup",   glyph: "\u{F0483}", page: security },
@@ -177,6 +178,7 @@ Scope {
         }
     }
     Component { id: network; NetworkPage {} }
+    Component { id: screenshots; ScreenshotsPage {} }
     Component {
         id: performance
         ColumnLayout {

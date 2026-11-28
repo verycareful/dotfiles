@@ -5,6 +5,7 @@
 // Window classes per branch. Pads live in their own special workspaces, named by the keys of PADS.
 const TERMINALS = ["kitty"];
 const SHOTS = ["org.satty.shot"];
+const SHOT_NAME = "Screenshot";      // satty has no desktop entry to name its tiles
 const PADS = {
     kern:    { cls: "io.github.verycareful.kern", key: "K" },
     spotify: { cls: "Spotify", key: "S" },
@@ -198,7 +199,8 @@ function buildModel(workspaces, book) {
             for (const w of ws.windows) {
                 const id = "win:" + w.address;
                 seen.add(id);
-                tiles.push({ id, branch, wsName: ws.name, name: w.name, key: book.assign(id, branch, w.name), windows: [w] });
+                const name = branch === "shot" ? SHOT_NAME : w.name;
+                tiles.push({ id, branch, wsName: ws.name, name, key: book.assign(id, branch, name), windows: [w] });
             }
             continue;
         }
