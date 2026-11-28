@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# greet-times: the time lines of the terminal greeting (fastfetch command modules).
+#   greet-times active     time since this session's login: "2 h 5 min, since 14:14"
+#   greet-times installed  calendar days since the first pacman.log entry: "79 days ago", "1 day ago", "today"
+#   greet-times tagline    "A place in the sun, 79 days now"
+# --now EPOCH, GREET_LOGIN_EPOCH and GREET_PACMAN_LOG replace the clock, the session and the log.
+set -euo pipefail
+what=${1:-}; shift || true
+now=$(date +%s)
+[[ ${1:-} == --now ]] && now=$2
+
+login_epoch() {
+    if [[ -n ${GREET_LOGIN_EPOCH:-} ]]; then echo "$GREET_LOGIN_EPOCH"; return; fi
+    date -d "$(loginctl show-session "${XDG_SESSION_ID:-self}" -p Timestamp --value)" +%s
+}
+
+# Whole calendar days between the first pacman.log entry and now, in local time.
+install_days() {
+    local first stamp
+    first=$(head -1 "${GREET_PACMAN_LOG:-/var/log/pacman.log}")
+    stamp=${first#[}; stamp=${stamp%%]*}
+    local from to
+    from=$(date -d "$(date -d "$stamp" +%F)" +%s)
+    to=$(date -d "$(date -d "@$now" +%F)" +%s)
+    echo $(( (to - from + 43200) / 86400 ))      # half a day absorbs a DST hour
+}
+
+case $what in
+    active)
+        start=$(login_epoch)
+        mins=$(( (now - start) / 60 ))
+        if (( mins >= 60 )); then span="$(( mins / 60 )) h $(( mins % 60 )) min"; else span="$mins min"; fi
+        echo "$span, since $(date -d "@$start" +%H:%M)" ;;
+    installed)
+        d=$(install_days)
+        case $d in 0) echo "today" ;; 1) echo "1 day ago" ;; *) echo "$d days ago" ;; esac ;;
+    tagline)
+        d=$(install_days)
+        case $d in 0) echo "A place in the sun, since today" ;; 1) echo "A place in the sun, 1 day now" ;;
+                   *) echo "A place in the sun, $d days now" ;; esac ;;
+    *) echo "usage: greet-times {active|installed|tagline} [--now EPOCH]" >&2; exit 1 ;;
+esac

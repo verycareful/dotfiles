@@ -2,33 +2,39 @@
 {
     "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
     "logo": {
-        "source": "~/.config/fastfetch/anchor.txt",
+        "source": "~/.config/fastfetch/sonnenplatz.txt",
         "type": "file",
         "color": { "1": "{{primary_bright_ansi}}", "2": "{{accent_ansi}}" },
-        "padding": { "top": 1, "left": 2, "right": 4 }
+        "padding": { "top": 2, "left": 2, "right": 5 }
     },
     "display": {
-        "separator": "  ",
+        "separator": "",
         "color": { "keys": "{{accent_ansi}}", "title": "{{primary_bright_ansi}}", "separator": "{{muted_ansi}}" },
-        "key": { "width": 10 }
+        "key": { "width": 11 },
+        "percent": { "type": ["num", "bar"], "color": { "green": "{{subtext_ansi}}", "yellow": "{{subtext_ansi}}", "red": "{{red_ansi}}" } },
+        "bar": { "char": { "elapsed": "■", "total": "■" }, "color": { "elapsed": "{{accent_ansi}}", "total": "{{overlay_ansi}}" }, "width": 10, "border": { "left": "", "right": "" } }
     },
     "modules": [
-        { "type": "title", "format": "{user-name}{at-symbol-colored}{host-name}", "color": { "user": "{{accent_ansi}}", "at": "{{muted_ansi}}", "host": "{{primary_bright_ansi}}" } },
-        { "type": "custom", "format": "──────────────────────────", "outputColor": "{{muted_ansi}}" },
-        { "type": "os",       "key": "os",     "format": "{name} {version}" },
-        { "type": "kernel",   "key": "kernel" },
-        { "type": "wm",       "key": "wm" },
-        { "type": "shell",    "key": "shell" },
-        { "type": "terminal", "key": "term" },
-        { "type": "packages", "key": "pkgs" },
-        { "type": "uptime",   "key": "uptime" },
-        { "type": "custom", "format": "──────────────────────────", "outputColor": "{{muted_ansi}}" },
-        { "type": "cpu",      "key": "cpu",    "format": "{name}" },
-        { "type": "gpu",      "key": "gpu",    "format": "{name}", "hideType": "integrated" },
-        { "type": "memory",   "key": "memory" },
-        { "type": "disk",     "key": "disk",   "folders": "/" },
-        { "type": "display",  "key": "display", "format": "{width}x{height} @ {refresh-rate}Hz" },
-        { "type": "custom", "format": "──────────────────────────", "outputColor": "{{muted_ansi}}" },
-        { "type": "colors",   "symbol": "circle", "paddingLeft": 0 }
+        { "type": "title", "format": "{user-name}{at-symbol-colored}{host-name}", "color": { "user": "{{text_ansi}}", "at": "{{muted_ansi}}", "host": "{{primary_bright_ansi}}" } },
+        { "type": "command", "key": " ", "text": "greet-times tagline", "outputColor": "{{subtext_ansi}}" },
+        "break",
+        { "type": "custom", "format": "System", "outputColor": "{{subtext_ansi}}" },
+        { "type": "command", "key": "OS",        "text": ". /etc/os-release; printf '%s · %s' \"$NAME\" \"$(uname -r)\"" },
+        { "type": "command", "key": "Desktop",   "text": "printf 'Hyprland %s · %s · %s' \"$(hyprctl version -j | jq -r .version)\" \"$(ps -o comm= -p $(ps -o ppid= -p $PPID) 2>/dev/null)\" \"${TERM_PROGRAM:-kitty}\"" },
+        { "type": "packages",  "key": "Packages" },
+        "break",
+        { "type": "custom", "format": "Time", "outputColor": "{{subtext_ansi}}" },
+        { "type": "uptime",    "key": "Uptime",  "format": "{?days}{days} d {?}{?hours}{hours} h {?}{minutes} min" },
+        { "type": "command", "key": "Active",    "text": "greet-times active" },
+        { "type": "command", "key": "Installed", "text": "greet-times installed" },
+        "break",
+        { "type": "custom", "format": "Hardware", "outputColor": "{{subtext_ansi}}" },
+        { "type": "cpu",       "key": "CPU",     "format": "{name}" },
+        { "type": "gpu",       "key": "GPU",     "format": "{name}", "hideType": "integrated" },
+        { "type": "memory",    "key": "Memory",  "format": "{used} / {total}  {percentage-bar} {percentage}" },
+        { "type": "disk",      "key": "Disk",    "folders": "/", "format": "{size-used} / {size-total}  {size-percentage-bar} {size-percentage}" },
+        { "type": "display",   "key": "Display", "format": "{width}x{height} @ {refresh-rate} Hz" },
+        "break",
+        { "type": "colors",    "symbol": "circle", "paddingLeft": 0 }
     ]
 }
