@@ -11,6 +11,7 @@ Item {
     required property var info                 // a model tile, or null for the hub
     required property bool selected
     required property bool live                // previews update only while the station shows
+    property real chrome: 1                    // 1 normal, 0 while the tile grows to the screen: frame, badge and name fade
     property var freeSides: []                 // "left" | "right" | "up" | "down": where a hover arrow may show
     signal clicked
     signal branchTo(string side)
@@ -23,10 +24,10 @@ Item {
     Rectangle {
         id: frame
         anchors.fill: parent
-        radius: 10
+        radius: 10 * tile.chrome
         color: Theme.glassCard
         clip: true
-        border.width: tile.selected ? 3 : (tile.hub ? 2 : 1)
+        border.width: (tile.selected ? 3 : (tile.hub ? 2 : 1)) * tile.chrome
         border.color: tile.selected ? Theme.accent : (tile.hub ? Theme.text : Theme.overlay)
         opacity: tile.hidden ? 0.72 : 1
 
@@ -74,6 +75,7 @@ Item {
         // key badge
         Rectangle {
             visible: !tile.hub && tile.info.key !== null
+            opacity: tile.chrome
             anchors { left: parent.left; top: parent.top; margins: 8 }
             width: Math.max(24, keyText.implicitWidth + 12); height: 24; radius: 6
             color: tile.selected ? Theme.accent : Theme.text
@@ -89,6 +91,7 @@ Item {
         Rectangle {
             anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
             height: 26
+            opacity: tile.chrome
             color: Theme.glassPanel
             Text {
                 anchors { verticalCenter: parent.verticalCenter; left: parent.left; leftMargin: 10; right: parent.right; rightMargin: 10 }

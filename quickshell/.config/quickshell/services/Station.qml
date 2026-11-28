@@ -23,6 +23,11 @@ Singleton {
     property string pendingPrefix: ""            // "T" or "A" waiting for its number; cleared whenever the view opens or closes
     property string selected: ""                 // tile id
     property string originId: "hub"              // the dock the screen showed when the view opened: "hub" or a tile id
+    property bool fromHub: false                 // the dashboard was up when the view opened; the view closes it once it has a picture of it
+    property bool leaving: false                 // the view is zooming into its selection before it closes
+    readonly property int panMs: 180             // the view's pan to a new selection
+    property int leaveDelayMs: 0                 // the pan the zoom waits for when the selection has to change first
+    readonly property int zoomMs: 240            // the screen shrinking into a tile, or a tile growing to the screen
     property var model: ({ tiles: [], positions: [] })
     readonly property var book: new Model.KeyBook()
 
@@ -54,13 +59,54 @@ Singleton {
     function endMoveHold() { Hyprland.dispatch("hl.dsp.submap(\"reset\")") }
 
     // Opening the station over the dashboard closes the dashboard: the station holds it as its hub.
+    // The dashboard stays up under the opening view until the view has captured it (StationView).
     function setShown(v) {
         pendingPrefix = ""
         endMoveHold()
-        const fromHub = v && Panel.open
-        if (fromHub) Panel.setOpen(false)
-        if (v) { Hyprland.refreshToplevels(); rebuild(); originId = originOf(fromHub) }
+        leaveTimer.stop()
+        actionTimer.stop()
+        actionTimer.action = null
+        leaving = false
+        if (v) {
+            fromHub = Panel.open
+            Hyprland.refreshToplevels()
+            rebuild()
+            originId = originOf(fromHub)
+        }
         shown = v
+    }
+
+    // Selects `id`, zooms into it, closes the view and then runs `fn`. Closing hands focus back to the window that
+    // had it, so a focus change made while the view is open would be undone; `fn` therefore runs 60 ms after the
+    // view has gone. With the view closed, `fn` runs at once.
+    function leaveTo(id, fn) {
+        if (!shown) { if (fn) fn(); return }
+        if (leaving) return
+        const pans = selected !== id
+        selected = id
+        pendingPrefix = ""
+        endMoveHold()
+        leaving = true
+        actionTimer.action = fn
+        leaveDelayMs = pans ? panMs : 0
+        leaveTimer.interval = leaveDelayMs + zoomMs
+        leaveTimer.restart()
+    }
+    // Backing out grows the origin dock again; for the dashboard that means opening it once more.
+    function dismiss() { leaveTo(originId, fromHub ? () => Panel.setOpen(true) : null) }
+    Timer {
+        id: leaveTimer
+        onTriggered: {
+            root.shown = false
+            root.leaving = false
+            if (actionTimer.action) actionTimer.restart()
+        }
+    }
+    Timer {
+        id: actionTimer
+        interval: 60
+        property var action: null
+        onTriggered: { const a = action; action = null; if (a) a() }
     }
 
     // The dock on screen when the view opens: the hub when the dashboard was up, else the tile holding the focused
@@ -177,23 +223,9 @@ Singleton {
     }
 
     // ── actions ──────────────────────────────────────────────
-    // Closing the view hands focus back to the window that had it, so a focus change made while the view is still
-    // open is undone by the close. Close first, then act once the compositor has finished.
-    Timer {
-        id: afterCloseTimer
-        interval: 60
-        property var action: null
-        onTriggered: { const a = action; action = null; if (a) a() }
-    }
-    function afterClose(fn) {
-        if (!shown) { fn(); return }
-        setShown(false)
-        afterCloseTimer.action = fn
-        afterCloseTimer.restart()
-    }
     // `via` says the move came through the station (the view was open) rather than straight from a key: through the
     // station a pad becomes the workspace the user is on; straight from a key it is an overlay.
-    function goTo(tile) { const via = shown; afterClose(() => goToNow(tile, via)) }
+    function goTo(tile) { const via = shown; leaveTo(tile.id, () => goToNow(tile, via)) }
     function goToNow(tile, via) {
         const w = tile.windows[0]
         if (tile.branch === "pad") {
@@ -246,11 +278,11 @@ Singleton {
     function jump(key) {
         const via = shown
         if (pendingPrefix !== "" && /^[0-9]$/.test(key)) key = pendingPrefix + key
-        const pad = padOfKey(key)
-        if (pad) { afterClose(() => padJump(pad, via)); return }
         const tile = Model.tileByKey(model, key)
+        const pad = padOfKey(key)
+        if (pad) { leaveTo(tile ? tile.id : originId, () => padJump(pad, via)); return }
         if (tile) { goTo(tile); return }
-        afterClose(() => { if (fixedCommands[key]) Quickshell.execDetached(["station-launch"].concat(fixedCommands[key])) })
+        leaveTo(originId, () => { if (fixedCommands[key]) Quickshell.execDetached(["station-launch"].concat(fixedCommands[key])) })
     }
     function merge(key) {
         const tile = Model.tileByKey(model, key)
@@ -286,10 +318,10 @@ Singleton {
 
     IpcHandler {
         target: "station"
-        function toggle(): void { root.setShown(!root.shown) }
+        function toggle(): void { if (root.shown) root.dismiss(); else root.setShown(true) }
         function open(): void   { root.setShown(true) }
         function prefix(p: string): void { root.setShown(true); root.pendingPrefix = p }
-        function close(): void  { root.setShown(false) }
+        function close(): void  { root.dismiss() }
         function jump(key: string): void  { root.jump(key) }
         function merge(key: string): void { root.merge(key) }
         function move(key: string): void  { root.move(key) }
