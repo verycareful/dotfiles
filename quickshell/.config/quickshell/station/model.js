@@ -150,6 +150,19 @@ function resolveLaunch(chain, launches, classWs, cls) {
     return classWs.has(cls) ? classWs.get(cls) : null;
 }
 
+// The tile holding a station key, or null.
+function tileByKey(model, key) {
+    return model.tiles.find(t => t.key === key) || null;
+}
+
+// routes: class -> { ws, at } recorded when a launch is routed; only those younger than ttlMs still route the
+// app's later windows. Returns class -> ws, the shape resolveLaunch takes.
+function freshClassWs(routes, now, ttlMs) {
+    const out = new Map();
+    for (const [cls, r] of routes) if (now - r.at <= ttlMs) out.set(cls, r.ws);
+    return out;
+}
+
 // workspaces: [{ id, name, windows: [{ address, cls, name }] }]. Hidden and shot windows are one tile each;
 // every other workspace is one tile. With no workspace at all, the login workspace shows as an empty Mix 1.
 function buildModel(workspaces, book) {
@@ -186,6 +199,6 @@ function buildModel(workspaces, book) {
 if (typeof module !== "undefined") {
     module.exports = {
         TERMINALS, SHOTS, PADS, FIXED_APPS, branchOfClass, branchOfWorkspace, nameKey, KeyBook, layoutArms,
-        resolveLaunch, buildModel,
+        resolveLaunch, buildModel, tileByKey, freshClassWs,
     };
 }

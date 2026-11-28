@@ -130,3 +130,15 @@ test("resolveLaunch: with no recorded ancestor, the app's class decides", () => 
     assert.equal(m.resolveLaunch([901, 1], [{ pid: 500, ws: "3" }], classWs, "steam"), "4");
     assert.equal(m.resolveLaunch([902, 1], [], classWs, "firefox"), null);
 });
+
+test("tileByKey: finds the tile holding a key, or nothing", () => {
+    const model = m.buildModel([ws(1, "1", win("kitty")), ws(2, "2", win("kitty"))], new m.KeyBook());
+    assert.equal(m.tileByKey(model, "T2").wsName, "2");
+    assert.equal(m.tileByKey(model, "T9"), null);
+});
+
+test("freshClassWs: class routes older than the time limit are dropped", () => {
+    const routes = new Map([["steam", { ws: "3", at: 1000 }], ["firefox", { ws: "4", at: 1000 + 590000 }]]);
+    const fresh = m.freshClassWs(routes, 1000 + 601000, 600000);
+    assert.deepEqual([...fresh.entries()], [["firefox", "4"]]);
+});

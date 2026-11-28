@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# station-launch: start an app so that its windows open on a chosen workspace (default: the active one), even
+# if focus moves before they map. Records this process's pid with the workspace in the Station service, then
+# execs the app through the permissions gate, keeping the pid.
+#   station-launch [--ws ID] COMMAND [ARGS...]
+set -euo pipefail
+ws=""
+if [[ ${1:-} == --ws ]]; then ws=$2; shift 2; fi
+[[ $# -gt 0 ]] || { echo "usage: station-launch [--ws ID] COMMAND [ARGS...]" >&2; exit 1; }
+[[ -n $ws ]] || ws=$(hyprctl activeworkspace -j | jq -r '.id')
+qs ipc call station launched "$$" "$ws" >/dev/null 2>&1 || true
+if [[ -x ~/.local/bin/perms ]]; then exec ~/.local/bin/perms run "$@"; fi
+exec "$@"
