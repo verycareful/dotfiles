@@ -24,7 +24,10 @@ Scope {
     property bool mapped: false
     property real reveal: 0
     onShowingChanged: {
-        if (showing) { mapped = true; hide.stop(); show.restart() }
+        if (showing) {
+            mapped = true; hide.stop()
+            if (Panel.instant) { show.stop(); reveal = 1 } else show.restart()
+        }
         else { show.stop(); hide.restart() }
     }
     NumberAnimation { id: show; target: root; property: "reveal"; to: 1; duration: Reveal.TOTAL_MS }

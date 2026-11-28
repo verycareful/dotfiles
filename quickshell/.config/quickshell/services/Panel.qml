@@ -9,6 +9,7 @@ Singleton {
     property bool open: false
     property bool settingsOpen: false      // the settings window, which shows the same widgets
     readonly property bool watched: open || settingsOpen   // the services poll while either is showing
+    property bool instant: false           // the dashboard appears without its entrance (the station's hub has just grown into it)
     property bool releaseKeyboard: false   // true while a polkit dialog is up, so it gets the keys
     property bool mediaOnBar: true          // "Media on bar" toggle → waybar state.css
     property int  nightTemp: 6000           // hyprsunset colour temperature, 6000 = off

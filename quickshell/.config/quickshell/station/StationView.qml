@@ -3,6 +3,7 @@
 // a number for terminals and shots, arrows move along the arms, Ctrl+arrow branches off the selected tile, Home
 // selects the hub, Enter goes to the selection (the hub opens the dashboard), Esc closes. Right-drag pans.
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
@@ -30,6 +31,8 @@ Scope {
     property bool ready: false                // the picture exists (or gave up) and the opening has started
     property real opened: 0
     property real zoomed: 0
+    property real fade: 0                     // 1 while the view has faded into the real screen
+    readonly property real blurAmount: 0.55   // the wallpaper's softness, 0 to 1
     readonly property int captureGiveUpMs: 250
     readonly property string stateHome: Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")
     property string wallCurrent: ""           // the wallpaper `wall` set, else the theme's
@@ -54,7 +57,12 @@ Scope {
         openAnim.restart()
     }
     Timer { id: captureWait; interval: root.captureGiveUpMs; onTriggered: root.begin() }
-    NumberAnimation { id: openAnim; target: root; property: "opened"; from: 0; to: 1; duration: Station.zoomMs; easing.type: Easing.OutCubic }
+    NumberAnimation { id: openAnim; target: root; property: "opened"; from: 0; to: 1; duration: Station.zoomMs; easing.type: Easing.InOutCubic }
+    SequentialAnimation {
+        id: fadeAnim
+        PauseAnimation { duration: Station.holdMs }
+        NumberAnimation { target: root; property: "fade"; from: 0; to: 1; duration: Station.fadeMs; easing.type: Easing.InOutQuad }
+    }
     SequentialAnimation {
         id: leaveAnim
         PauseAnimation { duration: Station.leaveDelayMs }
@@ -87,7 +95,7 @@ Scope {
     }
     function branchFrom(id) { Station.leaveTo(id, () => Station.branchSelected()) }
     function activate(id) {
-        if (id === "hub") { Station.leaveTo("hub", () => Panel.setOpen(true)); return }
+        if (id === "hub") { Station.leaveTo("hub", Station.openDashboard); return }
         const t = tilesById[id]
         if (t) Station.goTo(t)
     }
@@ -135,13 +143,21 @@ Scope {
 
     Connections {
         target: Station
-        function onLeavingChanged() { if (Station.leaving) leaveAnim.restart() }
+        function onLeavingChanged() {
+            if (Station.leaving) leaveAnim.restart()
+            else { leaveAnim.stop(); root.zoomed = 0 }
+        }
+        function onReleasingChanged() {
+            if (Station.releasing) fadeAnim.restart()
+            else { fadeAnim.stop(); root.fade = 0 }
+        }
         function onShownChanged() {
             if (!Station.shown) { root.armed = false; root.ready = false; return }
             root.armed = true
             root.ready = false
             root.opened = 0
             root.zoomed = 0
+            root.fade = 0
             captureWait.restart()
             root.prefixShift = false
             root.pan = Qt.point(0, 0)
@@ -155,24 +171,35 @@ Scope {
         visible: Station.shown
         anchors { top: true; bottom: true; left: true; right: true }
         exclusionMode: ExclusionMode.Ignore
-        color: root.ready ? Theme.base : "transparent"
+        color: root.ready ? Qt.alpha(Theme.base, 1 - root.fade) : "transparent"
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.namespace: "qs-station"
-        WlrLayershell.keyboardFocus: Station.shown ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+        WlrLayershell.keyboardFocus: Station.shown && !Station.releasing ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
         Item {
             id: stage
             anchors.fill: parent
+            opacity: 1 - root.fade
             focus: true
             Keys.onPressed: event => root.onKey(event)
 
             Image {
+                id: wallImage
                 anchors.fill: parent
-                visible: root.ready && status === Image.Ready
+                visible: false
                 source: root.wallpaper !== "" ? "file://" + root.wallpaper : ""
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
                 sourceSize: Qt.size(stage.width, stage.height)
+            }
+            MultiEffect {
+                anchors.fill: parent
+                visible: root.ready && wallImage.status === Image.Ready
+                source: wallImage
+                autoPaddingEnabled: false
+                blurEnabled: true
+                blur: root.blurAmount
+                blurMax: 48
             }
 
             MouseArea {
@@ -195,16 +222,19 @@ Scope {
                 live: false
                 paintCursor: false
                 anchors.centerIn: parent
-                width: stage.width + (root.tileW - stage.width) * root.opened
-                height: stage.height + (root.tileH - stage.height) * root.opened
+                // it reaches the tile's size by `shrunk` of the way through, and only then fades into the tile
+                readonly property real shrunk: 0.75
+                readonly property real p: Math.min(1, root.opened / shrunk)
+                width: stage.width + (root.tileW - stage.width) * p
+                height: stage.height + (root.tileH - stage.height) * p
                 visible: root.ready && hasContent && root.opened < 1
-                opacity: root.opened < 0.8 ? 1 : (1 - root.opened) / 0.2
+                opacity: root.opened < shrunk ? 1 : (1 - root.opened) / (1 - shrunk)
                 onHasContentChanged: if (hasContent) root.begin()
             }
 
             Item {
                 id: world
-                opacity: root.opened
+                opacity: Math.min(1, root.opened / 0.6)
                 transform: Scale {
                     origin.x: root.cellX(root.selCell) + root.tileW / 2
                     origin.y: root.cellY(root.selCell) + root.tileH / 2
@@ -213,8 +243,9 @@ Scope {
                 }
                 x: stage.width / 2 - root.tileW / 2 - root.cellX(root.selCell) + root.pan.x
                 y: stage.height / 2 - root.tileH / 2 - root.cellY(root.selCell) + root.pan.y
-                Behavior on x { NumberAnimation { duration: root.panMs; easing.type: Easing.OutCubic } }
-                Behavior on y { NumberAnimation { duration: root.panMs; easing.type: Easing.OutCubic } }
+                // the pan animates once the view is open; the opening itself places the world without sliding
+                Behavior on x { enabled: root.opened >= 1; NumberAnimation { duration: root.panMs; easing.type: Easing.InOutCubic } }
+                Behavior on y { enabled: root.opened >= 1; NumberAnimation { duration: root.panMs; easing.type: Easing.InOutCubic } }
 
                 // links, centre to centre, under the tiles; dashed into hidden windows
                 Repeater {
@@ -223,6 +254,9 @@ Scope {
                         id: link
                         required property var modelData
                         readonly property var a: root.cells[modelData.from] || root.cells.hub
+                        // the line runs from edge to edge, so it never shows through a tile
+                        readonly property int sx: Math.sign(modelData.col - a.col)
+                        readonly property int sy: Math.sign(modelData.row - a.row)
                         readonly property bool dashed: (root.tilesById[modelData.id] || {}).branch === "hidden"
                         preferredRendererType: Shape.CurveRenderer
                         ShapePath {
@@ -230,9 +264,12 @@ Scope {
                             strokeWidth: 2
                             fillColor: "transparent"
                             strokeStyle: link.dashed ? ShapePath.DashLine : ShapePath.SolidLine
-                            startX: root.cellX(link.a) + root.tileW / 2
-                            startY: root.cellY(link.a) + root.tileH / 2
-                            PathLine { x: root.cellX(link.modelData) + root.tileW / 2; y: root.cellY(link.modelData) + root.tileH / 2 }
+                            startX: root.cellX(link.a) + root.tileW / 2 * (1 + link.sx)
+                            startY: root.cellY(link.a) + root.tileH / 2 * (1 + link.sy)
+                            PathLine {
+                                x: root.cellX(link.modelData) + root.tileW / 2 * (1 - link.sx)
+                                y: root.cellY(link.modelData) + root.tileH / 2 * (1 - link.sy)
+                            }
                         }
                     }
                 }

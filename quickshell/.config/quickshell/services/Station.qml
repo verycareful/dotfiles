@@ -25,9 +25,12 @@ Singleton {
     property string originId: "hub"              // the dock the screen showed when the view opened: "hub" or a tile id
     property bool fromHub: false                 // the dashboard was up when the view opened; the view closes it once it has a picture of it
     property bool leaving: false                 // the view is zooming into its selection before it closes
-    readonly property int panMs: 180             // the view's pan to a new selection
+    property bool releasing: false               // the zoom is done: the view lets go of the keyboard and fades into the real screen
+    readonly property int panMs: 240             // the view's pan to a new selection
     property int leaveDelayMs: 0                 // the pan the zoom waits for when the selection has to change first
-    readonly property int zoomMs: 240            // the screen shrinking into a tile, or a tile growing to the screen
+    readonly property int zoomMs: 420            // the screen shrinking into a tile, or a tile growing to the screen
+    readonly property int fadeMs: 180            // the view fading out over the screen it has zoomed into
+    property int holdMs: 0                       // how long the view stays opaque after the zoom: the dashboard needs it to appear first
     property var model: ({ tiles: [], positions: [] })
     readonly property var book: new Model.KeyBook()
 
@@ -64,9 +67,11 @@ Singleton {
         pendingPrefix = ""
         endMoveHold()
         leaveTimer.stop()
+        fadeTimer.stop()
         actionTimer.stop()
         actionTimer.action = null
         leaving = false
+        releasing = false
         if (v) {
             fromHub = Panel.open
             Hyprland.refreshToplevels()
@@ -76,9 +81,9 @@ Singleton {
         shown = v
     }
 
-    // Selects `id`, zooms into it, closes the view and then runs `fn`. Closing hands focus back to the window that
-    // had it, so a focus change made while the view is open would be undone; `fn` therefore runs 60 ms after the
-    // view has gone. With the view closed, `fn` runs at once.
+    // Selects `id`, zooms into it, then releases the keyboard and fades the view out over the real screen. Giving the
+    // keyboard back hands focus to the window that had it, which would undo a focus change made earlier, so `fn` runs
+    // 60 ms after the release, while the view is still fading. With the view closed, `fn` runs at once.
     function leaveTo(id, fn) {
         if (!shown) { if (fn) fn(); return }
         if (leaving) return
@@ -89,18 +94,30 @@ Singleton {
         leaving = true
         actionTimer.action = fn
         leaveDelayMs = pans ? panMs : 0
+        holdMs = id === "hub" ? 200 : 0
         leaveTimer.interval = leaveDelayMs + zoomMs
         leaveTimer.restart()
     }
+    // The hub has grown to the whole screen, so the dashboard opens at once instead of rising in.
+    function openDashboard() {
+        Panel.instant = true
+        Panel.setOpen(true)
+        Panel.instant = false
+    }
     // Backing out grows the origin dock again; for the dashboard that means opening it once more.
-    function dismiss() { leaveTo(originId, fromHub ? () => Panel.setOpen(true) : null) }
+    function dismiss() { leaveTo(originId, fromHub ? openDashboard : null) }
     Timer {
         id: leaveTimer
         onTriggered: {
-            root.shown = false
-            root.leaving = false
+            root.releasing = true
             if (actionTimer.action) actionTimer.restart()
+            fadeTimer.restart()
         }
+    }
+    Timer {
+        id: fadeTimer
+        interval: root.holdMs + root.fadeMs
+        onTriggered: { root.shown = false; root.leaving = false; root.releasing = false }
     }
     Timer {
         id: actionTimer
@@ -318,7 +335,7 @@ Singleton {
 
     IpcHandler {
         target: "station"
-        function toggle(): void { if (root.shown) root.dismiss(); else root.setShown(true) }
+        function toggle(): void { if (root.shown && !root.leaving) root.dismiss(); else root.setShown(true) }
         function open(): void   { root.setShown(true) }
         function prefix(p: string): void { root.setShown(true); root.pendingPrefix = p }
         function close(): void  { root.dismiss() }
